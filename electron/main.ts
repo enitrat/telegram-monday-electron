@@ -5,6 +5,9 @@ import {handleRequest} from "./requestHandler";
 let mainWindow: BrowserWindow | null
 let secondWindow: BrowserWindow | null
 
+
+let controller:Controller;
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 
@@ -13,7 +16,6 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 //     ? process.resourcesPath
 //     : app.getAppPath()
 
-const controller = new Controller();
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -41,15 +43,14 @@ async function registerListeners() {
   /**
    * This comes from bridge integration, check bridge.ts
    */
-
-
+  controller = new Controller(mainWindow?.webContents);
   const api = controller.getApi();
   ipcMain.on('syncRequest', (event, request) => {
     const payload = JSON.parse(request)
     console.log(payload)
     const response = handleRequest(api, payload)
     event.returnValue = JSON.stringify(response)
-    // mainWindow?.webContents.send('response', JSON.stringify(response));
+    mainWindow?.webContents.send('response', JSON.stringify(response));
   })
 
   ipcMain.on('asyncRequest', (_, request) => {

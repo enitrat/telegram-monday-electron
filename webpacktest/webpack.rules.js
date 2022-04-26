@@ -8,7 +8,7 @@ module.exports = [
   },
   {
     test: /\.(m?js|node)$/,
-    parser: { amd: false },
+    parser: {amd: false},
     use: {
       loader: '@vercel/webpack-asset-relocator-loader',
       options: {
@@ -25,5 +25,13 @@ module.exports = [
         transpileOnly: true,
       },
     },
+  },
+  {
+    test: /\.(png|jpe?g|gif)$/i,
+    use: [
+      {
+        loader: 'file-loader',
+      },
+    ],
   },
 ];

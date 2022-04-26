@@ -9,8 +9,6 @@ export class MondayController {
 
 
   constructor(apiKey: string, config: any) {
-    console.log(apiKey)
-    console.log(config)
     this._apiKey = apiKey;
     this.config = config;
     this.headers = {

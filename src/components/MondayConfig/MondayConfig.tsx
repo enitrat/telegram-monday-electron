@@ -1,4 +1,20 @@
-import {Button, Flex, FormControl, FormHelperText, FormLabel, Input} from "@chakra-ui/react";
+import {
+  Flex,
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  InputGroup,
+  HStack,
+  InputRightElement,
+  Stack,
+  Button,
+  Heading,
+  Text,
+  useColorModeValue,
+  Link,
+  FormHelperText
+} from '@chakra-ui/react';
 import {useStateConfig} from "../../hooks/useConfig";
 import {mondayConfigParams} from "./constants";
 
@@ -9,19 +25,12 @@ export const MondayConfig = () => {
   const handleSubmit = (e: any) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    let index = 0;
-    //can be improves
-    const data = {
-      board_id: formData.get(mondayConfigParams[index++].name),
-      group_name: formData.get(mondayConfigParams[index++].name),
-      link_column: formData.get(mondayConfigParams[index++].name),
-      last_date_column: formData.get(mondayConfigParams[index++].name),
-      participants_column: formData.get(mondayConfigParams[index++].name),
-      include_pattern: formData.get(mondayConfigParams[index++].name),
-      exclude_pattern: formData.get(mondayConfigParams[index++].name),
-      exclude_members: formData.get(mondayConfigParams[index++].name),
+    const data = {}
+
+    for (const entry of formData.entries()){
+      data[entry[0]]=entry[1];
     }
-    console.log(data);
+    
     window.Main.sendSyncRequest(JSON.stringify({
       method: 'setMondayConfig',
       params: [data]
@@ -32,36 +41,46 @@ export const MondayConfig = () => {
 
   return (
     <>
-      <h1> Monday Config </h1>
-      <Flex>
-        <form onSubmit={handleSubmit}>
-          {mondayConfigParams.map((param) => {
-            return (
-              <FormControl>
-                <FormLabel htmlFor={param.name}></FormLabel>
-                <Input id={param.name} type='text' name={param.name} placeholder={param.placeholder}/>
-                <FormHelperText>{param.helper}</FormHelperText>
-              </FormControl>
-            )
-          })}
-          {/*<FormControl>*/}
-          {/*  <FormLabel htmlFor='board-id'></FormLabel>*/}
-          {/*  <Input id='board-id' type='text' name={"board-id"}/>*/}
-          {/*  <FormHelperText>Your Monday board ID</FormHelperText>*/}
-          {/*</FormControl>*/}
-          {/*<FormControl>*/}
-          {/*  <FormLabel htmlFor='group-name'>session code</FormLabel>*/}
-          {/*  <Input id="group-name" type='text' name={"group-name"}/>*/}
-          {/*  <FormHelperText>The group name inside your monday dashboard</FormHelperText>*/}
-          {/*</FormControl>*/}
-          {/*<FormControl>*/}
-          {/*  <FormLabel htmlFor='link-column'>session code</FormLabel>*/}
-          {/*  <Input id="link-column" type='text' name={"link-column"}/>*/}
-          {/*  <FormHelperText>Your Monday API Key</FormHelperText>*/}
-          {/*</FormControl>*/}
-          <Button type={"submit"}>Submit</Button>
-        </form>
-      </Flex>
+      <Stack align={'center'}>
+        <Heading fontSize={'4xl'} textAlign={'center'}>
+          Enter your Monday Configuration
+        </Heading>
+        <Text fontSize={'md'} color={'gray.400'}>
+          These settings are stored locally and never exposed anywhere
+        </Text>
+      </Stack>
+      <form onSubmit={handleSubmit}>
+        <Box
+          rounded={'lg'}
+          bg={useColorModeValue('white', 'gray.700')}
+          boxShadow={'lg'}
+          p={8}>
+          <Stack spacing={4}>
+            {mondayConfigParams.map((param) => {
+              return (
+                <FormControl id={param.name} isRequired={param.required}>
+                  <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
+                  <Input id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
+                  <FormHelperText>{param.helper}</FormHelperText>
+                </FormControl>
+              )
+            })}
+            <Stack spacing={10}>
+              <Button
+                type={'submit'}
+                loadingText="Submitting"
+                size="lg"
+                bg={'blue.400'}
+                color={'white'}
+                _hover={{
+                  bg: 'blue.500',
+                }}>
+                Sign up
+              </Button>
+            </Stack>
+          </Stack>
+        </Box>
+      </form>
     </>
   )
 }

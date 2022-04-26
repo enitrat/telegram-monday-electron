@@ -1,5 +1,23 @@
-import {Box, Button, Flex, FormControl, FormHelperText, FormLabel, Input} from "@chakra-ui/react";
+import {
+  Flex,
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  InputGroup,
+  HStack,
+  InputRightElement,
+  Stack,
+  Button,
+  Heading,
+  Text,
+  useColorModeValue,
+  Link,
+  FormHelperText
+} from '@chakra-ui/react';
 import {useStateConfig} from "../../hooks/useConfig";
+import {mondayConfigParams} from "../MondayConfig/constants";
+import {keyConfigParams} from "./constants";
 
 const KeyConfig = () => {
 
@@ -8,10 +26,10 @@ const KeyConfig = () => {
   const handleSubmit = (e: any) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const data = {
-      API_ID: formData.get("tg-api"),
-      API_HASH: formData.get("tg-hash"),
-      MONDAY_API_KEY: formData.get("monday-key")
+
+    const data = {}
+    for (const entry of formData.entries()){
+      data[entry[0]]=entry[1];
     }
 
     window.Main.sendSyncRequest(JSON.stringify({
@@ -24,27 +42,48 @@ const KeyConfig = () => {
 
   return (
     <>
-      <h1> Api Keys Config </h1>
-      <Flex>
-        <form onSubmit={handleSubmit}>
-          <FormControl>
-            <FormLabel htmlFor='tg-api'></FormLabel>
-            <Input id='tg-api' type='text' name={"tg-api"}/>
-            <FormHelperText>Your Telegram API ID</FormHelperText>
-          </FormControl>
-          <FormControl>
-            <FormLabel htmlFor='tg-hash'>Telegram API Hash</FormLabel>
-            <Input id="tg-hash" type='text' name={"tg-hash"}/>
-            <FormHelperText>Your Telegram API Hash</FormHelperText>
-          </FormControl>
-          <FormControl>
-            <FormLabel htmlFor='monday-key'>Monday API Key</FormLabel>
-            <Input id="monday-key" type='text' name={"monday-key"}/>
-            <FormHelperText>Your Monday API Key</FormHelperText>
-          </FormControl>
-          <Button type={"submit"}>Submit</Button>
-        </form>
-      </Flex>
+      <Stack align={'center'}>
+        <Heading fontSize={'4xl'} textAlign={'center'}>
+          Enter your API Keys
+        </Heading>
+        <Text fontSize={'lg'} color={'gray.600'}>
+          to connect your telegram account to monday
+        </Text>
+        <Text fontSize={'md'} color={'gray.400'}>
+          These keys are stored locally and never exposed anywhere
+        </Text>
+      </Stack>
+      <form onSubmit={handleSubmit}>
+        <Box
+          rounded={'lg'}
+          bg={useColorModeValue('white', 'gray.700')}
+          boxShadow={'lg'}
+          p={8}>
+          <Stack spacing={4}>
+            {keyConfigParams.map((param) => {
+              return (
+                <FormControl id={param.name} isRequired={param.required}>
+                  <FormLabel>{param.helper}</FormLabel>
+                  <Input id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
+                </FormControl>
+              )
+            })}
+            <Stack spacing={10}>
+              <Button
+                type={'submit'}
+                loadingText="Submitting"
+                size="lg"
+                bg={'blue.400'}
+                color={'white'}
+                _hover={{
+                  bg: 'blue.500',
+                }}>
+                Submit
+              </Button>
+            </Stack>
+          </Stack>
+        </Box>
+      </form>
     </>
   )
 }

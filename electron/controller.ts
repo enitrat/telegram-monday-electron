@@ -7,18 +7,21 @@ import {TelegramController} from "./TelegramController";
 import {MondayController} from "./mondayController";
 import {RateLimiter} from "limiter";
 import {excludeGroup} from "./utils/helpers";
+import {stringify} from "ts-jest/dist/utils/json";
 
 const limiter = new RateLimiter({tokensPerInterval: 22, interval: "minute"});
 
 
 export default class Controller {
+  public windowChannel: Electron.WebContents
   private readonly _mondayStore: ElectronStore;
   private readonly _keyStore: ElectronStore;
   private _telegramClient: TelegramClient | undefined;
   public telegramController: TelegramController | undefined;
   public mondayController: MondayController | undefined;
 
-  constructor() {
+  constructor(windowChannel: Electron.WebContents) {
+    this.windowChannel = windowChannel;
     this._keyStore = new Store({name: 'keyConfig'});
     this._mondayStore = new Store({name: 'mondayConfig'})
   }
@@ -66,7 +69,10 @@ export default class Controller {
 
       await this.startScanning()
     } catch (e) {
-      console.log(e)
+      this.windowChannel.send('scan_update', JSON.stringify({
+          error: e.message
+        })
+      );
     }
   }
 
@@ -166,7 +172,7 @@ export default class Controller {
         if (excludeGroup(this.mondayController!.config, group)) continue;
         let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
         if (foundGroup) continue;
-        const participants = await this.telegramController!.getChatParticipants(group.id)
+        const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
         await limiter.removeTokens(1);
         await this.createItem(targetBoard, group, participants)
       }

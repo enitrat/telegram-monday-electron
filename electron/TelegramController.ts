@@ -3,6 +3,7 @@ import {Api, TelegramClient} from "telegram";
 import {waitPromptInput} from "./helpers";
 import {RateLimiter} from "limiter";
 import bigInt from "big-integer";
+import {RPCError} from "telegram/errors";
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#"
 const limiter = new RateLimiter({tokensPerInterval: 22, interval: "minute"});
@@ -83,55 +84,60 @@ export class TelegramController {
   async getDialogs() {
     if (!this.telegramClient) throw Error("Can't connect to telegram")
     let fmtGroups = [];
-      for await (const dialog of (this.telegramClient.iterDialogs)({})) {
-        if (!dialog.entity) continue;
-        const link = `${BASE_GROUP_URL}-${dialog.entity.id}`;
+    for await (const dialog of (this.telegramClient.iterDialogs)({})) {
+      if (!dialog.entity) continue;
+      const link = `${BASE_GROUP_URL}-${dialog.entity.id}`;
 
-        //TODO SUPPORT FOR 1:1 USERS
-        if (dialog.entity.className.toLowerCase() === "user") {
-          if (dialog.entity instanceof Api.User) {
-            const fullName = `${dialog.entity.firstName || dialog.entity.username} ${dialog.entity.lastName || ''}`;
-            if (fullName.includes('export')) {
-              console.log({
-                id: dialog.entity.id,
-                date: dialog.date,
-                title: fullName,
-                lastMsg: dialog.message?.message,
-                lastMsgDate: dialog.message?.date,
-                type: dialog.entity.className,
-                link: link,
-              })
-            }
-            continue
+      //TODO SUPPORT FOR 1:1 USERS
+      if (dialog.entity.className.toLowerCase() === "user") {
+        if (dialog.entity instanceof Api.User) {
+          const fullName = `${dialog.entity.firstName || dialog.entity.username} ${dialog.entity.lastName || ''}`;
+          if (fullName.includes('export')) {
+            console.log({
+              id: dialog.entity.id,
+              date: dialog.date,
+              title: fullName,
+              lastMsg: dialog.message?.message,
+              lastMsgDate: dialog.message?.date,
+              type: dialog.entity.className,
+              link: link,
+            })
           }
+          continue
         }
-        //END OF USER SUPPORT
-
-        fmtGroups.push({
-          id: dialog.entity.id,
-          date: dialog.date,
-          title: (dialog.entity as any).title || 'no title', //sometime no title available
-          lastMsg: dialog.message?.message,
-          lastMsgDate: dialog.message?.date,
-          type: dialog.entity.className,
-          link: link,
-        })
       }
-      return fmtGroups
+      //END OF USER SUPPORT
+
+      fmtGroups.push({
+        id: dialog.entity.id,
+        date: dialog.date,
+        title: (dialog.entity as any).title || 'no title', //sometime no title available
+        lastMsg: dialog.message?.message,
+        lastMsgDate: dialog.message?.date,
+        type: dialog.entity.className,
+        link: link,
+      })
+    }
+    return fmtGroups
   }
 
-  async getChatParticipants(groupId: bigInt.BigInteger) {
+  async getChatParticipants(groupName: string, groupId: bigInt.BigInteger) {
     if (!this.telegramClient) throw Error("Couldn't connect to telegram")
-    const participants = await this.telegramClient.getParticipants(groupId, {});
-    let fmtParticipants = participants.map((participant) => {
-      // return {
-      //   id: participant.id,
-      //   username: participant.username,
-      //   firstName: participant.firstName,
-      // }
-      return participant.username
-    })
-    return fmtParticipants
+
+    try {
+      const participants = await this.telegramClient.getParticipants(groupId, {});
+      let fmtParticipants = participants.map((participant) => {
+        // return {
+        //   id: participant.id,
+        //   username: participant.username,
+        //   firstName: participant.firstName,
+        // }
+        return participant.username
+      })
+      return fmtParticipants
+    } catch (e) {
+      if (e.code === 400) throw new Error('Admin rights required to see participants for ' + groupName)
+    }
   }
 
 

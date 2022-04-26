@@ -1,6 +1,7 @@
 import {useStateConfig} from "../hooks/useConfig";
 import {useEffect, useState} from "react";
-import {Button} from "@chakra-ui/react";
+import {Button, Link} from "@chakra-ui/react";
+import {Link as ReachLink} from "react-router-dom"
 
 export const Ready = () => {
   const {keyConfig, mondayConfig} = useStateConfig()
@@ -14,7 +15,7 @@ export const Ready = () => {
   }
   useEffect(() => {
     window.Main.sendAsyncRequest(JSON.stringify({method: 'startTelegram'}));
-    window.Main.on('telegram-update', handleTelegramUpdate)
+    window.Main.on('scan_update', handleTelegramUpdate)
   });
   return (
     <>
@@ -23,7 +24,7 @@ export const Ready = () => {
       {tgMessages.map((message) => {
         return <p>{message}</p>
       })}
-
+      <Link as={ReachLink} to='/'>Go back home</Link>
     </>
 
   )
