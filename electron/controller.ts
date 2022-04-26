@@ -16,6 +16,7 @@ export default class Controller {
   public windowChannel: Electron.WebContents
   private readonly _mondayStore: ElectronStore;
   private readonly _keyStore: ElectronStore;
+  private readonly _optionalStore: ElectronStore;
   private scanInterval;
   public telegramController: TelegramController | undefined;
   public mondayController: MondayController | undefined;
@@ -25,6 +26,9 @@ export default class Controller {
     this.windowChannel = windowChannel;
     this._keyStore = new Store({name: 'keyConfig'});
     this._mondayStore = new Store({name: 'mondayConfig'})
+    this._optionalStore = new Store({name: 'optionalConfig'})
+
+
   }
 
   getKeyConfig(): any {
@@ -35,14 +39,27 @@ export default class Controller {
     return this._mondayStore.get('config');
   }
 
+  getOptionalConfig(): any {
+    return this._optionalStore.get('config');
+  }
+
+  getFullConfig():any{
+    return {
+      ...this.getMondayConfig(),
+      ...this.getOptionalConfig(),
+    }
+  }
+
   setKeyConfig(config: any) {
-    console.log('setting keys')
     this._keyStore.set('config', config)
-    console.log(this._keyStore.get('config'))
   }
 
   setMondayConfig(config: any) {
     this._mondayStore.set('config', config);
+  }
+
+  setOptionalConfig(config: any) {
+    this._optionalStore.set('config', config);
   }
 
 
@@ -62,6 +79,24 @@ export default class Controller {
     this.windowChannel.send('scan_update', message);
   }
 
+  async createNewBoard(){
+    if(!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
+    try {
+      await this.mondayController.createBoard({});
+      await this.mondayController.createBoardGroup({});
+      await this.mondayController.createBoardColumns({});
+      this.setMondayConfig(this.mondayController.config)
+      this.windowChannel.send('create_board',JSON.stringify({
+        result:"success",
+        data:this.getMondayConfig()
+      }))
+
+    }catch(e){
+      console.log(e)
+      console.log("Couldn't create board")
+    }
+  }
+
   async stopTelegram(){
     clearInterval(this.scanInterval)
     await this.telegramController.stopClient();
@@ -75,13 +110,14 @@ export default class Controller {
   async startTelegram() {
     try {
       this.telegramController = new TelegramController(this.getKeyConfig())
-      this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getMondayConfig())
+      if(!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
       await this.telegramController.startClient()
       const newConfig = await this.telegramController.connectTelegram(this.getKeyConfig());
       if (newConfig) this.setKeyConfig(newConfig);
 
       await this.startScanning()
     } catch (e) {
+      console.log(e)
       this.sendWindowMessage(JSON.stringify({
         type: "error",
         text: e.message
@@ -95,6 +131,7 @@ export default class Controller {
     await this.fillBoard();
 
     this.scanInterval = setInterval(async () => {
+      console.log('should scan')
       await this.fillBoard();
     }, 60 * 1000)
 
@@ -149,7 +186,6 @@ export default class Controller {
    * @returns {Promise<void>}
    */
   async updateItem(targetBoard: any, group: any, item: any) {
-    const client = this.telegramController?.telegramClient
     let lastMsgDate = new Date(group.lastMsgDate * 1000)
     const elementsIds = this.mondayController!.getElementsIds(targetBoard)
     let chatName = group.title.toString();
@@ -185,6 +221,7 @@ export default class Controller {
     }));
     const client = this.telegramController!.telegramClient;
     let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
+    console.log(accountGroups,exportedChats,targetBoard)
     for (const group of accountGroups) {
       if (excludeGroup(this.mondayController!.config, group)) continue;
       let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());

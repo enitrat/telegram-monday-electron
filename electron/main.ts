@@ -59,6 +59,8 @@ async function registerListeners() {
   })
 
 
+
+
 }
 
 app.on('ready', createWindow)
@@ -67,6 +69,9 @@ app.on('ready', createWindow)
   .catch(e => console.error(e))
 
 app.on('window-all-closed', () => {
+  controller.stopTelegram();
+
+
   if (process.platform !== 'darwin') {
     app.quit()
   }

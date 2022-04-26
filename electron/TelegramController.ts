@@ -132,7 +132,8 @@ export class TelegramController {
       })
       return fmtParticipants
     } catch (e) {
-      if (e.code === 400) throw new Error('Admin rights required to see participants for ' + groupName)
+      console.log(e)
+      // if (e.code === 400) throw new Error('Admin rights required to see participants for ' + groupName)
     }
   }
 
