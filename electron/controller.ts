@@ -16,9 +16,10 @@ export default class Controller {
   public windowChannel: Electron.WebContents
   private readonly _mondayStore: ElectronStore;
   private readonly _keyStore: ElectronStore;
-  private _telegramClient: TelegramClient | undefined;
+  private scanInterval;
   public telegramController: TelegramController | undefined;
   public mondayController: MondayController | undefined;
+
 
   constructor(windowChannel: Electron.WebContents) {
     this.windowChannel = windowChannel;
@@ -57,30 +58,43 @@ export default class Controller {
     return api;
   }
 
+  sendWindowMessage(message) {
+    this.windowChannel.send('scan_update', message);
+  }
+
+  async stopTelegram(){
+    clearInterval(this.scanInterval)
+    await this.telegramController.stopClient();
+    this.sendWindowMessage(
+      JSON.stringify({
+        type:"info",
+        text:"Telegram client stopped"
+      }))
+  }
+
   async startTelegram() {
     try {
       this.telegramController = new TelegramController(this.getKeyConfig())
       this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getMondayConfig())
       await this.telegramController.startClient()
       const newConfig = await this.telegramController.connectTelegram(this.getKeyConfig());
-      console.log('new config')
-      console.log(newConfig)
       if (newConfig) this.setKeyConfig(newConfig);
 
       await this.startScanning()
     } catch (e) {
-      this.windowChannel.send('scan_update', JSON.stringify({
-          error: e.message
-        })
-      );
+      this.sendWindowMessage(JSON.stringify({
+        type: "error",
+        text: e.message
+      }))
     }
+
   }
 
   async startScanning() {
     await this.updateBoard()
     await this.fillBoard();
 
-    setInterval(async () => {
+    this.scanInterval = setInterval(async () => {
       await this.fillBoard();
     }, 60 * 1000)
 
@@ -88,7 +102,6 @@ export default class Controller {
 
 
   async scanGroups() {
-    console.log("Scanning groups...");
     await limiter.removeTokens(1);
     const targetBoard = await this.mondayController!.getBoard();
     if (!targetBoard) throw new Error(`Couldn't get Monday board with id ${this.mondayController?.config.board_id}`)
@@ -104,25 +117,26 @@ export default class Controller {
    * @returns {Promise<void>}
    */
   async updateBoard() {
-    try {
-      let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
-      for (const group of accountGroups) {
-        if (excludeGroup(this.mondayController!.config, group)) continue;
-        let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
-        if (!exportedItem) continue;
-        let lastMsgDate = group.lastMsgDate! * 1000
-        const exportedDate = JSON.parse(exportedItem.lastMsg)
-        let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
+    this.sendWindowMessage(JSON.stringify({
+      type: "info",
+      text: "Updating board..."
+    }));
+    let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
+    for (const group of accountGroups) {
+      if (excludeGroup(this.mondayController!.config, group)) continue;
+      let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+      if (!exportedItem) continue;
+      let lastMsgDate = group.lastMsgDate! * 1000
+      const exportedDate = JSON.parse(exportedItem.lastMsg)
+      let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
 
-        if (parsedExportedDate === lastMsgDate) {
-          continue;
-        }
-        await limiter.removeTokens(1);
-        await this.updateItem(targetBoard, group, exportedItem)
+      if (parsedExportedDate === lastMsgDate) {
+        continue;
       }
-    } catch (e) {
-      console.log(e);
+      await limiter.removeTokens(1);
+      await this.updateItem(targetBoard, group, exportedItem)
     }
+
   }
 
 
@@ -136,97 +150,96 @@ export default class Controller {
    */
   async updateItem(targetBoard: any, group: any, item: any) {
     const client = this.telegramController?.telegramClient
-    try {
-      let lastMsgDate = new Date(group.lastMsgDate * 1000)
-      const elementsIds = this.mondayController!.getElementsIds(targetBoard)
-      let chatName = group.title.toString();
-      let chatLink = group.link;
-      const dateObject = {
-        date: lastMsgDate.toISOString().split('T')[0],
-        time: lastMsgDate.toLocaleTimeString('en-GB'),
-      }
-
-      let query = `mutation($board: Int!, $itemId: Int!, $columnVals: JSON!) {change_multiple_column_values ( board_id:$board, item_id:$itemId, column_values:$columnVals) {name} }`
-
-      let vars = {
-        "board": elementsIds.boardId,
-        "itemId": parseInt(item.id),
-        "columnVals": JSON.stringify({
-          [elementsIds.lastMessageDate]: dateObject
-        })
-      }
-      const updatedItem = await this.mondayController!.updateItem(query, vars)
-      console.log(`chat ${chatName} was updated ! | ${chatLink}`);
-    } catch (e) {
-      console.log(e);
-
+    let lastMsgDate = new Date(group.lastMsgDate * 1000)
+    const elementsIds = this.mondayController!.getElementsIds(targetBoard)
+    let chatName = group.title.toString();
+    let chatLink = group.link;
+    const dateObject = {
+      date: lastMsgDate.toISOString().split('T')[0],
+      time: lastMsgDate.toLocaleTimeString('en-GB'),
     }
+
+    let query = `mutation($board: Int!, $itemId: Int!, $columnVals: JSON!) {change_multiple_column_values ( board_id:$board, item_id:$itemId, column_values:$columnVals) {name} }`
+
+    let vars = {
+      "board": elementsIds.boardId,
+      "itemId": parseInt(item.id),
+      "columnVals": JSON.stringify({
+        [elementsIds.lastMessageDate]: dateObject
+      })
+    }
+    const updatedItem = await this.mondayController!.updateItem(query, vars)
+    // console.log(`chat ${chatName} was updated ! | ${chatLink}`);
+    this.sendWindowMessage(JSON.stringify({
+      type: "info",
+      text: `chat ${chatName} was updated ! | ${chatLink}`
+    }));
+
 
   }
 
   async fillBoard() {
+    this.sendWindowMessage(JSON.stringify({
+      type: "info",
+      text: "Searching for new chats..."
+    }));
     const client = this.telegramController!.telegramClient;
-    try {
-      let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
-      for (const group of accountGroups) {
-        if (excludeGroup(this.mondayController!.config, group)) continue;
-        let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
-        if (foundGroup) continue;
-        const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
-        await limiter.removeTokens(1);
-        await this.createItem(targetBoard, group, participants)
-      }
-    } catch (e) {
-      console.log(e);
+    let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
+    for (const group of accountGroups) {
+      if (excludeGroup(this.mondayController!.config, group)) continue;
+      let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+      if (foundGroup) continue;
+      const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
+      await limiter.removeTokens(1);
+      await this.createItem(targetBoard, group, participants)
     }
   }
 
   async createItem(targetBoard: any, group: any, participants: any) {
     const client = this.telegramController?.telegramClient;
-    try {
-      //Get all elements ids from the board
-      const elementsIds = this.mondayController!.getElementsIds(targetBoard)
-      let chatName = group.title.toString();
-      let lastMsgDate = new Date(group.lastMsgDate * 1000)
+    //Get all elements ids from the board
+    const elementsIds = this.mondayController!.getElementsIds(targetBoard)
+    let chatName = group.title.toString();
+    let lastMsgDate = new Date(group.lastMsgDate * 1000)
 
-      const lastMsgDateFmt = {
-        date: lastMsgDate.toISOString().split('T')[0],
-        time: lastMsgDate.toLocaleTimeString('en-GB'),
-      }
-
-      let chatLink = group.link;
-
-      //Don't sync the group if a member 'username' is a participant of the group.
-      //Undefined participants means that the user doesn't have admin rights to see who's inside the group.
-      if (participants) participants = participants.flatMap((participant: any) => {
-        if (participant) return participant.toLowerCase();
-        return []
-      });
-
-      if (participants && participants.some(
-        (username: any) => this.mondayController!.config.exclude_members.includes(username.toLowerCase()))
-      ) {
-        return;
-      }
-      let query = `mutation ($board: Int!, $group: String!, $myItemName: String!, $columnVals: JSON!) { create_item (board_id: $board, group_id:$group, item_name:$myItemName, column_values:$columnVals) { id } }`;
-      let vars = {
-        "board": elementsIds.boardId,
-        "group": elementsIds.targetGroup,
-        "myItemName": chatName,
-        "columnVals": JSON.stringify({
-          [elementsIds.linkColumn]: chatLink,
-          [elementsIds.lastMessageDate]: lastMsgDateFmt,
-          [elementsIds.participantsCol]: participants ? JSON.stringify(participants) : ""
-        })
-      }
-
-      await this.mondayController!.createItem(query, vars);
-      console.log(`New entry was created for chat ${chatName} | ${chatLink}`);
-    } catch (e) {
-      console.log(e);
-      console.log(group.id)
-
+    const lastMsgDateFmt = {
+      date: lastMsgDate.toISOString().split('T')[0],
+      time: lastMsgDate.toLocaleTimeString('en-GB'),
     }
+
+    let chatLink = group.link;
+
+    //Don't sync the group if a member 'username' is a participant of the group.
+    //Undefined participants means that the user doesn't have admin rights to see who's inside the group.
+    if (participants) participants = participants.flatMap((participant: any) => {
+      if (participant) return participant.toLowerCase();
+      return []
+    });
+
+    if (participants && participants.some(
+      (username: any) => this.mondayController!.config.exclude_members.includes(username.toLowerCase()))
+    ) {
+      return;
+    }
+    let query = `mutation ($board: Int!, $group: String!, $myItemName: String!, $columnVals: JSON!) { create_item (board_id: $board, group_id:$group, item_name:$myItemName, column_values:$columnVals) { id } }`;
+    let vars = {
+      "board": elementsIds.boardId,
+      "group": elementsIds.targetGroup,
+      "myItemName": chatName,
+      "columnVals": JSON.stringify({
+        [elementsIds.linkColumn]: chatLink,
+        [elementsIds.lastMessageDate]: lastMsgDateFmt,
+        [elementsIds.participantsCol]: participants ? JSON.stringify(participants) : ""
+      })
+    }
+
+    await this.mondayController!.createItem(query, vars);
+    // console.log(`New entry was created for chat ${chatName} | ${chatLink}`);
+    this.sendWindowMessage(JSON.stringify({
+      type: "info",
+      text: `New entry was created for chat ${chatName} | ${chatLink}`
+    }));
+
   }
 
 

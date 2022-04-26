@@ -58,6 +58,12 @@ export class TelegramController {
     });
   }
 
+  async stopClient(){
+    if (!this.telegramClient) throw Error("Telegram already stopped");
+    await this.telegramClient.destroy()
+    this.telegramClient = undefined;
+  }
+
   async connectTelegram(config: any) {
     console.log('connecting telegram with config')
     console.log(config)
@@ -71,18 +77,8 @@ export class TelegramController {
   }
 
 
-  async scanGroups() {
-    console.log("Scanning groups...");
-    await limiter.removeTokens(1);
-    // const targetBoard = await getBoard();
-    // let exportedChats = await getExportedChats(targetBoard);
-    // if (!exportedChats) throw Error("couldn't get board chats");
-    // const accountGroups = await getDialogs(client);
-    // return {accountGroups: accountGroups, exportedChats: exportedChats, targetBoard: targetBoard}
-  }
-
   async getDialogs() {
-    if (!this.telegramClient) throw Error("Can't connect to telegram")
+    if (!this.telegramClient.connected) throw Error("Telegram disconnected")
     let fmtGroups = [];
     for await (const dialog of (this.telegramClient.iterDialogs)({})) {
       if (!dialog.entity) continue;
@@ -122,7 +118,7 @@ export class TelegramController {
   }
 
   async getChatParticipants(groupName: string, groupId: bigInt.BigInteger) {
-    if (!this.telegramClient) throw Error("Couldn't connect to telegram")
+    if (!this.telegramClient.connected) throw Error("Telegram disconnected")
 
     try {
       const participants = await this.telegramClient.getParticipants(groupId, {});
