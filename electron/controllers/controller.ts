@@ -49,7 +49,8 @@ export default class Controller {
   setKeyConfig(config: any) {
     if(!config) config = null;
     this._keyStore.set('config', config)
-    this.mondayController.setApiKey(undefined);
+    //TODO check this
+    this.mondayController.setApiKey(config.MONDAY_API_KEY);
   }
 
   setMondayConfig(config: any) {

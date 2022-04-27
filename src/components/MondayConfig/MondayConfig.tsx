@@ -18,6 +18,7 @@ import {
 import {useStateConfig} from "../../hooks/useConfig";
 import {mondayConfigParams} from "./constants";
 import {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 
 export const MondayConfig = () => {
 
@@ -25,6 +26,17 @@ export const MondayConfig = () => {
 
   const [init, setInit] = useState(true)
   const [createNew, setCreateNew] = useState(false)
+  const [currentConfig,setCurrentConfig] = useState<any>()
+  const navigate = useNavigate()
+
+  useEffect(()=>{
+    const mondayConfig = window.Main.sendSyncRequest({
+      method: 'getMondayConfig'
+    })
+
+    setCurrentConfig(mondayConfig);
+
+  },[])
 
   const handleNewBoard = () => {
     setInit(false);
@@ -33,13 +45,14 @@ export const MondayConfig = () => {
       method: 'createNewBoard',
     });
 
-    window.Main.on('create_board',(message)=>{
-      if(message.result==="success"){
+    window.Main.on('create_board', (message) => {
+      if (message.result === "success") {
         setMondayConfig(message.data)
-      }else{
+      } else {
         //TODO catch this err somewhere
         console.log('there was an error')
       }
+      navigate('/config');
     })
   }
 
@@ -57,68 +70,76 @@ export const MondayConfig = () => {
       params: [data]
     });
     setMondayConfig(data);
+    navigate('/config')
   }
 
   return (
-    <>
-      {init &&
-      <>
-        <Button onClick={handleNewBoard}>
-          Create a new board
-        </Button>
-        <Button onClick={() => {
-          setInit(false);
-          setCreateNew(false);
-        }}>
-          Use an existing board (requires proper configuration)
-        </Button>
-        <Text>If it exists, it will delete and replace a board called "Telegram Board"</Text>
-      </>
-      }
-      {!init && !createNew &&
-      <>
-        <Stack align={'center'}>
-          <Heading fontSize={'4xl'} textAlign={'center'}>
-            Enter your Monday Configuration
-          </Heading>
-          <Text fontSize={'md'} color={'gray.400'}>
-            These settings are stored locally and never exposed anywhere
-          </Text>
-        </Stack>
-        <form onSubmit={handleSubmit}>
-          <Box
-            rounded={'lg'}
-            bg={useColorModeValue('white', 'gray.700')}
-            boxShadow={'lg'}
-            p={8}>
-            <Stack spacing={4}>
-              {mondayConfigParams.map((param) => {
-                return (
-                  <FormControl id={param.name} isRequired={param.required}>
-                    <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
-                    <Input id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
-                    <FormHelperText>{param.helper}</FormHelperText>
-                  </FormControl>
-                )
-              })}
-              <Stack spacing={10}>
-                <Button
-                  type={'submit'}
-                  loadingText="Submitting"
-                  size="lg"
-                  bg={'blue.400'}
-                  color={'white'}
-                  _hover={{
-                    bg: 'blue.500',
-                  }}>
-                  Sign up
-                </Button>
+    <Flex
+      minH={'100vh'}
+      align={'center'}
+      justify={'center'}
+      bg={useColorModeValue('gray.50', 'gray.800')}>
+
+      <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
+        {init &&
+        <>
+          <Button onClick={handleNewBoard}>
+            Create a new board
+          </Button>
+          <Button onClick={() => {
+            setInit(false);
+            setCreateNew(false);
+          }}>
+            Use an existing board (requires proper configuration)
+          </Button>
+          <Text>If it exists, it will delete and replace a board called "Telegram Board"</Text>
+        </>
+        }
+        {!init && !createNew &&
+        <>
+          <Stack align={'center'}>
+            <Heading fontSize={'4xl'} textAlign={'center'}>
+              Enter your Monday Configuration
+            </Heading>
+            <Text fontSize={'md'} color={'gray.400'}>
+              These settings are stored locally and never exposed anywhere
+            </Text>
+          </Stack>
+          <form onSubmit={handleSubmit}>
+            <Box
+              rounded={'lg'}
+              bg={useColorModeValue('white', 'gray.700')}
+              boxShadow={'lg'}
+              p={8}>
+              <Stack spacing={4}>
+                {mondayConfigParams.map((param) => {
+                  return (
+                    <FormControl id={param.name} isRequired={param.required}>
+                      <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
+                      <Input defaultValue={currentConfig ? currentConfig![param.name]||"" : ""} id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
+                      <FormHelperText>{param.helper}</FormHelperText>
+                    </FormControl>
+                  )
+                })}
+                <Stack spacing={10}>
+                  <Button
+                    type={'submit'}
+                    loadingText="Submitting"
+                    size="lg"
+                    bg={'blue.400'}
+                    color={'white'}
+                    _hover={{
+                      bg: 'blue.500',
+                    }}>
+                    Save
+                  </Button>
+                </Stack>
               </Stack>
-            </Stack>
-          </Box>
-        </form>
-      </>
-      }
-    </>
+            </Box>
+          </form>
+        </>
+        }
+      </Stack>
+    </Flex>
   )
 }

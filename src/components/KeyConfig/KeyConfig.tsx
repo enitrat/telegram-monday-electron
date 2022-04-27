@@ -18,10 +18,26 @@ import {
 import {useStateConfig} from "../../hooks/useConfig";
 import {mondayConfigParams} from "../MondayConfig/constants";
 import {keyConfigParams} from "./constants";
+import {useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
 
 const KeyConfig = () => {
 
   const {setKeyConfig} = useStateConfig();
+  const navigate = useNavigate();
+  const [currentConfig,setCurrentConfig] = useState<any>()
+
+
+  useEffect(()=>{
+    const keyConfig = window.Main.sendSyncRequest({
+      method: 'getKeyConfig'
+    })
+
+    setCurrentConfig(keyConfig);
+
+  },[])
+
+
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
@@ -37,11 +53,18 @@ const KeyConfig = () => {
       params: [data]
     });
     setKeyConfig(data);
+    navigate('/config')
 
   }
 
   return (
-    <>
+    <Flex
+      minH={'100vh'}
+      align={'center'}
+      justify={'center'}
+      bg={useColorModeValue('gray.50', 'gray.800')}>
+
+      <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
       <Stack align={'center'}>
         <Heading fontSize={'4xl'} textAlign={'center'}>
           Enter your API Keys
@@ -64,7 +87,7 @@ const KeyConfig = () => {
               return (
                 <FormControl id={param.name} isRequired={param.required}>
                   <FormLabel>{param.helper}</FormLabel>
-                  <Input id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
+                  <Input defaultValue={currentConfig ? currentConfig![param.name]||"" : ""} id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
                 </FormControl>
               )
             })}
@@ -84,7 +107,8 @@ const KeyConfig = () => {
           </Stack>
         </Box>
       </form>
-    </>
+      </Stack>
+    </Flex>
   )
 }
 

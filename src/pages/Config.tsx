@@ -27,21 +27,11 @@ const Config = (props: any) => {
 
   useEffect(() => {
     if (keyConfig && mondayConfig) navigate('/ready');
+    if (!keyConfig) navigate('/key-config')
+    if (!mondayConfig) navigate('/monday-config')
   }, [keyConfig, mondayConfig])
 
-  return (
-    <Flex
-      minH={'100vh'}
-      align={'center'}
-      justify={'center'}
-      bg={useColorModeValue('gray.50', 'gray.800')}>
-
-      <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
-        {!keyConfig && <KeyConfig/>}
-        {keyConfig && !mondayConfig && <MondayConfig/>}
-      </Stack>
-    </Flex>
-  )
+  return (<></>)
 }
 
 export default Config;

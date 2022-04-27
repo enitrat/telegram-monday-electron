@@ -6,6 +6,7 @@ import tgLogo from "../assets/Telegram_logo.svg.png"
 import {Box, Button, chakra, Flex, Heading} from "@chakra-ui/react";
 import Config from "./Config";
 import {isValidMotionProp, motion} from "framer-motion";
+import Settings from "../components/Settings";
 
 
 const ChakraBox = chakra(motion.div, {
@@ -49,7 +50,7 @@ const Home = () => {
 
   // @ts-ignore
   return (
-    <Flex flexDir={'column'} height={'100vh'} padding={'25px'} alignItems={'center'} justifyContent={'center'}>
+    <Flex flexDir={'column'} height={'100vh-40px'} padding={'25px'} alignItems={'center'} justifyContent={'center'}>
       <Flex flexDir={'row'} alignItems={'center'} justifyContent={'center'} gap={'50px'} marginBottom={'50px'}>
         <Box maxWidth={"200px"} maxHeight={"200px"}>
           <Image

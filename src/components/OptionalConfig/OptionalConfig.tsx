@@ -42,7 +42,7 @@ const OptionalConfig = (props) => {
       params: [data]
     });
     setAdditionalConfig(data);
-    props.setReady(true)
+    props.setRunning(true)
   }
 
   useEffect(() => {
@@ -55,9 +55,11 @@ const OptionalConfig = (props) => {
 
   return (
     <Flex
-      minH={'100vh'}
+      minH={'100vh - 40px'}
       align={'center'}
       justify={'center'}
+      marginX={'200px'}
+      borderRadius={'30px'}
       bg={useColorModeValue('gray.50', 'gray.800')}>
       <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
         <Stack align={'center'}>
@@ -74,7 +76,7 @@ const OptionalConfig = (props) => {
             <Stack spacing={4}>
               {additionalConfigParams.map((param) => {
                 return (
-                  <Box cursor={disabled ? 'not-allowed':null}
+                  <Box key={param.name} cursor={disabled ? 'not-allowed':null}
                   >
                   <Box pointerEvents={disabled ? 'none':null}
                   >

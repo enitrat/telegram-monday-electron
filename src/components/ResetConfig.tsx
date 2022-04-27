@@ -11,26 +11,26 @@ const ResetConfig = () => {
 
   const resetKeyConfig = () => {
     setKeyConfig(undefined)
-    window.Main.sendSyncRequest({
-      method: 'setKeyConfig',
-      params: [undefined]
-    });
-    navigate('/')
+    // window.Main.sendSyncRequest({
+    //   method: 'setKeyConfig',
+    //   params: [undefined]
+    // });
+    navigate('/key-config')
   }
 
   const resetMondayConfig = () => {
     setMondayConfig(undefined)
-    window.Main.sendSyncRequest({
-      method: 'setMondayConfig',
-      params: [undefined]
-    });
-    navigate('/')
+    // window.Main.sendSyncRequest({
+    //   method: 'setMondayConfig',
+    //   params: [undefined]
+    // });
+    navigate('/monday-config')
   }
 
   return (
     <>
-      <Button onClick={resetKeyConfig}>Reset your API Keys</Button>
-      <Button onClick={resetMondayConfig}>Reset your Monday configuration</Button>
+      <Button variant={'ghost'} colorScheme={'blue'} onClick={resetKeyConfig}>Edit your API Keys</Button>
+      <Button variant={'ghost'} colorScheme={'yellow'} onClick={resetMondayConfig}>Edit your Monday configuration</Button>
     </>
   )
 }
