@@ -5,7 +5,7 @@ import {
   FormControl,
   FormHelperText,
   FormLabel,
-  Heading,
+  Heading, HStack,
   Input,
   Stack,
   Text,
@@ -16,20 +16,41 @@ import {MondayConfig} from "../MondayConfig/MondayConfig";
 import {mondayConfigParams} from "../MondayConfig/constants";
 import {useStateConfig} from "../../hooks/useConfig";
 import {additionalConfigParams, secondaryBoardConfig} from "./constants";
-import FormItem from "../FormItem";
+import FormItem from "./FormItem";
+import IncludeItem from "./IncludeItem";
+import {useBoardState} from "../../hooks/useBoard";
+import {DeleteIcon} from "@chakra-ui/icons";
 
 const OptionalConfig = (props) => {
 
   const {additionalConfig, setAdditionalConfig} = useStateConfig()
-  const [secondaryBoard, setSecondaryBoard] = useState<boolean>()
   const [disabled, setDisabled] = useState<boolean>(true)
+  const [keywordItems, setKeywordItems] = useState<any[]>([])
 
+  const addKeyword = () => {
+    //Just need to add an item with empty values
+    const newItem =
+      {
+        value: "",
+        target: ""
+      }
+    setKeywordItems([...keywordItems, newItem])
+  }
+
+  const deleteKeyword = (index) => {
+    //splice mutates the state directly and its not what we want.
+    let left = keywordItems.slice(0, index);   // Everything before configs[index]
+    let right = keywordItems.slice(index + 1); // Everything after configs[index]
+    const newItems = [...left, ...right];
+    setKeywordItems(newItems)
+  }
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const data = {}
 
+    //Regular entries
     for (const entry of formData.entries()) {
       data[entry[0]] = entry[1];
       if (entry[0] === "exclude_members") {
@@ -37,8 +58,10 @@ const OptionalConfig = (props) => {
         console.log(participants)
       }
     }
-    data['secondary_board'] = secondaryBoard;
 
+    //Include_keywords list
+    data['include_keywords'] = keywordItems;
+    console.log(data)
     window.Main.sendSyncRequest({
       method: 'setOptionalConfig',
       params: [data]
@@ -53,9 +76,8 @@ const OptionalConfig = (props) => {
     })
     if (!storedConfig) storedConfig = {}
     console.log('board')
-    console.log(storedConfig.secondary_board )
-    setSecondaryBoard(storedConfig.secondary_board);
     setAdditionalConfig(storedConfig);
+    setKeywordItems(storedConfig.include_keywords)
   }, [])
 
   return (
@@ -84,27 +106,57 @@ const OptionalConfig = (props) => {
                   <FormItem param={param} additionalConfig={additionalConfig} disabled={disabled}/>
                 )
               })}
-              <Box cursor={disabled ? 'not-allowed':null}
+              <Box cursor={disabled ? 'not-allowed' : null}
               >
-                <Box pointerEvents={disabled ? 'none':null}
+                <Box pointerEvents={disabled ? 'none' : null}
                 >
-              {secondaryBoard && <Checkbox defaultChecked={true} onChange={() => setSecondaryBoard(!secondaryBoard)}>second board for 1:1</Checkbox>}
-              {!secondaryBoard && <Checkbox defaultChecked={false} onChange={() => setSecondaryBoard(!secondaryBoard)}>second board for 1:1</Checkbox>}
+
+                  {keywordItems.map((item, index) => {
+                    return (
+                      <>
+                        <Flex flexDir={"row"} justifyContent={'center'} alignItems={'center'} marginTop={'10px'}>
+                          <IncludeItem keywordItems={keywordItems} item={item} index={index} disabled={disabled}/>
+                          <Box marginLeft={'3px'} marginTop={'auto - 2px'}>
+                            <DeleteIcon onClick={() => deleteKeyword(index)}></DeleteIcon>
+                          </Box>
+                        </Flex>
+                        {!disabled && index===0 &&
+                        <Text fontSize={'xs'} color={"gray.400"}>{'All chats with this name will be exported to the corresponding item group'}</Text>}
+                      </>
+
+                    )
+                  })
+                  }
                 </Box>
               </Box>
-              {secondaryBoard && secondaryBoardConfig.map((param) => {
-                return (
-                  <FormItem param={param} additionalConfig={additionalConfig} disabled={disabled}/>
-                )
-              })
-              }
+              <Button
+                size="lg"
+                bg={'blue.400'}
+                color={'white'}
+                onClick={addKeyword}
+                _hover={{
+                  bg: 'blue.500',
+                }}>
+                Add keyword
+              </Button>
               <Stack spacing={10}>
 
               </Stack>
-              {!disabled &&
+              {disabled &&
+              <Button
+                size="lg"
+                bg={'blue.400'}
+                color={'white'}
+                onClick={() => setDisabled(false)}
+                _hover={{
+                  bg: 'blue.500',
+                }}>
+                Edit
+              </Button>
+              }
               <Button
                 type={'submit'}
-                loadingText="Submitting"
+                loadingText="Starting"
                 size="lg"
                 bg={'green.400'}
                 color={'white'}
@@ -113,32 +165,6 @@ const OptionalConfig = (props) => {
                 }}>
                 Start
               </Button>
-              }
-              {disabled &&
-              <>
-                <Button
-                  size="lg"
-                  bg={'blue.400'}
-                  color={'white'}
-                  onClick={() => setDisabled(false)}
-                  _hover={{
-                    bg: 'blue.500',
-                  }}>
-                  Edit
-                </Button>
-                <Button
-                  type={'submit'}
-                  loadingText="Starting"
-                  size="lg"
-                  bg={'green.400'}
-                  color={'white'}
-                  _hover={{
-                    bg: 'blue.500',
-                  }}>
-                  Start
-                </Button>
-              </>
-              }
             </Stack>
           </Box>
 

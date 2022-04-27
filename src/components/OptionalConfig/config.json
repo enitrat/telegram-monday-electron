@@ -1,0 +1,9 @@
+{
+  "exclude_pattern": "",
+  "include_keywords": [
+    {
+      "value": "value",
+      "target": "target"
+    }
+  ]
+}

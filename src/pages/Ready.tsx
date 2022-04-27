@@ -7,11 +7,14 @@ import OptionalConfig from "../components/OptionalConfig/OptionalConfig";
 import ResetConfig from "../components/ResetConfig";
 import Settings from "../components/Settings";
 import {useRunningState} from "../hooks/useRunning";
+import {useBoardState} from "../hooks/useBoard";
 
 export const Ready = () => {
   const navigate = useNavigate();
   const [tgMessages, setTgMessages] = useState<any[]>([]);
-  const [currentBoard,setCurrentBoard] = useState<any>();
+
+  const {currentBoard, setCurrentBoard} = useBoardState();
+  // const [currentBoard,setCurrentBoard] = useState<any>();
   const [ready, setReady] = useState(false);
   const {running, setRunning} = useRunningState();
 
@@ -60,7 +63,7 @@ export const Ready = () => {
       </>
       }
       {!currentBoard &&<p>Loading</p>}
-      {!running && currentBoard && <OptionalConfig currentBoard={currentBoard} setRunning={setRunning}/>}
+      {!running && currentBoard && <OptionalConfig setRunning={setRunning}/>}
     </Box>
   );
 }
