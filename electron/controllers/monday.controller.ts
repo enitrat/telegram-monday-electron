@@ -17,6 +17,10 @@ export class MondayController {
     }
   }
 
+  async setConfig(config:any){
+    this.config = config;
+  }
+
   async setConfigKey(key: string, value: string) {
     console.log(key, value)
     this.config[key] = value

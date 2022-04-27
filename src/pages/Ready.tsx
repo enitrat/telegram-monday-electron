@@ -4,6 +4,7 @@ import {Box, Button, Flex, Link} from "@chakra-ui/react";
 import {Link as ReachLink, useNavigate} from "react-router-dom"
 import MessageFeed from "../components/MessageFeed/MessageFeed";
 import AdditionalConfig from "../components/AdditionalConfig/AdditionalConfig";
+import ResetConfig from "../components/ResetConfig";
 
 export const Ready = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export const Ready = () => {
 
   return (
     <>
+      <ResetConfig/>
       {ready &&
       <><MessageFeed
         messages={tgMessages}/>

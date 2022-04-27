@@ -1,36 +1,18 @@
-import {StringSession} from "telegram/sessions";
 import {Api, TelegramClient} from "telegram";
-import {waitPromptInput} from "./helpers";
-import {RateLimiter} from "limiter";
 import bigInt from "big-integer";
-import {RPCError} from "telegram/errors";
+import {waitPromptInput} from "../promptWindow";
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#"
-const limiter = new RateLimiter({tokensPerInterval: 22, interval: "minute"});
 
-export class TelegramController {
 
-  private readonly _apiId: number;
-  private readonly _apiHash: string;
-  private readonly _stringSession: StringSession;
+export class TelegramService {
   public telegramClient: TelegramClient;
 
-  constructor(config: any) {
-    this._apiId = parseInt(config.API_ID);
-    this._apiHash = config.API_HASH;
-
-    if (config.STRING_SESSION) {
-      this._stringSession = new StringSession(config.STRING_SESSION);
-    } else {
-      this._stringSession = new StringSession("");
-    }
-
-    this.telegramClient = new TelegramClient(this._stringSession, this._apiId, this._apiHash, {
+  constructor(api_id, api_hash, string_session) {
+    this.telegramClient = new TelegramClient(string_session, api_id, api_hash, {
       connectionRetries: 5,
     });
-
   }
-
 
   async startClient() {
     if (!this.telegramClient) throw Error("Couldn't connect to telegram");
@@ -57,25 +39,6 @@ export class TelegramController {
       },
     });
   }
-
-  async stopClient(){
-    if (!this.telegramClient) throw Error("Telegram already stopped");
-    await this.telegramClient.destroy()
-    this.telegramClient = undefined;
-  }
-
-  async connectTelegram(config: any) {
-    console.log('connecting telegram with config')
-    console.log(config)
-    if (!this.telegramClient) throw Error("Couldn't connect to telegram");
-    await this.telegramClient.connect();
-    if (!config.STRING_SESSION) {
-      config.STRING_SESSION = this.telegramClient.session.save()
-      return config;
-    }
-    return;
-  }
-
 
   async getDialogs() {
     if (!this.telegramClient.connected) throw Error("Telegram disconnected")
@@ -136,6 +99,5 @@ export class TelegramController {
       // if (e.code === 400) throw new Error('Admin rights required to see participants for ' + groupName)
     }
   }
-
 
 }

@@ -1,5 +1,5 @@
 import {app, BrowserWindow, ipcMain, ipcRenderer} from 'electron'
-import Controller from "./controller";
+import Controller from "./controllers/controller";
 import {handleRequest} from "./requestHandler";
 
 let mainWindow: BrowserWindow | null
@@ -49,8 +49,9 @@ async function registerListeners() {
     const payload = JSON.parse(request)
     console.log(payload)
     const response = handleRequest(api, payload)
+    //TODO DEBUG HERE
+    console.log(JSON.stringify(response))
     event.returnValue = JSON.stringify(response)
-    mainWindow?.webContents.send('response', JSON.stringify(response));
   })
 
   ipcMain.on('asyncRequest', (_, request) => {

@@ -1,13 +1,9 @@
 import Store from "electron-store";
 import ElectronStore from "electron-store";
-import {TelegramClient} from "telegram";
-import {StringSession} from "telegram/sessions";
-import {waitPromptInput} from "./helpers";
-import {TelegramController} from "./TelegramController";
-import {MondayController} from "./mondayController";
+import {TelegramController} from "./telegram.controller";
+import {MondayController} from "./monday.controller";
 import {RateLimiter} from "limiter";
-import {excludeGroup} from "./utils/helpers";
-import {stringify} from "ts-jest/dist/utils/json";
+import {excludeGroup} from "../utils/helpers";
 
 const limiter = new RateLimiter({tokensPerInterval: 22, interval: "minute"});
 
@@ -56,10 +52,12 @@ export default class Controller {
 
   setMondayConfig(config: any) {
     this._mondayStore.set('config', config);
+    this.mondayController.config = this.getFullConfig();
   }
 
   setOptionalConfig(config: any) {
     this._optionalStore.set('config', config);
+    this.mondayController.config = this.getFullConfig();
   }
 
 
@@ -221,7 +219,6 @@ export default class Controller {
     }));
     const client = this.telegramController!.telegramClient;
     let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
-    console.log(accountGroups,exportedChats,targetBoard)
     for (const group of accountGroups) {
       if (excludeGroup(this.mondayController!.config, group)) continue;
       let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());

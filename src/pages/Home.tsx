@@ -32,7 +32,6 @@ const Home = () => {
       method: 'getMondayConfig'
     }));
 
-
     console.log(keyConfig)
     console.log(mondayConfig)
 

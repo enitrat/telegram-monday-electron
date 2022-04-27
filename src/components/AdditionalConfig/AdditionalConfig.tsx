@@ -19,8 +19,8 @@ import {additionalConfigParams} from "./constants";
 
 const AdditionalConfig = (props) => {
 
-  const {additionalConfig,setAdditionalConfig} = useStateConfig()
-  // const [additionalConfig, setAdditionalConfig] = useState<any>()
+  const {additionalConfig, setAdditionalConfig} = useStateConfig()
+  const [disabled, setDisabled] = useState(true)
 
 
   const handleSubmit = (e: any) => {
@@ -30,6 +30,10 @@ const AdditionalConfig = (props) => {
 
     for (const entry of formData.entries()) {
       data[entry[0]] = entry[1];
+      if (entry[0] === "exclude_members") {
+        const participants = (entry[1] as string).split(',')
+        console.log(participants)
+      }
     }
     console.log(data)
 
@@ -48,55 +52,82 @@ const AdditionalConfig = (props) => {
     setAdditionalConfig(storedConfig);
   }, [])
 
-  return(
-      <Flex
-        minH={'100vh'}
-        align={'center'}
-        justify={'center'}
-        bg={useColorModeValue('gray.50', 'gray.800')}>
-        <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
-          <Stack align={'center'}>
-            <Heading fontSize={'4xl'} textAlign={'center'}>
-              Enter your Monday Configuration
-            </Heading>
-            <Text fontSize={'md'} color={'gray.400'}>
-              These settings are stored locally and never exposed anywhere
-            </Text>
-          </Stack>
-          <form onSubmit={handleSubmit}>
-            <Box
-              rounded={'lg'}
-              bg={useColorModeValue('white', 'gray.700')}
-              boxShadow={'lg'}
-              p={8}>
-              <Stack spacing={4}>
-                {additionalConfigParams.map((param) => {
-                  return (
-                    <FormControl id={param.name} isRequired={param.required}>
-                      <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
-                      <Input id={param.name} name={param.name} type="text" value={additionalConfig[param.name] || undefined} placeholder={param.placeholder}/>
-                      <FormHelperText>{param.helper}</FormHelperText>
-                    </FormControl>
-                  )
-                })}
-                <Stack spacing={10}>
-                  <Button
-                    type={'submit'}
-                    loadingText="Submitting"
-                    size="lg"
-                    bg={'blue.400'}
-                    color={'white'}
-                    _hover={{
-                      bg: 'blue.500',
-                    }}>
-                    Sign up
-                  </Button>
-                </Stack>
-              </Stack>
-            </Box>
-          </form>
+  return (
+    <Flex
+      minH={'100vh'}
+      align={'center'}
+      justify={'center'}
+      bg={useColorModeValue('gray.50', 'gray.800')}>
+      <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
+        <Stack align={'center'}>
+          <Heading fontSize={'4xl'} textAlign={'center'}>
+            Current options
+          </Heading>
         </Stack>
-      </Flex>
+        <form onSubmit={handleSubmit}>
+          <Box
+            rounded={'lg'}
+            bg={useColorModeValue('white', 'gray.700')}
+            boxShadow={'lg'}
+            p={8}>
+            <Stack spacing={4}>
+              {additionalConfigParams.map((param) => {
+                return (
+                  <FormControl id={param.name} isRequired={param.required}>
+                    <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
+                    <Input id={param.name} name={param.name} type="text" disabled={disabled}
+                           value={additionalConfig[param.name] || undefined} placeholder={param.placeholder}/>
+                    {!disabled && <FormHelperText>{param.helper}</FormHelperText>}
+                  </FormControl>
+                )
+              })}
+              <Stack spacing={10}>
+
+              </Stack>
+              {!disabled &&
+              <Button
+                type={'submit'}
+                loadingText="Submitting"
+                size="lg"
+                bg={'green.400'}
+                color={'white'}
+                _hover={{
+                  bg: 'blue.500',
+                }}>
+                Start
+              </Button>
+              }
+              {disabled &&
+              <>
+                <Button
+                  size="lg"
+                  bg={'blue.400'}
+                  color={'white'}
+                  onClick={() => setDisabled(false)}
+                  _hover={{
+                    bg: 'blue.500',
+                  }}>
+                  Edit
+                </Button>
+                <Button
+                  type={'submit'}
+                  loadingText="Starting"
+                  size="lg"
+                  bg={'green.400'}
+                  color={'white'}
+                  _hover={{
+                    bg: 'blue.500',
+                  }}>
+                  Start
+                </Button>
+              </>
+              }
+            </Stack>
+          </Box>
+
+        </form>
+      </Stack>
+    </Flex>
   )
 
 }
