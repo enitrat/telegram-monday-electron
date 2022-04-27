@@ -62,6 +62,7 @@ export class TelegramService {
   async getDialogs() {
     if (!this.telegramClient.connected) throw Error("Telegram disconnected")
     let fmtGroups = [];
+    let fmtPrivate =[];
     for await (const dialog of (this.telegramClient.iterDialogs)({})) {
       if (!dialog.entity) continue;
       const link = `${BASE_GROUP_URL}-${dialog.entity.id}`;
@@ -70,8 +71,7 @@ export class TelegramService {
       if (dialog.entity.className.toLowerCase() === "user") {
         if (dialog.entity instanceof Api.User) {
           const fullName = `${dialog.entity.firstName || dialog.entity.username} ${dialog.entity.lastName || ''}`;
-          if (fullName.includes('export')) {
-            console.log({
+            fmtPrivate.push({
               id: dialog.entity.id,
               date: dialog.date,
               title: fullName,
@@ -80,8 +80,6 @@ export class TelegramService {
               type: dialog.entity.className,
               link: link,
             })
-          }
-          continue
         }
       }
       //END OF USER SUPPORT
@@ -96,7 +94,7 @@ export class TelegramService {
         link: link,
       })
     }
-    return fmtGroups
+    return {fmtGroups:fmtGroups, fmtPrivate:fmtPrivate}
   }
 
   async getChatParticipants(groupName: string, groupId: bigInt.BigInteger) {

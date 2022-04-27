@@ -10,6 +10,13 @@ interface MondayConfig{
   "include_keyword":string,
   "exclude_keyword":string,
   "exclude_members":string[]
+  "secondary_board":boolean,
+  "board_id_2":string,
+  "group_name_2": string,
+  "link_column_2": string,
+  "last_date_column_2":string,
+  "participants_column_2":string,
+
 }
 
 export class MondayController {
@@ -69,7 +76,7 @@ export class MondayController {
     })
   }
 
-  async createAndFillBoard(options){
+  async createPreconfigBoard(options){
     const newBoardId = await this.mondayService.createBoard({});
     const newBoardGroup = await this.mondayService.createBoardGroup(newBoardId,{});
     const newColumns = await this.mondayService.createBoardColumns(newBoardId,{});
@@ -82,7 +89,12 @@ export class MondayController {
   }
 
   async getBoard() {
-    return await this.mondayService.getBoard(this.config);
+    return await this.mondayService.getBoard(this.config.board_id);
+  }
+
+  async getSecondBoard(){
+    if(!this.config.secondary_board) return
+    return await this.mondayService.getBoard(this.config.board_id_2);
   }
 
   /**

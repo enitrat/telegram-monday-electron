@@ -11,8 +11,9 @@ import {useRunningState} from "../hooks/useRunning";
 export const Ready = () => {
   const navigate = useNavigate();
   const [tgMessages, setTgMessages] = useState<any[]>([]);
+  const [currentBoard,setCurrentBoard] = useState<any>();
   const [ready, setReady] = useState(false);
-  const {running,setRunning} = useRunningState();
+  const {running, setRunning} = useRunningState();
 
 
   const stopService = () => {
@@ -21,6 +22,16 @@ export const Ready = () => {
     window.Main.sendAsyncRequest({method: 'stopTelegram'});
     navigate('/')
   }
+
+  useEffect(()=>{
+    window.Main.sendAsyncRequest({method: 'getCurrentBoard'});
+    window.Main.on('currentBoard',(data)=>{
+      console.log('currentBoard')
+      console.log(data)
+      setCurrentBoard(data)
+    })
+
+  },[])
 
   useEffect(() => {
     if (!running) return
@@ -42,14 +53,15 @@ export const Ready = () => {
   }, [running]);
 
   return (
-    <>
+    <Box height={'100vh-40px'}>
       {running &&
       <><MessageFeed
         messages={tgMessages}/>
       </>
       }
-      {!running && <OptionalConfig setRunning={setRunning}/>}
-    </>
+      {!currentBoard &&<p>Loading</p>}
+      {!running && currentBoard && <OptionalConfig currentBoard={currentBoard} setRunning={setRunning}/>}
+    </Box>
   );
 }
 

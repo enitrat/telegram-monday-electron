@@ -10,7 +10,7 @@ const MessageFeed = ({messages}) => {
       w="100%"
       maxW={1200}
       height={800}
-      maxHeight="calc(100vh - 2rem)"
+      maxHeight="calc(100vh - 3rem)"
       flexDirection="column"
       px={8}
       py={8}

@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {
-  Box, Button,
+  Box, Button, Checkbox,
   Flex,
   FormControl,
   FormHelperText,
@@ -15,12 +15,14 @@ import KeyConfig from "../KeyConfig/KeyConfig";
 import {MondayConfig} from "../MondayConfig/MondayConfig";
 import {mondayConfigParams} from "../MondayConfig/constants";
 import {useStateConfig} from "../../hooks/useConfig";
-import {additionalConfigParams} from "./constants";
+import {additionalConfigParams, secondaryBoardConfig} from "./constants";
+import FormItem from "../FormItem";
 
 const OptionalConfig = (props) => {
 
   const {additionalConfig, setAdditionalConfig} = useStateConfig()
-  const [disabled, setDisabled] = useState(true)
+  const [secondaryBoard, setSecondaryBoard] = useState<boolean>()
+  const [disabled, setDisabled] = useState<boolean>(true)
 
 
   const handleSubmit = (e: any) => {
@@ -35,7 +37,7 @@ const OptionalConfig = (props) => {
         console.log(participants)
       }
     }
-    console.log(data)
+    data['secondary_board'] = secondaryBoard;
 
     window.Main.sendSyncRequest({
       method: 'setOptionalConfig',
@@ -49,7 +51,10 @@ const OptionalConfig = (props) => {
     let storedConfig = window.Main.sendSyncRequest({
       method: 'getOptionalConfig'
     })
-    if(!storedConfig) storedConfig={}
+    if (!storedConfig) storedConfig = {}
+    console.log('board')
+    console.log(storedConfig.secondary_board )
+    setSecondaryBoard(storedConfig.secondary_board);
     setAdditionalConfig(storedConfig);
   }, [])
 
@@ -76,26 +81,23 @@ const OptionalConfig = (props) => {
             <Stack spacing={4}>
               {additionalConfigParams.map((param) => {
                 return (
-                  <Box key={param.name} cursor={disabled ? 'not-allowed':null}
-                  >
-                  <Box pointerEvents={disabled ? 'none':null}
-                  >
-                    <FormControl id={param.name} isRequired={param.required}>
-                      <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
-
-                      <Input id={param.name} name={param.name} type="text"
-                             defaultValue={additionalConfig[param.name] || undefined} placeholder={disabled ? null : param.placeholder}
-
-                             background={disabled ? "gray.100" : null}
-
-                      />
-                      {!disabled && <FormHelperText>{param.helper}</FormHelperText>}
-                    </FormControl>
-                  </Box>
-                  </Box>
-
+                  <FormItem param={param} additionalConfig={additionalConfig} disabled={disabled}/>
                 )
               })}
+              <Box cursor={disabled ? 'not-allowed':null}
+              >
+                <Box pointerEvents={disabled ? 'none':null}
+                >
+              {secondaryBoard && <Checkbox defaultChecked={true} onChange={() => setSecondaryBoard(!secondaryBoard)}>second board for 1:1</Checkbox>}
+              {!secondaryBoard && <Checkbox defaultChecked={false} onChange={() => setSecondaryBoard(!secondaryBoard)}>second board for 1:1</Checkbox>}
+                </Box>
+              </Box>
+              {secondaryBoard && secondaryBoardConfig.map((param) => {
+                return (
+                  <FormItem param={param} additionalConfig={additionalConfig} disabled={disabled}/>
+                )
+              })
+              }
               <Stack spacing={10}>
 
               </Stack>

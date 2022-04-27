@@ -125,8 +125,8 @@ export class MondayService {
     return newColumns
   }
 
-  async getBoard(config) {
-    let query = `{ boards (ids:[${config.board_id}]) { name id description groups {id title} columns { id title } items { id name column_values { title value } } } }`
+  async getBoard(board_id:string) {
+    let query = `{ boards (ids:[${board_id}]) { name id description groups {id title} columns { id title } items { id name column_values { title value } } } }`
     const accountData: any = await fetch(this.base_url, {
       method: 'post',
       headers: this.headers,

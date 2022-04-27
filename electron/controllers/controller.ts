@@ -65,8 +65,6 @@ export default class Controller {
   }
 
 
-
-
   getApi() {
     const properties = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
     const api = properties.reduce((endpoints: any, property) => {
@@ -86,7 +84,7 @@ export default class Controller {
   async createNewBoard() {
     if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
     try {
-      await this.mondayController.createAndFillBoard({});
+      await this.mondayController.createPreconfigBoard({});
       this.setMondayConfig(this.mondayController.config)
       this.windowChannel.send('create_board', {
         result: "success",
@@ -97,6 +95,12 @@ export default class Controller {
       console.log(e)
       console.log("Couldn't create board")
     }
+  }
+
+  async getCurrentBoard(){
+    if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
+    const currentBoard =  await this.mondayController.getBoard();
+    this.windowChannel.send('currentBoard',currentBoard);
   }
 
   async stopTelegram() {
@@ -139,28 +143,19 @@ export default class Controller {
 
   }
 
-
-  async scanGroups() {
-    await limiter.removeTokens(1);
-    const targetBoard = await this.mondayController!.getBoard();
-    if (!targetBoard) throw new Error(`Couldn't get Monday board with id ${this.mondayController?.config.board_id}`)
-    let exportedChats = await this.mondayController!.getExportedChats(targetBoard);
-    if (!exportedChats) throw Error("couldn't get board chats");
-    const accountGroups = await this.telegramController!.getDialogs();
-    return {accountGroups: accountGroups, exportedChats: exportedChats, targetBoard: targetBoard}
-  }
-
   /**
    * Updates the Last Message Date column of a board element if there is a new message.
    * @param client
    * @returns {Promise<void>}
    */
-  async updateBoard() {
+  async updateBoard(board_id?:string) {
     this.sendWindowMessage({
       type: "info",
       text: "Updating board..."
     });
-    let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
+
+    //get group accounts, private chats, and already exported chats
+    let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups();
     for (const group of accountGroups) {
       if (excludeGroup(this.mondayController!.config, group)) continue;
       let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
@@ -177,6 +172,21 @@ export default class Controller {
     }
 
   }
+
+
+  async scanGroups(board_id?:string) {
+    //TODO add support for 2nd board
+    await limiter.removeTokens(1);
+    const targetBoard = await this.mondayController!.getBoard();
+    if (!targetBoard) throw new Error(`Couldn't get Monday board with id ${this.mondayController?.config.board_id}`)
+    let exportedChats = await this.mondayController!.getExportedChats(targetBoard);
+    let exportedPrivate = await this.mondayController!.getExportedChats(targetBoard);
+    if (!exportedChats) throw Error("couldn't get board chats");
+    const {fmtGroups:accountGroups,fmtPrivate:privateChats} = await this.telegramController!.getDialogs();
+    return {accountGroups: accountGroups, privateChats:privateChats, exportedChats: exportedChats, targetBoard: targetBoard}
+  }
+
+
 
 
   /**
@@ -222,7 +232,8 @@ export default class Controller {
       text: "Searching for new chats..."
     });
     const client = this.telegramController!.telegramClient;
-    let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
+    //TODO here targetBoard must not come from here
+    let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups();
     for (const group of accountGroups) {
       if (excludeGroup(this.mondayController!.config, group)) continue;
       let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());

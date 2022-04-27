@@ -28,3 +28,41 @@ export const additionalConfigParams = [
   //   required: false
   // },
 ]
+
+export const secondaryBoardConfig = [
+  {
+    name:"board_id_2",
+    label:"Board ID",
+    helper:"Your second Monday board id",
+    placeholder:'234567781',
+    required:true
+  },
+  {
+    name:"group_name_2",
+    label:"Dashboard item group name",
+    helper:"The name of the item group inside your dashboard where the rows will be added",
+    placeholder: 'Telegram Groups',
+    required:true
+  },
+  {
+    name:"link_column_2",
+    label:"Link column name",
+    helper:"Name of the column (text type) containing the link to the chat",
+    placeholder: 'link',
+    required: true
+  },
+  {
+    name:"last_date_column_2",
+    label:"Date column name",
+    helper:"Name of the column (date type) containing the last message date",
+    placeholder: 'last message',
+    required: true
+  },
+  {
+    name:"participants_column_2",
+    label:"Participants column name",
+    helper:"Name of the column (text type) containing the participants list",
+    placeholder: 'participants',
+    required: true
+  },
+]
