@@ -29,12 +29,11 @@ export const MondayConfig = () => {
   const handleNewBoard = () => {
     setInit(false);
     setCreateNew(true);
-    window.Main.sendAsyncRequest(JSON.stringify({
+    window.Main.sendAsyncRequest({
       method: 'createNewBoard',
-    }));
+    });
 
     window.Main.on('create_board',(message)=>{
-      message = JSON.parse(message);
       if(message.result==="success"){
         setMondayConfig(message.data)
       }else{
@@ -53,10 +52,10 @@ export const MondayConfig = () => {
       data[entry[0]] = entry[1];
     }
 
-    window.Main.sendSyncRequest(JSON.stringify({
+    window.Main.sendSyncRequest({
       method: 'setMondayConfig',
       params: [data]
-    }));
+    });
     setMondayConfig(data);
   }
 

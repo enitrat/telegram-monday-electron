@@ -39,7 +39,7 @@ export default class Controller {
     return this._optionalStore.get('config');
   }
 
-  getFullConfig():any{
+  getFullConfig(): any {
     return {
       ...this.getMondayConfig(),
       ...this.getOptionalConfig(),
@@ -47,10 +47,13 @@ export default class Controller {
   }
 
   setKeyConfig(config: any) {
+    if(!config) config = null;
     this._keyStore.set('config', config)
+    this.mondayController.setApiKey(undefined);
   }
 
   setMondayConfig(config: any) {
+    if(!config) config = null;
     this._mondayStore.set('config', config);
     this.mondayController.config = this.getFullConfig();
   }
@@ -59,6 +62,8 @@ export default class Controller {
     this._optionalStore.set('config', config);
     this.mondayController.config = this.getFullConfig();
   }
+
+
 
 
   getApi() {
@@ -77,38 +82,36 @@ export default class Controller {
     this.windowChannel.send('scan_update', message);
   }
 
-  async createNewBoard(){
-    if(!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
+  async createNewBoard() {
+    if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
     try {
-      await this.mondayController.createBoard({});
-      await this.mondayController.createBoardGroup({});
-      await this.mondayController.createBoardColumns({});
+      await this.mondayController.createAndFillBoard({});
       this.setMondayConfig(this.mondayController.config)
-      this.windowChannel.send('create_board',JSON.stringify({
-        result:"success",
-        data:this.getMondayConfig()
-      }))
+      this.windowChannel.send('create_board', {
+        result: "success",
+        data: this.getMondayConfig()
+      })
 
-    }catch(e){
+    } catch (e) {
       console.log(e)
       console.log("Couldn't create board")
     }
   }
 
-  async stopTelegram(){
+  async stopTelegram() {
     clearInterval(this.scanInterval)
     await this.telegramController.stopClient();
     this.sendWindowMessage(
-      JSON.stringify({
-        type:"info",
-        text:"Telegram client stopped"
-      }))
+      {
+        type: "info",
+        text: "Telegram client stopped"
+      })
   }
 
   async startTelegram() {
     try {
       this.telegramController = new TelegramController(this.getKeyConfig())
-      if(!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
+      if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
       await this.telegramController.startClient()
       const newConfig = await this.telegramController.connectTelegram(this.getKeyConfig());
       if (newConfig) this.setKeyConfig(newConfig);
@@ -116,10 +119,10 @@ export default class Controller {
       await this.startScanning()
     } catch (e) {
       console.log(e)
-      this.sendWindowMessage(JSON.stringify({
+      this.sendWindowMessage({
         type: "error",
         text: e.message
-      }))
+      })
     }
 
   }
@@ -152,10 +155,10 @@ export default class Controller {
    * @returns {Promise<void>}
    */
   async updateBoard() {
-    this.sendWindowMessage(JSON.stringify({
+    this.sendWindowMessage({
       type: "info",
       text: "Updating board..."
-    }));
+    });
     let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
     for (const group of accountGroups) {
       if (excludeGroup(this.mondayController!.config, group)) continue;
@@ -204,19 +207,19 @@ export default class Controller {
     }
     const updatedItem = await this.mondayController!.updateItem(query, vars)
     // console.log(`chat ${chatName} was updated ! | ${chatLink}`);
-    this.sendWindowMessage(JSON.stringify({
+    this.sendWindowMessage({
       type: "info",
       text: `chat ${chatName} was updated ! | ${chatLink}`
-    }));
+    });
 
 
   }
 
   async fillBoard() {
-    this.sendWindowMessage(JSON.stringify({
+    this.sendWindowMessage({
       type: "info",
       text: "Searching for new chats..."
-    }));
+    });
     const client = this.telegramController!.telegramClient;
     let {accountGroups, exportedChats, targetBoard} = await this.scanGroups();
     for (const group of accountGroups) {
@@ -269,10 +272,10 @@ export default class Controller {
 
     await this.mondayController!.createItem(query, vars);
     // console.log(`New entry was created for chat ${chatName} | ${chatLink}`);
-    this.sendWindowMessage(JSON.stringify({
+    this.sendWindowMessage({
       type: "info",
       text: `New entry was created for chat ${chatName} | ${chatLink}`
-    }));
+    });
 
   }
 

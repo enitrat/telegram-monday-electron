@@ -24,19 +24,19 @@ const Home = () => {
 
   function handleStart() {
 
-    const keyConfig = window.Main.sendSyncRequest(JSON.stringify({
+    const keyConfig = window.Main.sendSyncRequest({
       method: 'getKeyConfig'
-    }))
+    })
 
-    const mondayConfig = window.Main.sendSyncRequest(JSON.stringify({
+    const mondayConfig = window.Main.sendSyncRequest({
       method: 'getMondayConfig'
-    }));
+    });
 
     console.log(keyConfig)
     console.log(mondayConfig)
 
-    if (keyConfig) setKeyConfig(JSON.parse(keyConfig));
-    if (mondayConfig) setMondayConfig(JSON.parse(mondayConfig));
+    if (keyConfig) setKeyConfig(keyConfig);
+    if (mondayConfig) setMondayConfig(mondayConfig);
 
     if (!keyConfig || !mondayConfig) {
       navigate('/config')

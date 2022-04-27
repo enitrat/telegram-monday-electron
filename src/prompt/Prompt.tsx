@@ -8,7 +8,7 @@ const Prompt = () => {
     const data = {
       input: formData.get("promptInput"),
     };
-    window.Main.promptPostData(JSON.stringify(data));
+    window.Main.promptPostData(data);
   }
 
   return (

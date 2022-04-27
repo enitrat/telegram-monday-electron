@@ -17,7 +17,7 @@ import {mondayConfigParams} from "../MondayConfig/constants";
 import {useStateConfig} from "../../hooks/useConfig";
 import {additionalConfigParams} from "./constants";
 
-const AdditionalConfig = (props) => {
+const OptionalConfig = (props) => {
 
   const {additionalConfig, setAdditionalConfig} = useStateConfig()
   const [disabled, setDisabled] = useState(true)
@@ -37,18 +37,19 @@ const AdditionalConfig = (props) => {
     }
     console.log(data)
 
-    window.Main.sendSyncRequest(JSON.stringify({
+    window.Main.sendSyncRequest({
       method: 'setOptionalConfig',
       params: [data]
-    }));
+    });
     setAdditionalConfig(data);
     props.setReady(true)
   }
 
   useEffect(() => {
-    const storedConfig = window.Main.sendSyncRequest(JSON.stringify({
+    let storedConfig = window.Main.sendSyncRequest({
       method: 'getOptionalConfig'
-    }))
+    })
+    if(!storedConfig) storedConfig={}
     setAdditionalConfig(storedConfig);
   }, [])
 
@@ -73,12 +74,24 @@ const AdditionalConfig = (props) => {
             <Stack spacing={4}>
               {additionalConfigParams.map((param) => {
                 return (
-                  <FormControl id={param.name} isRequired={param.required}>
-                    <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
-                    <Input id={param.name} name={param.name} type="text" disabled={disabled}
-                           value={additionalConfig[param.name] || undefined} placeholder={param.placeholder}/>
-                    {!disabled && <FormHelperText>{param.helper}</FormHelperText>}
-                  </FormControl>
+                  <Box cursor={disabled ? 'not-allowed':null}
+                  >
+                  <Box pointerEvents={disabled ? 'none':null}
+                  >
+                    <FormControl id={param.name} isRequired={param.required}>
+                      <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
+
+                      <Input id={param.name} name={param.name} type="text"
+                             defaultValue={additionalConfig[param.name] || undefined} placeholder={disabled ? null : param.placeholder}
+
+                             background={disabled ? "gray.100" : null}
+
+                      />
+                      {!disabled && <FormHelperText>{param.helper}</FormHelperText>}
+                    </FormControl>
+                  </Box>
+                  </Box>
+
                 )
               })}
               <Stack spacing={10}>
@@ -132,4 +145,4 @@ const AdditionalConfig = (props) => {
 
 }
 
-export default AdditionalConfig;
+export default OptionalConfig;

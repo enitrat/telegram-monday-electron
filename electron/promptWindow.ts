@@ -34,10 +34,9 @@ export const waitPromptInput = (promptText: string) => {
     })
 
     ipcMain.on('promptPostData',(_,data)=>{
-      const payload = JSON.parse(data);
       secondWindow?.close()
       secondWindow = null
-      resolve(payload.input as string);
+      resolve(data.input as string);
     })
 
   });

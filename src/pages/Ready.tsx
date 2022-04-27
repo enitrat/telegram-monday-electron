@@ -3,7 +3,7 @@ import {useEffect, useState} from "react";
 import {Box, Button, Flex, Link} from "@chakra-ui/react";
 import {Link as ReachLink, useNavigate} from "react-router-dom"
 import MessageFeed from "../components/MessageFeed/MessageFeed";
-import AdditionalConfig from "../components/AdditionalConfig/AdditionalConfig";
+import OptionalConfig from "../components/OptionalConfig/OptionalConfig";
 import ResetConfig from "../components/ResetConfig";
 
 export const Ready = () => {
@@ -12,7 +12,7 @@ export const Ready = () => {
   const [ready, setReady] = useState(false);
 
   const stopService = () => {
-    window.Main.sendAsyncRequest(JSON.stringify({method: 'stopTelegram'}));
+    window.Main.sendAsyncRequest({method: 'stopTelegram'});
     navigate('/')
   }
 
@@ -21,13 +21,12 @@ export const Ready = () => {
     let allMessages = []
 
     const startTelegram = () => {
-      window.Main.sendAsyncRequest(JSON.stringify({method: 'startTelegram'}));
+      window.Main.sendAsyncRequest({method: 'startTelegram'});
       window.Main.on('scan_update', handleTelegramUpdate)
     }
 
     const handleTelegramUpdate = (update: any) => {
-      const parsedUpdate = JSON.parse(update);
-      allMessages = [...allMessages, parsedUpdate]
+      allMessages = [...allMessages, update]
       setTgMessages(allMessages);
     }
 
@@ -44,7 +43,7 @@ export const Ready = () => {
         <Button colorScheme={'purple'} marginTop={8} alignSelf={'center'} onClick={stopService}>Stop</Button>
       </>
       }
-      {!ready && <AdditionalConfig setReady={setReady}/>}
+      {!ready && <OptionalConfig setReady={setReady}/>}
     </>
   );
 }

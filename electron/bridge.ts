@@ -1,5 +1,9 @@
 import {contextBridge, ipcRenderer} from 'electron'
 
+interface Request{
+  method:string,
+  params?:any
+}
 export const api = {
   /**
    * Here you can expose functions to the renderer process
@@ -13,11 +17,11 @@ export const api = {
     ipcRenderer.send(channel, message)
   },
 
-  sendAsyncRequest: (request: string) => {
+  sendAsyncRequest: (request: Request) => {
     ipcRenderer.send('asyncRequest', request)
   },
 
-  sendSyncRequest: (request: string) => {
+  sendSyncRequest: (request: Request) => {
     return ipcRenderer.sendSync('syncRequest', request);
   },
 
@@ -25,7 +29,7 @@ export const api = {
     return ipcRenderer.send('telegram-update','test');
   },
 
-  promptPostData:(input:string) =>{
+  promptPostData:(input:any) =>{
     return ipcRenderer.send('promptPostData',input)
   },
 

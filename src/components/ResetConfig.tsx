@@ -11,19 +11,19 @@ const ResetConfig = () => {
 
   const resetKeyConfig = () => {
     setKeyConfig(undefined)
-    window.Main.sendSyncRequest(JSON.stringify({
+    window.Main.sendSyncRequest({
       method: 'setKeyConfig',
       params: [undefined]
-    }));
+    });
     navigate('/')
   }
 
   const resetMondayConfig = () => {
     setMondayConfig(undefined)
-    window.Main.sendSyncRequest(JSON.stringify({
+    window.Main.sendSyncRequest({
       method: 'setMondayConfig',
       params: [undefined]
-    }));
+    });
     navigate('/')
   }
 

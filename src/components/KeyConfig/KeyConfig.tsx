@@ -32,10 +32,10 @@ const KeyConfig = () => {
       data[entry[0]]=entry[1];
     }
 
-    window.Main.sendSyncRequest(JSON.stringify({
+    window.Main.sendSyncRequest({
       method: 'setKeyConfig',
       params: [data]
-    }));
+    });
     setKeyConfig(data);
 
   }

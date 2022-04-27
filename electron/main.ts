@@ -46,16 +46,14 @@ async function registerListeners() {
   controller = new Controller(mainWindow?.webContents);
   const api = controller.getApi();
   ipcMain.on('syncRequest', (event, request) => {
-    const payload = JSON.parse(request)
-    console.log(payload)
+    const payload = (request)
     const response = handleRequest(api, payload)
     //TODO DEBUG HERE
-    console.log(JSON.stringify(response))
-    event.returnValue = JSON.stringify(response)
+    event.returnValue = response
   })
 
   ipcMain.on('asyncRequest', (_, request) => {
-    const payload = JSON.parse(request)
+    const payload = request
     const response = handleRequest(api, payload);
   })
 

@@ -40,6 +40,25 @@ export class TelegramService {
     });
   }
 
+  async stopClient(){
+    if (!this.telegramClient) throw Error("Telegram already stopped");
+    await this.telegramClient.destroy()
+    this.telegramClient = undefined;
+  }
+
+  async connectTelegram(config: any) {
+    console.log('connecting telegram with config')
+    console.log(config)
+    if (!this.telegramClient) throw Error("Couldn't connect to telegram");
+    await this.telegramClient.connect();
+    if (!config.STRING_SESSION) {
+      config.STRING_SESSION = this.telegramClient.session.save()
+      return config;
+    }
+    return;
+  }
+
+
   async getDialogs() {
     if (!this.telegramClient.connected) throw Error("Telegram disconnected")
     let fmtGroups = [];
