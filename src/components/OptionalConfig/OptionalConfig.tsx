@@ -21,6 +21,12 @@ import IncludeItem from "./IncludeItem";
 import {useBoardState} from "../../hooks/useBoard";
 import {DeleteIcon} from "@chakra-ui/icons";
 
+const defaultItem=
+  {
+    value: "",
+    target: ""
+  }
+
 const OptionalConfig = (props) => {
 
   const {additionalConfig, setAdditionalConfig} = useStateConfig()
@@ -29,12 +35,8 @@ const OptionalConfig = (props) => {
 
   const addKeyword = () => {
     //Just need to add an item with empty values
-    const newItem =
-      {
-        value: "",
-        target: ""
-      }
-    setKeywordItems([...keywordItems, newItem])
+
+    setKeywordItems([...keywordItems, defaultItem])
   }
 
   const deleteKeyword = (index) => {
@@ -77,7 +79,12 @@ const OptionalConfig = (props) => {
     if (!storedConfig) storedConfig = {}
     console.log('board')
     setAdditionalConfig(storedConfig);
-    setKeywordItems(storedConfig.include_keywords)
+
+    if(storedConfig.include_keywords.length===0) {
+      setKeywordItems([defaultItem])
+    }else {
+      setKeywordItems(storedConfig.include_keywords)
+    }
   }, [])
 
   return (
@@ -117,11 +124,11 @@ const OptionalConfig = (props) => {
                         <Flex flexDir={"row"} justifyContent={'center'} alignItems={'center'} marginTop={'10px'}>
                           <IncludeItem keywordItems={keywordItems} item={item} index={index} disabled={disabled}/>
                           <Box marginLeft={'3px'} marginTop={'auto - 2px'}>
-                            <DeleteIcon onClick={() => deleteKeyword(index)}></DeleteIcon>
+                            {index!==0 && <DeleteIcon onClick={() => deleteKeyword(index)}></DeleteIcon>}
                           </Box>
                         </Flex>
                         {!disabled && index===0 &&
-                        <Text fontSize={'xs'} color={"gray.400"}>{'All chats with this name will be exported to the corresponding item group'}</Text>}
+                        <Text fontSize={'xs'} color={"gray.400"}>{'All chats with this name will be exported to the corresponding item group. Leaving this field empty means that all chats will be exported to this group.'}</Text>}
                       </>
 
                     )

@@ -99,9 +99,9 @@
         [
           "@electron-forge/plugin-webpack",
           {
-            "mainConfig": "./webpacktest/webpack.main.config.js",
+            "mainConfig": "./webpack/webpack.main.config.js",
             "renderer": {
-              "config": "webpacktest/webpack.renderer.config.js",
+              "config": "webpack/webpack.renderer.config.js",
               "entryPoints": [
                 {
                   "html": "./public/index.html",

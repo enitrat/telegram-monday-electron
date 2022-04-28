@@ -3,7 +3,7 @@ import ElectronStore from "electron-store";
 import {TelegramController} from "./telegram.controller";
 import {MondayController} from "./monday.controller";
 import {RateLimiter} from "limiter";
-import {excludeGroup} from "../utils/helpers";
+import {filterKeywordGroup, filterParticipantsGroup, getTargetItemGroup} from "../utils/helpers";
 
 const limiter = new RateLimiter({tokensPerInterval: 22, interval: "minute"});
 
@@ -124,10 +124,18 @@ export default class Controller {
       await this.startScanning()
     } catch (e) {
       console.log(e)
+      console.log(this.scanInterval)
       this.sendWindowMessage({
         type: "error",
         text: e.message
-      })
+      });
+
+      //TODO TEMP REMOVE
+      await new Promise(resolve => setTimeout(resolve, 10*1000));
+      this.scanInterval = setInterval(async () => {
+        console.log('should scan')
+        await this.fillBoard();
+      }, 60 * 1000)
     }
 
   }
@@ -136,6 +144,7 @@ export default class Controller {
     await this.updateBoard()
     await this.fillBoard();
 
+    //This gets terminated if we don't catch the error before.
     this.scanInterval = setInterval(async () => {
       console.log('should scan')
       await this.fillBoard();
@@ -157,7 +166,7 @@ export default class Controller {
     //get group accounts, private chats, and already exported chats
     let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups();
     for (const group of accountGroups) {
-      if (excludeGroup(this.mondayController!.config, group)) continue;
+      if (filterKeywordGroup(this.mondayController!.config, group)) continue;
       let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
       if (!exportedItem) continue;
       let lastMsgDate = group.lastMsgDate! * 1000
@@ -235,41 +244,35 @@ export default class Controller {
     //TODO here targetBoard must not come from here
     let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups();
     for (const group of accountGroups) {
-      if (excludeGroup(this.mondayController!.config, group)) continue;
+      console.log(group.title)
+      if (filterKeywordGroup(this.mondayController!.config, group)) continue;
       let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
       if (foundGroup) continue;
-      const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
+      // const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
+      // if(filterParticipantsGroup(participants,this.mondayController.config)) continue;
+      const targetBoardGroup = getTargetItemGroup(group,this.mondayController.config);
+      if(!targetBoardGroup) continue;
       await limiter.removeTokens(1);
-      await this.createItem(targetBoard, group, participants)
+      //TODO REAL VALUE HERE
+      await this.createItem(targetBoard, targetBoardGroup, group, undefined)
     }
   }
 
-  async createItem(targetBoard: any, group: any, participants: any) {
-    const client = this.telegramController?.telegramClient;
+
+
+  async createItem(targetBoard: any, targetBoardGroup:any, tgGroup: any, participants: any) {
     //Get all elements ids from the board
-    const elementsIds = this.mondayController!.getElementsIds(targetBoard)
-    let chatName = group.title.toString();
-    let lastMsgDate = new Date(group.lastMsgDate * 1000)
+    const elementsIds = this.mondayController!.getElementsIds(targetBoard,targetBoardGroup)
+    let chatName = tgGroup.title.toString();
+    let lastMsgDate = new Date(tgGroup.lastMsgDate * 1000)
 
     const lastMsgDateFmt = {
       date: lastMsgDate.toISOString().split('T')[0],
       time: lastMsgDate.toLocaleTimeString('en-GB'),
     }
 
-    let chatLink = group.link;
+    let chatLink = tgGroup.link;
 
-    //Don't sync the group if a member 'username' is a participant of the group.
-    //Undefined participants means that the user doesn't have admin rights to see who's inside the group.
-    if (participants) participants = participants.flatMap((participant: any) => {
-      if (participant) return participant.toLowerCase();
-      return []
-    });
-
-    if (participants && participants.some(
-      (username: any) => this.mondayController!.config.exclude_members.includes(username.toLowerCase()))
-    ) {
-      return;
-    }
     let query = `mutation ($board: Int!, $group: String!, $myItemName: String!, $columnVals: JSON!) { create_item (board_id: $board, group_id:$group, item_name:$myItemName, column_values:$columnVals) { id } }`;
     let vars = {
       "board": elementsIds.boardId,

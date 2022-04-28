@@ -125,7 +125,7 @@ export class MondayService {
     return newColumns
   }
 
-  async getBoard(board_id:string) {
+  async getBoard(board_id: string) {
     let query = `{ boards (ids:[${board_id}]) { name id description groups {id title} columns { id title } items { id name column_values { title value } } } }`
     const accountData: any = await fetch(this.base_url, {
       method: 'post',
@@ -173,8 +173,13 @@ export class MondayService {
    * @param targetBoard
    * @returns {{targetGroup, participantsCol, lastMessageDate,  boardId: number, creationColumn, linkColumn}}
    */
-  getElementsIds(config, targetBoard: any) {
-    const targetGroup = targetBoard.groups.find((o: any) => o.title.toLowerCase() === config.group_name.toLowerCase());
+  getElementsIds(config, targetBoard: any, targetBoardGroup: string) {
+    let targetGroup;
+    if (targetBoardGroup) {
+      targetGroup = targetBoard.groups.find((o: any) => o.title.toLowerCase() === targetBoardGroup.toLowerCase());
+    } else {
+      targetGroup = targetBoard.groups.find((o: any) => o.title.toLowerCase() === config.group_name.toLowerCase());
+    }
     const columns = targetBoard.columns;
     const linkColumn = columns.find((o: any) => o.title.toLowerCase() === config.link_column.toLowerCase());
     const lastMessageDate = columns.find((o: any) => o.title.toLowerCase() === config.last_date_column.toLowerCase());

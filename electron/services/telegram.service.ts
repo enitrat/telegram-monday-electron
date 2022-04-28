@@ -40,7 +40,7 @@ export class TelegramService {
     });
   }
 
-  async stopClient(){
+  async stopClient() {
     if (!this.telegramClient) throw Error("Telegram already stopped");
     await this.telegramClient.destroy()
     this.telegramClient = undefined;
@@ -62,7 +62,7 @@ export class TelegramService {
   async getDialogs() {
     if (!this.telegramClient.connected) throw Error("Telegram disconnected")
     let fmtGroups = [];
-    let fmtPrivate =[];
+    let fmtPrivate = [];
     for await (const dialog of (this.telegramClient.iterDialogs)({})) {
       if (!dialog.entity) continue;
       const link = `${BASE_GROUP_URL}-${dialog.entity.id}`;
@@ -71,30 +71,31 @@ export class TelegramService {
       if (dialog.entity.className.toLowerCase() === "user") {
         if (dialog.entity instanceof Api.User) {
           const fullName = `${dialog.entity.firstName || dialog.entity.username} ${dialog.entity.lastName || ''}`;
-            fmtPrivate.push({
-              id: dialog.entity.id,
-              date: dialog.date,
-              title: fullName,
-              lastMsg: dialog.message?.message,
-              lastMsgDate: dialog.message?.date,
-              type: dialog.entity.className,
-              link: link,
-            })
+          fmtPrivate.push({
+            id: dialog.entity.id,
+            date: dialog.date,
+            title: fullName,
+            lastMsg: dialog.message?.message,
+            lastMsgDate: dialog.message?.date,
+            type: dialog.entity.className,
+            link: link,
+          })
         }
-      }
-      //END OF USER SUPPORT
+      } else {
+        //END OF USER SUPPORT
 
-      fmtGroups.push({
-        id: dialog.entity.id,
-        date: dialog.date,
-        title: (dialog.entity as any).title || 'no title', //sometime no title available
-        lastMsg: dialog.message?.message,
-        lastMsgDate: dialog.message?.date,
-        type: dialog.entity.className,
-        link: link,
-      })
+        fmtGroups.push({
+          id: dialog.entity.id,
+          date: dialog.date,
+          title: (dialog.entity as any).title || 'no title', //sometime no title available
+          lastMsg: dialog.message?.message,
+          lastMsgDate: dialog.message?.date,
+          type: dialog.entity.className,
+          link: link,
+        })
+      }
     }
-    return {fmtGroups:fmtGroups, fmtPrivate:fmtPrivate}
+    return {fmtGroups: fmtGroups, fmtPrivate: fmtPrivate}
   }
 
   async getChatParticipants(groupName: string, groupId: bigInt.BigInteger) {

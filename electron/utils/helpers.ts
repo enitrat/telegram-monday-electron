@@ -1,17 +1,42 @@
-export const excludeGroup = (config: any, group: any) => {
+import {filter} from "@chakra-ui/react";
 
-  console.log(group)
-  console.log(config)
+export const filterKeywordGroup = (config: any, group: any) => {
+
   //TODO FIX HERE BY ALWAYS SENDING OPTIONS FROM FRONT
-  if (
-    (config.include_keyword !== "" && !group.title.toLowerCase().includes(config.include_keyword.toLowerCase())) ||
-    (config.exclude_keyword !== "" && group.title.toLowerCase().includes(config.exclude_keyword.toLowerCase()))
-  ) {
-    console.log(config.include_keyword)
-    console.log(config.exclude_keyword)
-    console.log('bye'+ group.title)
+  if ( config.exclude_keyword !== "" && group.title.toLowerCase().includes(config.exclude_keyword.toLowerCase()) ) {
     return true
   }
+  console.log('excludeKeyword')
   return false;
+}
+
+export function filterParticipantsGroup(participants,config){
+
+
+  //if user doesnt have rights to see participants, then participants is undefined.
+  if(!participants) return false;
+  participants = participants.flatMap((participant: any) => {
+    if (participant) return participant.toLowerCase();
+    return []
+  });
+
+  let filterGroup = false
+
+  if (participants && participants.some(
+    (username: any) => config.exclude_members.includes(username.toLowerCase()))
+  ) {
+    filterGroup=true;
+  }
+  console.log('filterd : ' + filterGroup)
+  return filterGroup
+}
+
+
+export function getTargetItemGroup(group, config){
+  const findTargetGroup = config.include_keywords.find((entry)=>{
+    return group.title.toLowerCase().includes(entry.value) || entry.value==="";
+  })
+  console.log('no target')
+  if(findTargetGroup) return findTargetGroup.target;
 }
 

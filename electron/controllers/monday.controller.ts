@@ -111,8 +111,8 @@ export class MondayController {
    * @param targetBoard
    * @returns {{targetGroup, participantsCol, lastMessageDate,  boardId: number, creationColumn, linkColumn}}
    */
-  getElementsIds(targetBoard: any) {
-    return this.mondayService.getElementsIds(this.config, targetBoard)
+  getElementsIds(targetBoard: any,targetBoardGroup?:string) {
+    return this.mondayService.getElementsIds(this.config, targetBoard,targetBoardGroup)
   }
 
   async updateItem(query: string, vars: any) {

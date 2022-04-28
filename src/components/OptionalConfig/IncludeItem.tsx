@@ -1,19 +1,13 @@
 import {
   Box, Button,
   FormControl,
-  FormHelperText,
   FormLabel,
   HStack,
   Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  Text,
   MenuList, Select
 } from "@chakra-ui/react";
 import {useBoardState} from "../../hooks/useBoard";
 import {useEffect} from "react";
-import {ChevronDownIcon} from "@chakra-ui/icons";
 
 const IncludeItem = ({keywordItems, item, index, disabled}) => {
 
@@ -37,13 +31,13 @@ const IncludeItem = ({keywordItems, item, index, disabled}) => {
     >
       <HStack>
         <Box>
-          <FormControl id={"include_keyword"} isRequired>
+          <FormControl id={"include_keyword"} >
             {index===0 && <FormLabel>Include Keyword</FormLabel>}
             <Input defaultValue={item.value} form={'undefined'} onChange={onValueChange} type="text"/>
           </FormControl>
         </Box>
         <Box>
-          <FormControl id={"include_keyword"} isRequired>
+          <FormControl id={"include_keyword"} >
             {index===0 && <FormLabel>Target item group</FormLabel>}
             <Select form={'undefined'} defaultValue={boardGroups[0].title} onChange={onSelectEvent}>
               {boardGroups.map((group, index) => {
