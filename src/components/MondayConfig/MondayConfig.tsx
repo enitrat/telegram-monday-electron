@@ -117,12 +117,14 @@ export const MondayConfig = () => {
           <Button onClick={handleNewBoard}>
             Create a new board
           </Button>
+          {allBoards.length > 0 &&
           <Button onClick={() => {
             setInit(false);
             setCreateNew(false);
           }}>
             Use an existing board (requires proper configuration)
           </Button>
+          }
           <Text>If it exists, it will delete and replace a board called "Telegram Board"</Text>
         </>
         }
@@ -130,11 +132,8 @@ export const MondayConfig = () => {
         <>
           <Stack align={'center'}>
             <Heading fontSize={'4xl'} textAlign={'center'}>
-              Enter your Monday Configuration
+              Enter your Monday board info
             </Heading>
-            <Text fontSize={'md'} color={'gray.400'}>
-              These settings are stored locally and never exposed anywhere
-            </Text>
           </Stack>
 
           {allBoards && selectedBoard && <>

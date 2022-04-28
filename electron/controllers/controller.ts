@@ -144,6 +144,7 @@ export default class Controller {
 
       //TODO TEMP REMOVE
       await new Promise(resolve => setTimeout(resolve, 10*1000));
+      clearImmediate(this.scanInterval);
       this.scanInterval = setInterval(async () => {
         console.log('should scan')
         await this.fillBoard();
@@ -169,7 +170,7 @@ export default class Controller {
    * @param client
    * @returns {Promise<void>}
    */
-  async updateBoard(board_id?:string) {
+  async updateBoard() {
     this.sendWindowMessage({
       type: "info",
       text: "Updating board..."
@@ -192,6 +193,20 @@ export default class Controller {
       console.log(exportedDate)
       console.log(parsedExportedDate)
       console.log(lastMsgDate)
+      await limiter.removeTokens(1);
+      await this.updateItem(targetBoard, group, exportedItem)
+    }
+    for (const group of [...accountGroups,...privateChats]) {
+      if (filterKeywordGroup(this.mondayController!.config, group)) continue;
+      let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+      if (!exportedItem) continue;
+      let lastMsgDate = group.lastMsgDate! * 1000
+      const exportedDate = JSON.parse(exportedItem.lastMsg)
+      let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
+
+      if (parsedExportedDate === lastMsgDate) {
+        continue;
+      }
       await limiter.removeTokens(1);
       await this.updateItem(targetBoard, group, exportedItem)
     }

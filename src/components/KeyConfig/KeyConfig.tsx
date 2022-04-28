@@ -84,7 +84,7 @@ const KeyConfig = () => {
           <Stack spacing={4}>
             {keyConfigParams.map((param) => {
               return (
-                <FormControl id={param.name} isRequired={param.required}>
+                <FormControl key={param.name} id={param.name} isRequired={param.required}>
                   <FormLabel>{param.helper}</FormLabel>
                   <Input defaultValue={currentConfig ? currentConfig![param.name]||"" : ""} id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
                 </FormControl>

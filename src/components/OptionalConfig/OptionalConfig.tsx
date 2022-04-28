@@ -27,8 +27,8 @@ const OptionalConfig = (props) => {
 
   const addKeyword = () => {
     //Just need to add an item with empty values
-
-    setKeywordItems([...keywordItems, defaultItem])
+    const clone = JSON.parse(JSON.stringify(defaultItem));
+    setKeywordItems([...keywordItems, clone])
   }
 
   const deleteKeyword = (index) => {
@@ -71,11 +71,12 @@ const OptionalConfig = (props) => {
     let storedConfig = window.Main.sendSyncRequest({
       method: 'getOptionalConfig'
     })
-    if (!storedConfig) storedConfig = {}
+    if (!storedConfig) storedConfig = {include_keywords:[]}
     setAdditionalConfig(storedConfig);
 
     if (storedConfig.include_keywords.length === 0) {
-      setKeywordItems([defaultItem])
+      const clone = JSON.parse(JSON.stringify(defaultItem));
+      setKeywordItems([clone])
     } else {
       setKeywordItems(storedConfig.include_keywords)
     }
@@ -104,7 +105,7 @@ const OptionalConfig = (props) => {
             <Stack spacing={4}>
               {additionalConfigParams.map((param) => {
                 return (
-                  <FormItem param={param} additionalConfig={additionalConfig} disabled={disabled}/>
+                  <FormItem key={param.name} param={param} additionalConfig={additionalConfig} disabled={disabled}/>
                 )
               })}
               <Box cursor={disabled ? 'not-allowed' : null}
@@ -114,14 +115,14 @@ const OptionalConfig = (props) => {
 
                   {keywordItems.map((item, index) => {
                     return (
-                      <>
+                      <Box key={index}>
                         <Box justifyContent={'center'} alignItems={'center'} marginTop={'10px'}>
                           <IncludeItem keywordItems={keywordItems} item={item} deleteKeyword={deleteKeyword} index={index} disabled={disabled}/>
                         </Box>
                         {!disabled && index === 0 &&
                         <Text fontSize={'xs'}
                               color={"gray.400"}>{'All chats with this name will be exported to the corresponding item group. Leaving this field empty means that all chats will be exported to this group.'}</Text>}
-                      </>
+                      </Box>
 
                     )
                   })

@@ -177,8 +177,6 @@ export class MondayService {
     let targetGroup;
     if (targetBoardGroup) {
       targetGroup = targetBoard.groups.find((o: any) => o.title.toLowerCase() === targetBoardGroup.toLowerCase());
-    } else {
-      targetGroup = targetBoard.groups.find((o: any) => o.title.toLowerCase() === config.group_name.toLowerCase());
     }
     const columns = targetBoard.columns;
     const linkColumn = columns.find((o: any) => o.title.toLowerCase() === config.link_column.toLowerCase());

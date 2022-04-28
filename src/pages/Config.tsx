@@ -29,7 +29,6 @@ const Config = (props: any) => {
 
   useEffect(() => {
 
-
     const keyConfig = window.Main.sendSyncRequest({
       method: 'getKeyConfig'
     })
@@ -37,13 +36,16 @@ const Config = (props: any) => {
     const mondayConfig = window.Main.sendSyncRequest({
       method: 'getMondayConfig'
     });
+    console.log(keyConfig)
+    console.log(mondayConfig)
 
     if (keyConfig) setKeyConfig(keyConfig);
     if (mondayConfig) setMondayConfig(mondayConfig);
 
-    if (keyConfig && mondayConfig) navigate('/ready');
     if (!keyConfig) navigate('/key-config')
-    if (!mondayConfig) navigate('/monday-config')
+    if (keyConfig && !mondayConfig) navigate('/monday-config')
+    if (keyConfig && mondayConfig) navigate('/ready');
+
   }, [])
 
   return (<></>)
