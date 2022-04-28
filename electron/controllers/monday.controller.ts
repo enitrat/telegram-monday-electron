@@ -52,7 +52,7 @@ export class MondayController {
   }
 
   async getAllBoards() {
-    await this.mondayService.getAllBoards();
+    return await this.mondayService.getAllBoards();
   }
 
   async archiveBoard(boardId) {

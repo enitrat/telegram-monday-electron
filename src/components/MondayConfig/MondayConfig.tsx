@@ -13,12 +13,13 @@ import {
   Text,
   useColorModeValue,
   Link,
-  FormHelperText
+  FormHelperText, Select
 } from '@chakra-ui/react';
 import {useStateConfig} from "../../hooks/useConfig";
 import {mondayConfigParams} from "./constants";
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
+import {MondayBoard} from "../../../shared/types";
 
 export const MondayConfig = () => {
 
@@ -26,17 +27,53 @@ export const MondayConfig = () => {
 
   const [init, setInit] = useState(true)
   const [createNew, setCreateNew] = useState(false)
-  const [currentConfig,setCurrentConfig] = useState<any>()
+  const [currentConfig, setCurrentConfig] = useState<any>()
+  const [allBoards, setAllBoards] = useState<MondayBoard[]>()
+  const [selectedBoard, setSelectedBoard] = useState<MondayBoard>()
+  const [boardData, setBoardData] = useState<MondayBoard>();
+  const [config,setConfig] = useState<any>();
+
   const navigate = useNavigate()
 
-  useEffect(()=>{
+  useEffect(() => {
+
+    const config = {}
     const mondayConfig = window.Main.sendSyncRequest({
       method: 'getMondayConfig'
     })
 
     setCurrentConfig(mondayConfig);
 
-  },[])
+    window.Main.sendAsyncRequest({
+      method: 'getAllBoards',
+    })
+
+    window.Main.on('all_boards', (boards: MondayBoard[]) => {
+      setAllBoards(boards);
+      if (boards.length > 0) setSelectedBoard(boards[0]);
+      mondayConfigParams(boards[0]).forEach((param) => {
+        config[param.name]=param.defaultValue;
+      });
+      console.log(config)
+      setConfig(config)
+    })
+
+  }, [])
+
+  const onSelectEvent = (e) => {
+    config[e.target.id] = e.target.value
+  }
+
+  const onBoardChange = (e) => {
+    const newBoard = allBoards.find((board)=>{
+      return board.name===e.target.value;
+    })
+    mondayConfigParams(newBoard).forEach((param) => {
+      config[param.name]=param.defaultValue;
+    });
+    setSelectedBoard(newBoard)
+  }
+
 
   const handleNewBoard = () => {
     setInit(false);
@@ -58,18 +95,12 @@ export const MondayConfig = () => {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {}
-
-    for (const entry of formData.entries()) {
-      data[entry[0]] = entry[1];
-    }
 
     window.Main.sendSyncRequest({
       method: 'setMondayConfig',
-      params: [data]
+      params: [config]
     });
-    setMondayConfig(data);
+    setMondayConfig(config);
     navigate('/config')
   }
 
@@ -105,38 +136,56 @@ export const MondayConfig = () => {
               These settings are stored locally and never exposed anywhere
             </Text>
           </Stack>
-          <form onSubmit={handleSubmit}>
-            <Box
-              rounded={'lg'}
-              bg={useColorModeValue('white', 'gray.700')}
-              boxShadow={'lg'}
-              p={8}>
-              <Stack spacing={4}>
-                {mondayConfigParams.map((param) => {
-                  return (
-                    <FormControl id={param.name} isRequired={param.required}>
+
+          {allBoards && selectedBoard && <>
+            <Select value={selectedBoard.name} defaultValue={selectedBoard.name} onChange={onBoardChange}>
+              {allBoards.map((board, index) => {
+                console.log(board)
+                return (
+                  <option key={index} value={board.name}>{board.name}</option>
+                )
+              })}
+            </Select>
+            <form onSubmit={handleSubmit}>
+              <Box
+                rounded={'lg'}
+                bg={useColorModeValue('white', 'gray.700')}
+                boxShadow={'lg'}
+                p={8}>
+                <Stack spacing={4}>
+                  {mondayConfigParams(selectedBoard).map((param) => {
+                    console.log(param)
+                    return (
+                      <FormControl key={param.name} id={param.name} isRequired={param.required}>
                       <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
-                      <Input defaultValue={currentConfig ? currentConfig![param.name]||"" : ""} id={param.name} name={param.name} type="text" placeholder={param.placeholder}/>
-                      <FormHelperText>{param.helper}</FormHelperText>
-                    </FormControl>
-                  )
-                })}
-                <Stack spacing={10}>
-                  <Button
-                    type={'submit'}
-                    loadingText="Submitting"
-                    size="lg"
-                    bg={'blue.400'}
-                    color={'white'}
-                    _hover={{
-                      bg: 'blue.500',
-                    }}>
-                    Save
-                  </Button>
+                      <Select value={config[param.name]} defaultValue={param.defaultValue} onChange={onSelectEvent}>
+                        {param.values.map((value, index) => {
+                          return (
+                            <option key={index} value={value.title}>{value.title}</option>
+                          )
+                        })}
+                      </Select>
+                        <FormHelperText>{param.helper}</FormHelperText>
+                      </FormControl>
+                    )
+                  })}
+                  <Stack spacing={10}>
+                    <Button
+                      type={'submit'}
+                      loadingText="Submitting"
+                      size="lg"
+                      bg={'blue.400'}
+                      color={'white'}
+                      _hover={{
+                        bg: 'blue.500',
+                      }}>
+                      Save
+                    </Button>
+                  </Stack>
                 </Stack>
-              </Stack>
-            </Box>
-          </form>
+              </Box>
+            </form>
+          </>}
         </>
         }
       </Stack>

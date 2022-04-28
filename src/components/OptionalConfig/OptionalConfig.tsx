@@ -1,30 +1,22 @@
 import {useEffect, useState} from "react";
 import {
-  Box, Button, Checkbox,
+  Box, Button,
   Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Heading, HStack,
-  Input,
+  Heading,
   Stack,
   Text,
   useColorModeValue
 } from "@chakra-ui/react";
-import KeyConfig from "../KeyConfig/KeyConfig";
-import {MondayConfig} from "../MondayConfig/MondayConfig";
-import {mondayConfigParams} from "../MondayConfig/constants";
 import {useStateConfig} from "../../hooks/useConfig";
-import {additionalConfigParams, secondaryBoardConfig} from "./constants";
+import {additionalConfigParams } from "./constants";
 import FormItem from "./FormItem";
 import IncludeItem from "./IncludeItem";
-import {useBoardState} from "../../hooks/useBoard";
-import {DeleteIcon} from "@chakra-ui/icons";
 
-const defaultItem=
+const defaultItem =
   {
     value: "",
-    target: ""
+    target: "",
+    exportPrivate: false
   }
 
 const OptionalConfig = (props) => {
@@ -57,12 +49,15 @@ const OptionalConfig = (props) => {
       data[entry[0]] = entry[1];
       if (entry[0] === "exclude_members") {
         const participants = (entry[1] as string).split(',')
-        console.log(participants)
+        data[entry[0]] = participants;
+
       }
     }
 
     //Include_keywords list
     data['include_keywords'] = keywordItems;
+
+    console.log('sent config')
     console.log(data)
     window.Main.sendSyncRequest({
       method: 'setOptionalConfig',
@@ -77,12 +72,11 @@ const OptionalConfig = (props) => {
       method: 'getOptionalConfig'
     })
     if (!storedConfig) storedConfig = {}
-    console.log('board')
     setAdditionalConfig(storedConfig);
 
-    if(storedConfig.include_keywords.length===0) {
+    if (storedConfig.include_keywords.length === 0) {
       setKeywordItems([defaultItem])
-    }else {
+    } else {
       setKeywordItems(storedConfig.include_keywords)
     }
   }, [])
@@ -92,10 +86,10 @@ const OptionalConfig = (props) => {
       minH={'100vh - 40px'}
       align={'center'}
       justify={'center'}
-      marginX={'200px'}
+      width={'1000px'}
       borderRadius={'30px'}
       bg={useColorModeValue('gray.50', 'gray.800')}>
-      <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
+      <Stack spacing={8} mx={'auto'} maxW={'2xl'} py={12} px={6}>
         <Stack align={'center'}>
           <Heading fontSize={'4xl'} textAlign={'center'}>
             Current options
@@ -121,14 +115,12 @@ const OptionalConfig = (props) => {
                   {keywordItems.map((item, index) => {
                     return (
                       <>
-                        <Flex flexDir={"row"} justifyContent={'center'} alignItems={'center'} marginTop={'10px'}>
-                          <IncludeItem keywordItems={keywordItems} item={item} index={index} disabled={disabled}/>
-                          <Box marginLeft={'3px'} marginTop={'auto - 2px'}>
-                            {index!==0 && <DeleteIcon onClick={() => deleteKeyword(index)}></DeleteIcon>}
-                          </Box>
-                        </Flex>
-                        {!disabled && index===0 &&
-                        <Text fontSize={'xs'} color={"gray.400"}>{'All chats with this name will be exported to the corresponding item group. Leaving this field empty means that all chats will be exported to this group.'}</Text>}
+                        <Box justifyContent={'center'} alignItems={'center'} marginTop={'10px'}>
+                          <IncludeItem keywordItems={keywordItems} item={item} deleteKeyword={deleteKeyword} index={index} disabled={disabled}/>
+                        </Box>
+                        {!disabled && index === 0 &&
+                        <Text fontSize={'xs'}
+                              color={"gray.400"}>{'All chats with this name will be exported to the corresponding item group. Leaving this field empty means that all chats will be exported to this group.'}</Text>}
                       </>
 
                     )
@@ -136,7 +128,7 @@ const OptionalConfig = (props) => {
                   }
                 </Box>
               </Box>
-              <Button
+              {!disabled && <Button
                 size="lg"
                 bg={'blue.400'}
                 color={'white'}
@@ -146,6 +138,7 @@ const OptionalConfig = (props) => {
                 }}>
                 Add keyword
               </Button>
+              }
               <Stack spacing={10}>
 
               </Stack>

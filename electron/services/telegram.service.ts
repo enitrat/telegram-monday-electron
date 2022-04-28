@@ -47,8 +47,6 @@ export class TelegramService {
   }
 
   async connectTelegram(config: any) {
-    console.log('connecting telegram with config')
-    console.log(config)
     if (!this.telegramClient) throw Error("Couldn't connect to telegram");
     await this.telegramClient.connect();
     if (!config.STRING_SESSION) {
@@ -68,26 +66,23 @@ export class TelegramService {
       const link = `${BASE_GROUP_URL}-${dialog.entity.id}`;
 
       //TODO SUPPORT FOR 1:1 USERS
-      if (dialog.entity.className.toLowerCase() === "user") {
-        if (dialog.entity instanceof Api.User) {
-          const fullName = `${dialog.entity.firstName || dialog.entity.username} ${dialog.entity.lastName || ''}`;
-          fmtPrivate.push({
-            id: dialog.entity.id,
-            date: dialog.date,
-            title: fullName,
-            lastMsg: dialog.message?.message,
-            lastMsgDate: dialog.message?.date,
-            type: dialog.entity.className,
-            link: link,
-          })
-        }
+      if (dialog.entity instanceof Api.User) {
+        let lastName =  dialog.entity.lastName || dialog.entity.username;
+        const fullName = `${dialog.entity.firstName || ''} ${lastName}`;
+        fmtPrivate.push({
+          id: dialog.entity.id,
+          date: dialog.date,
+          title: fullName,
+          lastMsg: dialog.message?.message,
+          lastMsgDate: dialog.message?.date,
+          type: dialog.entity.className,
+          link: link,
+        })
       } else {
-        //END OF USER SUPPORT
-
         fmtGroups.push({
           id: dialog.entity.id,
           date: dialog.date,
-          title: (dialog.entity as any).title || 'no title', //sometime no title available
+          title: (dialog.entity as any).title,//sometime no title available
           lastMsg: dialog.message?.message,
           lastMsgDate: dialog.message?.date,
           type: dialog.entity.className,

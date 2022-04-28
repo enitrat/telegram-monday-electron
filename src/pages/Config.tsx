@@ -22,14 +22,29 @@ import {
 
 
 const Config = (props: any) => {
-  const {keyConfig, mondayConfig} = useStateConfig()
+  const {setKeyConfig, setMondayConfig} = useStateConfig()
   const navigate = useNavigate();
 
+
+
   useEffect(() => {
+
+
+    const keyConfig = window.Main.sendSyncRequest({
+      method: 'getKeyConfig'
+    })
+
+    const mondayConfig = window.Main.sendSyncRequest({
+      method: 'getMondayConfig'
+    });
+
+    if (keyConfig) setKeyConfig(keyConfig);
+    if (mondayConfig) setMondayConfig(mondayConfig);
+
     if (keyConfig && mondayConfig) navigate('/ready');
     if (!keyConfig) navigate('/key-config')
     if (!mondayConfig) navigate('/monday-config')
-  }, [keyConfig, mondayConfig])
+  }, [])
 
   return (<></>)
 }

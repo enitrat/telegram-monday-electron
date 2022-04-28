@@ -29,8 +29,6 @@ export const Ready = () => {
   useEffect(()=>{
     window.Main.sendAsyncRequest({method: 'getCurrentBoard'});
     window.Main.on('currentBoard',(data)=>{
-      console.log('currentBoard')
-      console.log(data)
       setCurrentBoard(data)
     })
 
@@ -56,7 +54,7 @@ export const Ready = () => {
   }, [running]);
 
   return (
-    <Box height={'100vh-40px'}>
+    <Flex justifyContent={'center'} height={'100vh-40px'}>
       {running &&
       <><MessageFeed
         messages={tgMessages}/>
@@ -64,7 +62,7 @@ export const Ready = () => {
       }
       {!currentBoard &&<p>Loading</p>}
       {!running && currentBoard && <OptionalConfig setRunning={setRunning}/>}
-    </Box>
+    </Flex>
   );
 }
 

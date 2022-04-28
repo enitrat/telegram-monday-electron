@@ -16,7 +16,6 @@ import {
   FormHelperText
 } from '@chakra-ui/react';
 import {useStateConfig} from "../../hooks/useConfig";
-import {mondayConfigParams} from "../MondayConfig/constants";
 import {keyConfigParams} from "./constants";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";

@@ -46,6 +46,17 @@ export default class Controller {
     }
   }
 
+  async getAllBoards(){
+    if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig());
+    const boards = await this.mondayController.getAllBoards()
+    this.windowChannel.send('all_boards', boards);
+  }
+
+  async getMondayBoard(board_id){
+    const targetBoard = this.mondayController.getBoard()
+    this.windowChannel.send('target_board', targetBoard);
+  }
+
   setKeyConfig(config: any) {
     if(!config) config = null;
     this._keyStore.set('config', config)
@@ -60,6 +71,8 @@ export default class Controller {
   }
 
   setOptionalConfig(config: any) {
+    console.log('received config')
+    console.log(config)
     this._optionalStore.set('config', config);
     this.mondayController.config = this.getFullConfig();
   }
@@ -124,7 +137,6 @@ export default class Controller {
       await this.startScanning()
     } catch (e) {
       console.log(e)
-      console.log(this.scanInterval)
       this.sendWindowMessage({
         type: "error",
         text: e.message
@@ -173,9 +185,13 @@ export default class Controller {
       const exportedDate = JSON.parse(exportedItem.lastMsg)
       let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
 
+
       if (parsedExportedDate === lastMsgDate) {
         continue;
       }
+      console.log(exportedDate)
+      console.log(parsedExportedDate)
+      console.log(lastMsgDate)
       await limiter.removeTokens(1);
       await this.updateItem(targetBoard, group, exportedItem)
     }
@@ -184,12 +200,10 @@ export default class Controller {
 
 
   async scanGroups(board_id?:string) {
-    //TODO add support for 2nd board
     await limiter.removeTokens(1);
     const targetBoard = await this.mondayController!.getBoard();
     if (!targetBoard) throw new Error(`Couldn't get Monday board with id ${this.mondayController?.config.board_id}`)
     let exportedChats = await this.mondayController!.getExportedChats(targetBoard);
-    let exportedPrivate = await this.mondayController!.getExportedChats(targetBoard);
     if (!exportedChats) throw Error("couldn't get board chats");
     const {fmtGroups:accountGroups,fmtPrivate:privateChats} = await this.telegramController!.getDialogs();
     return {accountGroups: accountGroups, privateChats:privateChats, exportedChats: exportedChats, targetBoard: targetBoard}
@@ -244,18 +258,30 @@ export default class Controller {
     //TODO here targetBoard must not come from here
     let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups();
     for (const group of accountGroups) {
-      console.log(group.title)
       if (filterKeywordGroup(this.mondayController!.config, group)) continue;
       let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
       if (foundGroup) continue;
-      // const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
-      // if(filterParticipantsGroup(participants,this.mondayController.config)) continue;
+      const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
+      if(filterParticipantsGroup(participants,this.mondayController.config)) continue;
       const targetBoardGroup = getTargetItemGroup(group,this.mondayController.config);
       if(!targetBoardGroup) continue;
       await limiter.removeTokens(1);
       //TODO REAL VALUE HERE
-      await this.createItem(targetBoard, targetBoardGroup, group, undefined)
+      await this.createItem(targetBoard, targetBoardGroup, group, participants)
     }
+    for (const group of privateChats) {
+      if (filterKeywordGroup(this.mondayController!.config, group)) continue;
+      let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+      if (foundGroup) continue;
+      const participants = await this.telegramController!.getChatParticipants(group.title, group.id)
+      if(filterParticipantsGroup(participants,this.mondayController.config)) continue;
+      const targetBoardGroup = getTargetItemGroup(group,this.mondayController.config);
+      if(!targetBoardGroup) continue;
+      await limiter.removeTokens(1);
+      //TODO REAL VALUE HERE
+      await this.createItem(targetBoard, targetBoardGroup, group, participants)
+    }
+
   }
 
 

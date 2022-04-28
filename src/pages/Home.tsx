@@ -20,31 +20,9 @@ const ChakraBox = chakra(motion.div, {
 const Home = () => {
 
   const navigate = useNavigate();
-  const {setKeyConfig, setMondayConfig} = useStateConfig();
-
 
   function handleStart() {
-
-    const keyConfig = window.Main.sendSyncRequest({
-      method: 'getKeyConfig'
-    })
-
-    const mondayConfig = window.Main.sendSyncRequest({
-      method: 'getMondayConfig'
-    });
-
-    console.log(keyConfig)
-    console.log(mondayConfig)
-
-    if (keyConfig) setKeyConfig(keyConfig);
-    if (mondayConfig) setMondayConfig(mondayConfig);
-
-    if (!keyConfig || !mondayConfig) {
-      navigate('/config')
-    } else {
-      navigate('/ready')
-    }
-
+    navigate('/config')
 
   }
 

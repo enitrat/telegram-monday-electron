@@ -14,7 +14,7 @@ export class MondayService {
   }
 
   async getAllBoards() {
-    let query = 'query { boards { name id }}';
+    let query = `{ boards { name id description groups {id title} columns { id title } } }`
 
     return fetch(this.base_url, {
       method: 'post',
@@ -186,7 +186,7 @@ export class MondayService {
     const participantsCol = columns.find((o: any) => o.title.toLowerCase() === config.participants_column.toLowerCase());
 
     const elementsIds = {
-      targetGroup: targetGroup.id,
+      targetGroup: targetGroup?.id || undefined,
       boardId: parseInt(targetBoard.id),
       linkColumn: linkColumn.id,
       lastMessageDate: lastMessageDate.id,
