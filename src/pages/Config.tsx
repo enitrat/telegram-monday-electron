@@ -2,7 +2,7 @@ import KeyConfig from "../components/KeyConfig/KeyConfig";
 import {MondayConfig} from "../components/MondayConfig/MondayConfig";
 import {useStateConfig} from "../hooks/useConfig";
 import {useEffect} from "react";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {
   Flex,
   Box,
@@ -24,11 +24,11 @@ import {
 const Config = (props: any) => {
   const {setKeyConfig, setMondayConfig} = useStateConfig()
   const navigate = useNavigate();
-
-
+  const location = useLocation();
+  const params = new URLSearchParams(location.search)
+  const destination = params.get('destination');
 
   useEffect(() => {
-
     const keyConfig = window.Main.sendSyncRequest({
       method: 'getKeyConfig'
     })
@@ -42,7 +42,9 @@ const Config = (props: any) => {
 
     if (!keyConfig) navigate('/key-config')
     if (keyConfig && !mondayConfig) navigate('/monday-config')
-    if (keyConfig && mondayConfig) navigate('/ready');
+    if (keyConfig && mondayConfig && destination==='fill') navigate('/fill-board');
+    if (keyConfig && mondayConfig && destination==='update') navigate('/update-board');
+
 
   }, [])
 

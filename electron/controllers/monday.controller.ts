@@ -1,21 +1,21 @@
 import fetch from "node-fetch-commonjs";
 import {MondayService} from "../services/monday.service";
 
-interface MondayConfig{
-  "board_id":string,
+interface MondayConfig {
+  "board_id": string,
   "group_name": string,
   "link_column": string,
-  "last_date_column":string,
-  "participants_column":string,
-  "include_keyword":string,
-  "exclude_keyword":string,
-  "exclude_members":string[]
-  "secondary_board":boolean,
-  "board_id_2":string,
+  "last_date_column": string,
+  "participants_column": string,
+  "include_keyword": string,
+  "exclude_keyword": string,
+  "exclude_members": string[]
+  "secondary_board": boolean,
+  "board_id_2": string,
   "group_name_2": string,
   "link_column_2": string,
-  "last_date_column_2":string,
-  "participants_column_2":string,
+  "last_date_column_2": string,
+  "participants_column_2": string,
 
 }
 
@@ -45,8 +45,8 @@ export class MondayController {
     this.config[key] = value
   }
 
-  setApiKey(value){
-    this._apiKey=value;
+  setApiKey(value) {
+    this._apiKey = value;
     this.mondayService = new MondayService(this._apiKey)
   }
 
@@ -75,10 +75,10 @@ export class MondayController {
     })
   }
 
-  async createPreconfigBoard(options){
+  async createPreconfigBoard(options) {
     const newBoardId = await this.mondayService.createBoard({});
-    const newBoardGroup = await this.mondayService.createBoardGroup(newBoardId,{});
-    const newColumns = await this.mondayService.createBoardColumns(newBoardId,{});
+    const newBoardGroup = await this.mondayService.createBoardGroup(newBoardId, {});
+    const newColumns = await this.mondayService.createBoardColumns(newBoardId, {});
 
     this.setConfigKey('board_id', newBoardId);
     this.setConfigKey('group_name', newBoardGroup)
@@ -87,12 +87,12 @@ export class MondayController {
     })
   }
 
-  async getBoard() {
-    return await this.mondayService.getBoard(this.config.board_id);
+  async getBoard(id?: string) {
+    return await this.mondayService.getBoard(id || this.config.board_id);
   }
 
-  async getSecondBoard(){
-    if(!this.config.secondary_board) return
+  async getSecondBoard() {
+    if (!this.config.secondary_board) return
     return await this.mondayService.getBoard(this.config.board_id_2);
   }
 
@@ -110,8 +110,8 @@ export class MondayController {
    * @param targetBoard
    * @returns {{targetGroup, participantsCol, lastMessageDate,  boardId: number, creationColumn, linkColumn}}
    */
-  getElementsIds(targetBoard: any,targetBoardGroup?:string) {
-    return this.mondayService.getElementsIds(this.config, targetBoard,targetBoardGroup)
+  getElementsIds(targetBoard: any, targetBoardGroup?: string) {
+    return this.mondayService.getElementsIds(this.config, targetBoard, targetBoardGroup)
   }
 
   async updateItem(query: string, vars: any) {

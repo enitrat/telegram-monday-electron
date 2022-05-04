@@ -1,20 +1,16 @@
-import {useStateConfig} from "../hooks/useConfig";
 import {useEffect, useState} from "react";
-import {Box, Button, Flex, Link, Spinner} from "@chakra-ui/react";
-import {Link as ReachLink, useNavigate} from "react-router-dom"
+import {Flex, Spinner} from "@chakra-ui/react";
+import {useNavigate} from "react-router-dom"
 import MessageFeed from "../components/MessageFeed/MessageFeed";
 import OptionalConfig from "../components/OptionalConfig/OptionalConfig";
-import ResetConfig from "../components/ResetConfig";
-import Settings from "../components/Settings";
 import {useRunningState} from "../hooks/useRunning";
 import {useBoardState} from "../hooks/useBoard";
 
-export const Ready = () => {
+export const FillBoard = () => {
   const navigate = useNavigate();
   const [tgMessages, setTgMessages] = useState<any[]>([]);
 
   const {currentBoard, setCurrentBoard} = useBoardState();
-  // const [currentBoard,setCurrentBoard] = useState<any>();
   const [ready, setReady] = useState(false);
   const {running, setRunning} = useRunningState();
 
@@ -27,6 +23,7 @@ export const Ready = () => {
   }
 
   useEffect(() => {
+
     window.Main.sendAsyncRequest({method: 'getCurrentBoard'});
     window.Main.on('currentBoard', (data) => {
       setCurrentBoard(data)
@@ -40,7 +37,7 @@ export const Ready = () => {
 
     const startTelegram = () => {
       setRunning(true)
-      window.Main.sendAsyncRequest({method: 'startTelegram'});
+      window.Main.sendAsyncRequest({method: 'startTelegram', params: [currentBoard.id]});
       window.Main.on('scan_update', handleTelegramUpdate)
     }
 
@@ -66,4 +63,4 @@ export const Ready = () => {
   );
 }
 
-export default Ready;
+export default FillBoard;

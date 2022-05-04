@@ -22,8 +22,11 @@ const Home = () => {
   const navigate = useNavigate();
 
   function handleStart() {
-    navigate('/config')
+    navigate('/config?destination=fill')
+  }
 
+  function handleUpdate() {
+    navigate('/config?destination=update')
   }
 
   // @ts-ignore
@@ -65,7 +68,10 @@ const Home = () => {
       </Flex>
       <Heading as={'h1'} size={'2xl'} marginBottom={'15px'}>Gramday</Heading>
       <Heading as={'h2'} size={'sm'}>Export your Telegram Groups to the Monday CRM</Heading>
-      <Button variant='solid' colorScheme='purple' marginTop={'100px'} onClick={handleStart}>Start</Button>
+      <Button variant='solid' colorScheme='purple' marginTop={'100px'} onClick={handleStart}>Fill board</Button>
+      <Button variant='solid' colorScheme='purple' marginTop={'100px'} onClick={handleUpdate}>Update boards</Button>
+
+
     </Flex>
   )
 }

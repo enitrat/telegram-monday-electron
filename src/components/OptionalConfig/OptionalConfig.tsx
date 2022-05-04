@@ -23,6 +23,7 @@ const defaultItem =
 const OptionalConfig = (props) => {
 
   const {additionalConfig, setAdditionalConfig} = useStateConfig()
+  const {currentBoard} = useBoardState();
   const [disabled, setDisabled] = useState<boolean>(true)
   const [keywordItems, setKeywordItems] = useState<any[]>([])
 
@@ -96,6 +97,9 @@ const OptionalConfig = (props) => {
           <Heading fontSize={'4xl'} textAlign={'center'}>
             Current options
           </Heading>
+          <Text>
+            Current board : {currentBoard.name}
+          </Text>
         </Stack>
         <form onSubmit={handleSubmit}>
           <Box

@@ -5,10 +5,11 @@ import {
   Route, Outlet,
 } from "react-router-dom";
 import Config from "./pages/Config";
-import Ready from "./pages/Ready";
+import FillBoard from "./pages/FillBoard";
 import {MondayConfig} from "./components/MondayConfig/MondayConfig";
 import KeyConfig from "./components/KeyConfig/KeyConfig";
 import Navbar from "./components/Navbar";
+import UpdateBoard from "./pages/UpdateBoard";
 
 export function App() {
   return (
@@ -20,7 +21,8 @@ export function App() {
             <Route path="/config" element={<Config/>}/>
             <Route path="/key-config" element={<KeyConfig/>}/>
             <Route path="/monday-config" element={<MondayConfig/>}/>
-            <Route path="/ready" element={<Ready/>}/>
+            <Route path="/fill-board" element={<FillBoard/>}/>
+            <Route path="/update-board" element={<UpdateBoard/>}/>
           </Route>
         </Routes>
       </HashRouter>
