@@ -12,7 +12,7 @@ const Navbar = () => {
 
   const stopService = () => {
     setRunning(false);
-    window.Main.sendAsyncRequest({method: 'stopTelegram'});
+    // window.Main.sendAsyncRequest({method: 'stopTelegram'});
   }
 
   const handleClick = () => {

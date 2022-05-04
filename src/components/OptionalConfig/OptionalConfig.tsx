@@ -8,7 +8,7 @@ import {
   useColorModeValue
 } from "@chakra-ui/react";
 import {useStateConfig} from "../../hooks/useConfig";
-import {additionalConfigParams } from "./constants";
+import {additionalConfigParams} from "./constants";
 import FormItem from "./FormItem";
 import IncludeItem from "./IncludeItem";
 import {useBoardState} from "../../hooks/useBoard";
@@ -23,6 +23,7 @@ const defaultItem =
 const OptionalConfig = (props) => {
 
   const {additionalConfig, setAdditionalConfig} = useStateConfig()
+  const [storedConfig, setStoredConfig] = useState<any>();
   const {currentBoard} = useBoardState();
   const [disabled, setDisabled] = useState<boolean>(true)
   const [keywordItems, setKeywordItems] = useState<any[]>([])
@@ -44,13 +45,14 @@ const OptionalConfig = (props) => {
   const handleSubmit = (e: any) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const globalConfig = storedConfig;
     const data = {}
 
     //Regular entries
     for (const entry of formData.entries()) {
       data[entry[0]] = entry[1];
       if (entry[0] === "exclude_members") {
-        const participants = (entry[1] as string).split(',').map((name)=>{
+        const participants = (entry[1] as string).split(',').map((name) => {
           return name.toLowerCase();
         })
         data[entry[0]] = participants;
@@ -61,28 +63,36 @@ const OptionalConfig = (props) => {
     //Include_keywords list
     data['include_keywords'] = keywordItems;
 
+    globalConfig[currentBoard.id] = data;
+
     window.Main.sendSyncRequest({
       method: 'setOptionalConfig',
-      params: [data]
+      params: [globalConfig]
     });
-    setAdditionalConfig(data);
+    setAdditionalConfig(globalConfig);
     props.setRunning(true)
   }
 
   useEffect(() => {
-    let storedConfig = window.Main.sendSyncRequest({
+    let storedConfigRes = window.Main.sendSyncRequest({
       method: 'getOptionalConfig'
     })
-    if (!storedConfig) storedConfig = {include_keywords:[]}
-    setAdditionalConfig(storedConfig);
+    if (!storedConfigRes) storedConfigRes = {[currentBoard.id]:undefined}
+    setStoredConfig(storedConfigRes)
 
-    if (storedConfig.include_keywords.length === 0) {
+    let currentConfig = storedConfigRes[currentBoard.id];
+    if(!currentConfig) currentConfig = {include_keywords:[]}
+
+    setAdditionalConfig(currentConfig);
+
+
+    if (currentConfig.include_keywords.length === 0) {
       const clone = JSON.parse(JSON.stringify(defaultItem));
       setKeywordItems([clone])
     } else {
-      setKeywordItems(storedConfig.include_keywords)
+      setKeywordItems(currentConfig.include_keywords)
     }
-  }, [])
+  }, [currentBoard])
 
   return (
     <Flex
@@ -98,7 +108,7 @@ const OptionalConfig = (props) => {
             Current options
           </Heading>
           <Text>
-            Current board : {currentBoard.name}
+            Board : {currentBoard.name}
           </Text>
         </Stack>
         <form onSubmit={handleSubmit}>
@@ -120,9 +130,10 @@ const OptionalConfig = (props) => {
 
                   {keywordItems.map((item, index) => {
                     return (
-                      <Box key={index}>
+                      <Box key={`${item.value}-${index}`}>
                         <Box justifyContent={'center'} alignItems={'center'} marginTop={'10px'}>
-                          <IncludeItem  keywordItems={keywordItems} item={item} deleteKeyword={deleteKeyword} index={index} disabled={disabled}/>
+                          <IncludeItem keywordItems={keywordItems} item={item} deleteKeyword={deleteKeyword}
+                                       index={index} disabled={disabled}/>
                         </Box>
                         {!disabled && index === 0 &&
                         <Text fontSize={'xs'}

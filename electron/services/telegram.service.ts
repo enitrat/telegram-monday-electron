@@ -58,7 +58,7 @@ export class TelegramService {
 
 
   async getDialogs() {
-    if (!this.telegramClient.connected) throw Error("Telegram disconnected")
+    if (!this.telegramClient?.connected) throw Error("Telegram disconnected")
     let fmtGroups = [];
     let fmtPrivate = [];
     for await (const dialog of (this.telegramClient.iterDialogs)({})) {
@@ -67,7 +67,7 @@ export class TelegramService {
 
       //TODO SUPPORT FOR 1:1 USERS
       if (dialog.entity instanceof Api.User) {
-        let lastName =  dialog.entity.lastName || dialog.entity.username;
+        let lastName = dialog.entity.lastName || dialog.entity.username;
         const fullName = `${dialog.entity.firstName || ''} ${lastName}`;
         fmtPrivate.push({
           id: dialog.entity.id,
@@ -94,8 +94,7 @@ export class TelegramService {
   }
 
   async getChatParticipants(groupName: string, groupId: bigInt.BigInteger) {
-    if (!this.telegramClient.connected) throw Error("Telegram disconnected")
-
+    if (!this.telegramClient?.connected) throw Error("Telegram disconnected")
     try {
       const participants = await this.telegramClient.getParticipants(groupId, {});
       let fmtParticipants = participants.map((participant) => {
@@ -108,8 +107,7 @@ export class TelegramService {
       })
       return fmtParticipants
     } catch (e) {
-      console.log(e)
-      // if (e.code === 400) throw new Error('Admin rights required to see participants for ' + groupName)
+      if(e.code!==400) throw e
     }
   }
 

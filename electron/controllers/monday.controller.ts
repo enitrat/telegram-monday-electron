@@ -1,23 +1,24 @@
 import fetch from "node-fetch-commonjs";
 import {MondayService} from "../services/monday.service";
+import {MondayBoard} from "../../shared/types";
 
-interface MondayConfig {
+type mainConfig = {
   "board_id": string,
   "group_name": string,
   "link_column": string,
   "last_date_column": string,
   "participants_column": string,
-  "include_keyword": string,
-  "exclude_keyword": string,
-  "exclude_members": string[]
-  "secondary_board": boolean,
-  "board_id_2": string,
-  "group_name_2": string,
-  "link_column_2": string,
-  "last_date_column_2": string,
-  "participants_column_2": string,
-
+  "optional_config":optionalConfig,
 }
+type optionalConfig = {
+  [key:string]:{
+    "include_keyword": string,
+    "exclude_keyword": string,
+    "exclude_members": string[]
+  }
+}
+
+type MondayConfig = mainConfig & optionalConfig;
 
 export class MondayController {
   _apiKey;
@@ -41,7 +42,7 @@ export class MondayController {
     this.config = config;
   }
 
-  setConfigKey(key: string, value: string) {
+  setConfigKey(key: string, value: any) {
     this.config[key] = value
   }
 
@@ -87,13 +88,8 @@ export class MondayController {
     })
   }
 
-  async getBoard(id?: string) {
-    return await this.mondayService.getBoard(id || this.config.board_id);
-  }
-
-  async getSecondBoard() {
-    if (!this.config.secondary_board) return
-    return await this.mondayService.getBoard(this.config.board_id_2);
+  async getBoard(id: string) {
+    return await this.mondayService.getBoard(id);
   }
 
   /**
@@ -101,8 +97,8 @@ export class MondayController {
    * @param targetBoard
    * @returns {Promise<{name: *, lastMsg: *, id: *}[]>}
    */
-  async getExportedChats(targetBoard: any) {
-    return await this.mondayService.getExportedChats(this.config, targetBoard)
+  async getExportedChats(targetBoard: MondayBoard) {
+    return await this.mondayService.getExportedChats(this.config.last_date_column, targetBoard)
   }
 
   /**
@@ -110,8 +106,13 @@ export class MondayController {
    * @param targetBoard
    * @returns {{targetGroup, participantsCol, lastMessageDate,  boardId: number, creationColumn, linkColumn}}
    */
-  getElementsIds(targetBoard: any, targetBoardGroup?: string) {
-    return this.mondayService.getElementsIds(this.config, targetBoard, targetBoardGroup)
+  getElementsIds(targetBoard: MondayBoard, targetBoardGroup?: string) {
+    const configColumns = {
+      last_date_column:this.config.last_date_column,
+      participants_column:this.config.participants_column,
+      link_column:this.config.link_column
+    }
+    return this.mondayService.getElementsIds(configColumns, targetBoard, targetBoardGroup)
   }
 
   async updateItem(query: string, vars: any) {

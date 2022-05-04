@@ -24,7 +24,6 @@ export const UpdateBoard = () => {
   }
 
   const onBoardChange = (e, index) => {
-    console.log('changing')
     const targetBoard = allBoards.find((board) => board.id === e.target.value)
     //new list from old + changed element
     const newSelection = selectedBoards.map((board, boardIndex) => {
@@ -58,9 +57,13 @@ export const UpdateBoard = () => {
       method: 'getAllBoards',
     })
 
-    window.Main.on('all_boards', (boards: MondayBoard[]) => {
+    window.Main.once('all_boards', (boards: MondayBoard[]) => {
       setAllBoards(boards);
     });
+
+    return(()=>{
+      window.Main.sendAsyncRequest({method: 'stopTelegram'});
+    })
   }, [])
 
   const handleSubmit = (e: any) => {
@@ -69,8 +72,6 @@ export const UpdateBoard = () => {
     const data = config || {};
     //Include_keywords list
     data['updated_boards'] = selectedBoards;
-    console.log('sending')
-    console.log(data)
 
     window.Main.sendSyncRequest({
       method: 'setOptionalConfig',
@@ -86,9 +87,6 @@ export const UpdateBoard = () => {
     }])
   }
 
-  useEffect(() => {
-    console.log(selectedBoards)
-  }, [selectedBoards]);
 
 
   useEffect(() => {
@@ -97,7 +95,7 @@ export const UpdateBoard = () => {
 
     const startTelegram = () => {
       setRunning(true)
-      window.Main.sendAsyncRequest({method: 'updateBoards'});
+      window.Main.sendAsyncRequest({method: 'startBoardUpdates'});
       window.Main.on('scan_update', handleTelegramUpdate)
     }
 

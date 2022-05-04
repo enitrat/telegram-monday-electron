@@ -52,3 +52,7 @@ export function getTargetItemGroup(group, config){
 
 }
 
+export const customLog = (message) =>{
+  console.log(message);
+}
+

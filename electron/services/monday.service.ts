@@ -1,4 +1,5 @@
 import fetch from "node-fetch-commonjs";
+import {MondayBoard} from "../../shared/types";
 
 export class MondayService {
   base_url = "https://api.monday.com/v2"
@@ -125,7 +126,7 @@ export class MondayService {
     return newColumns
   }
 
-  async getBoard(board_id: string) {
+  async getBoard(board_id: string):Promise<MondayBoard> {
     let query = `{ boards (ids:[${board_id}]) { name id description groups {id title} columns { id title } items { id name column_values { title value } } } }`
     const accountData: any = await fetch(this.base_url, {
       method: 'post',
@@ -153,12 +154,13 @@ export class MondayService {
    * @param targetBoard
    * @returns {Promise<{name: *, lastMsg: *, id: *}[]>}
    */
-  async getExportedChats(config, targetBoard: any) {
+  async getExportedChats(lastDateColumn, targetBoard: MondayBoard) {
+
     if (!targetBoard) throw Error('target board not found');
     const items = targetBoard.items
     if (!items) throw Error('board items not found');
     const exportedChats = items.map((item: any) => {
-      let lastMsgColumn = item.column_values.find((o: any) => o.title.toLowerCase() === config.last_date_column.toLowerCase())
+      let lastMsgColumn = item.column_values.find((o: any) => o.title.toLowerCase() === lastDateColumn.toLowerCase())
       return {
         name: item.name,
         id: item.id,
@@ -173,15 +175,16 @@ export class MondayService {
    * @param targetBoard
    * @returns {{targetGroup, participantsCol, lastMessageDate,  boardId: number, creationColumn, linkColumn}}
    */
-  getElementsIds(config, targetBoard: any, targetBoardGroup: string) {
+  getElementsIds(configColumns, targetBoard: MondayBoard, targetBoardGroup: string) {
     let targetGroup;
     if (targetBoardGroup) {
       targetGroup = targetBoard.groups.find((o: any) => o.title.toLowerCase() === targetBoardGroup.toLowerCase());
     }
+    console.log(configColumns)
     const columns = targetBoard.columns;
-    const linkColumn = columns.find((o: any) => o.title.toLowerCase() === config.link_column.toLowerCase());
-    const lastMessageDate = columns.find((o: any) => o.title.toLowerCase() === config.last_date_column.toLowerCase());
-    const participantsCol = columns.find((o: any) => o.title.toLowerCase() === config.participants_column.toLowerCase());
+    const linkColumn = columns.find((o: any) => o.title.toLowerCase() === configColumns.link_column.toLowerCase());
+    const lastMessageDate = columns.find((o: any) => o.title.toLowerCase() === configColumns.last_date_column.toLowerCase());
+    const participantsCol = columns.find((o: any) => o.title.toLowerCase() === configColumns.participants_column.toLowerCase());
 
     const elementsIds = {
       targetGroup: targetGroup?.id || undefined,

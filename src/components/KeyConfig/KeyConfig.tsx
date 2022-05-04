@@ -52,7 +52,7 @@ const KeyConfig = () => {
       params: [data]
     });
     setKeyConfig(data);
-    navigate('/config')
+    navigate('/config?destination=fill')
 
   }
 

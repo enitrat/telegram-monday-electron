@@ -5,31 +5,25 @@ import MessageFeed from "../components/MessageFeed/MessageFeed";
 import OptionalConfig from "../components/OptionalConfig/OptionalConfig";
 import {useRunningState} from "../hooks/useRunning";
 import {useBoardState} from "../hooks/useBoard";
+import {useStateConfig} from "../hooks/useConfig";
 
 export const FillBoard = () => {
   const navigate = useNavigate();
   const [tgMessages, setTgMessages] = useState<any[]>([]);
 
   const {currentBoard, setCurrentBoard} = useBoardState();
+  const {mondayConfig} = useStateConfig()
   const [ready, setReady] = useState(false);
   const {running, setRunning} = useRunningState();
 
-
-  const stopService = () => {
-    setReady(false)
-    setRunning(false);
-    window.Main.sendAsyncRequest({method: 'stopTelegram'});
-    navigate('/')
-  }
-
   useEffect(() => {
-
-    window.Main.sendAsyncRequest({method: 'getCurrentBoard'});
-    window.Main.on('currentBoard', (data) => {
+    if(!mondayConfig) return;
+    window.Main.sendAsyncRequest({method: 'getCurrentBoard',params:[mondayConfig.board_id]});
+    window.Main.once('currentBoard', (data) => {
       setCurrentBoard(data)
     })
 
-  }, [])
+  }, [mondayConfig])
 
   useEffect(() => {
     if (!running) return
@@ -37,7 +31,7 @@ export const FillBoard = () => {
 
     const startTelegram = () => {
       setRunning(true)
-      window.Main.sendAsyncRequest({method: 'startTelegram', params: [currentBoard.id]});
+      window.Main.sendAsyncRequest({method: 'startBoardFill', params: [currentBoard.id]});
       window.Main.on('scan_update', handleTelegramUpdate)
     }
 
@@ -47,6 +41,10 @@ export const FillBoard = () => {
     }
 
     startTelegram();
+
+    return(()=>{
+      window.Main.sendAsyncRequest({method: 'stopTelegram'});
+    })
 
   }, [running]);
 

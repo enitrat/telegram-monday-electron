@@ -48,7 +48,7 @@ export const MondayConfig = () => {
       method: 'getAllBoards',
     })
 
-    window.Main.on('all_boards', (boards: MondayBoard[]) => {
+    window.Main.once('all_boards', (boards: MondayBoard[]) => {
       setAllBoards(boards);
       if (boards.length > 0) setSelectedBoard(boards[0]);
       mondayConfigParams(boards[0]).forEach((param) => {
@@ -81,14 +81,14 @@ export const MondayConfig = () => {
       method: 'createNewBoard',
     });
 
-    window.Main.on('create_board', (message) => {
+    window.Main.once('create_board', (message) => {
       if (message.result === "success") {
         setMondayConfig(message.data)
       } else {
         //TODO catch this err somewhere
         console.log('there was an error while creating the board')
       }
-      navigate('/config');
+      navigate('/config?destination=fill')
     })
   }
 
@@ -100,7 +100,7 @@ export const MondayConfig = () => {
       params: [config]
     });
     setMondayConfig(config);
-    navigate('/config')
+    navigate('/config?destination=fill')
   }
 
   return (
