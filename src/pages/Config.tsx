@@ -36,8 +36,6 @@ const Config = (props: any) => {
     const mondayConfig = window.Main.sendSyncRequest({
       method: 'getMondayConfig'
     });
-    console.log(keyConfig)
-    console.log(mondayConfig)
 
     if (keyConfig) setKeyConfig(keyConfig);
     if (mondayConfig) setMondayConfig(mondayConfig);

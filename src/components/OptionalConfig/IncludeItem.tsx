@@ -11,26 +11,29 @@ import {useBoardState} from "../../hooks/useBoard";
 import {useEffect} from "react";
 import {DeleteIcon} from "@chakra-ui/icons";
 
-const IncludeItem = ({keywordItems, deleteKeyword, item, index, disabled}) => {
+const IncludeItem = ({ keywordItems, deleteKeyword, item, index, disabled}) => {
 
   const {currentBoard} = useBoardState();
   const boardGroups = currentBoard.groups;
 
-
   const onValueChange = (e: any) => {
     item.value = e.target.value
-    console.log(item)
-    console.log(keywordItems)
   }
 
   useEffect(() => {
-    item.target = item.target || boardGroups[0].title
-  }, [])
+    JSON.stringify(boardGroups)
+    const grpExists = boardGroups.find((group)=>group.title===item.target)
+    if(grpExists) {
+      item.target = item.target
+    }else{
+      item.target = boardGroups[0].title
+      keywordItems[index] = item;
+    }
+    // item.target = item.target || boardGroups[0].title
+  }, [currentBoard])
 
   const onSelectEvent = (e: any) => {
     item.target = e.target.value
-    console.log(item)
-    console.log(keywordItems)
   }
 
   return (

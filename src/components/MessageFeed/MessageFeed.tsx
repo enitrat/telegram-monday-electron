@@ -4,7 +4,6 @@ import ScrollableFeed from "react-scrollable-feed";
 
 
 const MessageFeed = ({messages}) => {
-  console.log(messages)
   return (
     <Flex
       w="100%"

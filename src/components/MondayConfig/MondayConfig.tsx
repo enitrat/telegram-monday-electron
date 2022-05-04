@@ -13,7 +13,7 @@ import {
   Text,
   useColorModeValue,
   Link,
-  FormHelperText, Select
+  FormHelperText, Select, Spinner
 } from '@chakra-ui/react';
 import {useStateConfig} from "../../hooks/useConfig";
 import {mondayConfigParams} from "./constants";
@@ -54,7 +54,6 @@ export const MondayConfig = () => {
       mondayConfigParams(boards[0]).forEach((param) => {
         config[param.name]=param.defaultValue;
       });
-      console.log(config)
       setConfig(config)
     })
 
@@ -87,7 +86,7 @@ export const MondayConfig = () => {
         setMondayConfig(message.data)
       } else {
         //TODO catch this err somewhere
-        console.log('there was an error')
+        console.log('there was an error while creating the board')
       }
       navigate('/config');
     })
@@ -117,7 +116,8 @@ export const MondayConfig = () => {
           <Button onClick={handleNewBoard}>
             Create a new board
           </Button>
-          {allBoards.length > 0 &&
+          <Text>If a board named "Telegram Board" exists, it will be replaced by an empty board</Text>
+          {allBoards && allBoards.length > 0 &&
           <Button onClick={() => {
             setInit(false);
             setCreateNew(false);
@@ -125,7 +125,7 @@ export const MondayConfig = () => {
             Use an existing board (requires proper configuration)
           </Button>
           }
-          <Text>If it exists, it will delete and replace a board called "Telegram Board"</Text>
+
         </>
         }
         {!init && !createNew &&
@@ -139,7 +139,6 @@ export const MondayConfig = () => {
           {allBoards && selectedBoard && <>
             <Select value={selectedBoard.name} defaultValue={selectedBoard.name} onChange={onBoardChange}>
               {allBoards.map((board, index) => {
-                console.log(board)
                 return (
                   <option key={index} value={board.name}>{board.name}</option>
                 )
@@ -153,7 +152,6 @@ export const MondayConfig = () => {
                 p={8}>
                 <Stack spacing={4}>
                   {mondayConfigParams(selectedBoard).map((param) => {
-                    console.log(param)
                     return (
                       <FormControl key={param.name} id={param.name} isRequired={param.required}>
                       <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
@@ -187,6 +185,7 @@ export const MondayConfig = () => {
           </>}
         </>
         }
+        {createNew && <Spinner/>}
       </Stack>
     </Flex>
   )

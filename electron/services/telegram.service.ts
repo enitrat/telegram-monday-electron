@@ -29,7 +29,7 @@ export class TelegramService {
         return password
       },
       phoneCode: async () => {
-        const phoneCode = await waitPromptInput('Please enter your telegram code ?');
+        const phoneCode = await waitPromptInput('Please enter your telegram code');
         if (!phoneCode) throw Error('no telegram code specified')
         return phoneCode
       },

@@ -42,7 +42,6 @@ export class MondayController {
   }
 
   setConfigKey(key: string, value: string) {
-    console.log(key, value)
     this.config[key] = value
   }
 

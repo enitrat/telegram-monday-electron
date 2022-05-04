@@ -11,6 +11,7 @@ import {useStateConfig} from "../../hooks/useConfig";
 import {additionalConfigParams } from "./constants";
 import FormItem from "./FormItem";
 import IncludeItem from "./IncludeItem";
+import {useBoardState} from "../../hooks/useBoard";
 
 const defaultItem =
   {
@@ -48,7 +49,9 @@ const OptionalConfig = (props) => {
     for (const entry of formData.entries()) {
       data[entry[0]] = entry[1];
       if (entry[0] === "exclude_members") {
-        const participants = (entry[1] as string).split(',')
+        const participants = (entry[1] as string).split(',').map((name)=>{
+          return name.toLowerCase();
+        })
         data[entry[0]] = participants;
 
       }
@@ -57,8 +60,6 @@ const OptionalConfig = (props) => {
     //Include_keywords list
     data['include_keywords'] = keywordItems;
 
-    console.log('sent config')
-    console.log(data)
     window.Main.sendSyncRequest({
       method: 'setOptionalConfig',
       params: [data]
@@ -117,7 +118,7 @@ const OptionalConfig = (props) => {
                     return (
                       <Box key={index}>
                         <Box justifyContent={'center'} alignItems={'center'} marginTop={'10px'}>
-                          <IncludeItem keywordItems={keywordItems} item={item} deleteKeyword={deleteKeyword} index={index} disabled={disabled}/>
+                          <IncludeItem  keywordItems={keywordItems} item={item} deleteKeyword={deleteKeyword} index={index} disabled={disabled}/>
                         </Box>
                         {!disabled && index === 0 &&
                         <Text fontSize={'xs'}

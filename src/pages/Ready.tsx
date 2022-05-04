@@ -1,6 +1,6 @@
 import {useStateConfig} from "../hooks/useConfig";
 import {useEffect, useState} from "react";
-import {Box, Button, Flex, Link} from "@chakra-ui/react";
+import {Box, Button, Flex, Link, Spinner} from "@chakra-ui/react";
 import {Link as ReachLink, useNavigate} from "react-router-dom"
 import MessageFeed from "../components/MessageFeed/MessageFeed";
 import OptionalConfig from "../components/OptionalConfig/OptionalConfig";
@@ -26,13 +26,13 @@ export const Ready = () => {
     navigate('/')
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     window.Main.sendAsyncRequest({method: 'getCurrentBoard'});
-    window.Main.on('currentBoard',(data)=>{
+    window.Main.on('currentBoard', (data) => {
       setCurrentBoard(data)
     })
 
-  },[])
+  }, [])
 
   useEffect(() => {
     if (!running) return
@@ -60,7 +60,7 @@ export const Ready = () => {
         messages={tgMessages}/>
       </>
       }
-      {!currentBoard &&<p>Loading</p>}
+      {!currentBoard && <><Spinner/><p>Taking too long ? Retry in a minute or reset your Monday configuration</p></>}
       {!running && currentBoard && <OptionalConfig setRunning={setRunning}/>}
     </Flex>
   );

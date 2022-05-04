@@ -1,8 +1,8 @@
 {
-  "name": "telegram-monday-app",
+  "name": "Gramday",
   "author": "Mathieu Saugier <msaug@protonmail.com>",
   "version": "2.0.0",
-  "description": "An Electron boilerplate including TypeScript, React, Jest and ESLint.",
+  "description": "Export your telegram chats to the CRM Monday",
   "main": "./.webpack/main",
   "engines": {
     "node": ">=16.0.0 <17"
@@ -20,6 +20,7 @@
   "dependencies": {
     "@chakra-ui/icons": "^1.1.7",
     "@chakra-ui/react": "^1.8.8",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.63",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@timfish/webpack-asset-relocator-loader": "^0.1.0",
@@ -88,8 +89,8 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "name": "Telegram Monday",
-        "executableName": "telegram-monday",
+        "name": "Gramday",
+        "executableName": "gramday",
         "icon": "assets/icon",
         "extraResource": [
           "assets"
@@ -128,7 +129,7 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "Electron Starter"
+            "name": "Gramday"
           }
         },
         {
@@ -144,6 +145,9 @@
         {
           "name": "@electron-forge/maker-rpm",
           "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-dmg",
         }
       ]
     }
