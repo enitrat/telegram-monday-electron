@@ -1,6 +1,7 @@
 import fetch from "node-fetch-commonjs";
 import {MondayService} from "../services/monday.service";
 import {MondayBoard} from "../../shared/types";
+import {sendError} from "../main";
 
 type mainConfig = {
   "board_id": string,
@@ -8,10 +9,10 @@ type mainConfig = {
   "link_column": string,
   "last_date_column": string,
   "participants_column": string,
-  "optional_config":optionalConfig,
+  "optional_config": optionalConfig,
 }
 type optionalConfig = {
-  [key:string]:{
+  [key: string]: {
     "include_keyword": string,
     "exclude_keyword": string,
     "exclude_members": string[]
@@ -52,16 +53,25 @@ export class MondayController {
   }
 
   async getAllBoards() {
-    return await this.mondayService.getAllBoards();
+    try {
+      return await this.mondayService.getAllBoards();
+    } catch (e) {
+      sendError(e.message + ' There could be a problem with your Monday API Key.')
+    }
   }
 
   async archiveBoard(boardId) {
     await this.mondayService.archiveBoard(boardId)
   }
 
+
   async createBoard(options) {
-    const newBoardId = await this.mondayService.createBoard(options)
-    this.setConfigKey('board_id', newBoardId);
+    try {
+      const newBoardId = await this.mondayService.createBoard(options)
+      this.setConfigKey('board_id', newBoardId);
+    } catch (e) {
+      sendError(e.message + ' There could be a problem with your Monday API Key.')
+    }
   }
 
   async createBoardGroup(options) {
@@ -108,9 +118,9 @@ export class MondayController {
    */
   getElementsIds(targetBoard: MondayBoard, targetBoardGroup?: string) {
     const configColumns = {
-      last_date_column:this.config.last_date_column,
-      participants_column:this.config.participants_column,
-      link_column:this.config.link_column
+      last_date_column: this.config.last_date_column,
+      participants_column: this.config.participants_column,
+      link_column: this.config.link_column
     }
     return this.mondayService.getElementsIds(configColumns, targetBoard, targetBoardGroup)
   }

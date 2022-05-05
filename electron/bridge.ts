@@ -1,9 +1,10 @@
 import {contextBridge, ipcRenderer} from 'electron'
 
-interface Request{
-  method:string,
-  params?:any
+interface Request {
+  method: string,
+  params?: any
 }
+
 export const api = {
   /**
    * Here you can expose functions to the renderer process
@@ -13,7 +14,7 @@ export const api = {
    * The function below can accessed using `window.Main.sendMessage`
    */
 
-  sendMessage: (channel:string, message: string) => {
+  sendMessage: (channel: string, message: string) => {
     ipcRenderer.send(channel, message)
   },
 
@@ -25,12 +26,12 @@ export const api = {
     return ipcRenderer.sendSync('syncRequest', request);
   },
 
-  sendPrompt:(promptText:string) =>{
-    return ipcRenderer.send('telegram-update','test');
+  sendPrompt: (promptText: string) => {
+    return ipcRenderer.send('telegram-update', 'test');
   },
 
-  promptPostData:(input:any) =>{
-    return ipcRenderer.send('promptPostData',input)
+  promptPostData: (input: any) => {
+    return ipcRenderer.send('promptPostData', input)
   },
 
 
@@ -47,7 +48,13 @@ export const api = {
    */
   once: (channel: string, callback: Function) => {
     ipcRenderer.once(channel, (_, data) => callback(data))
+  },
+
+  off: (channel: string, callback: Function) => {
+    ipcRenderer.off(channel, () => callback);
   }
+
+
 }
 
 contextBridge.exposeInMainWorld('Main', api)

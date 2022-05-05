@@ -36,8 +36,13 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+
 }
 
+export const sendError = (message) =>{
+    mainWindow?.webContents.send('error', message);
+}
 
 
 async function registerListeners() {

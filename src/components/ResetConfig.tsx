@@ -11,26 +11,47 @@ const ResetConfig = () => {
 
   const resetKeyConfig = () => {
     setKeyConfig(undefined)
-    // window.Main.sendSyncRequest({
-    //   method: 'setKeyConfig',
-    //   params: [undefined]
-    // });
+    window.Main.sendSyncRequest({
+      method: 'setKeyConfig',
+      params: [undefined]
+    });
     navigate('/key-config')
   }
 
   const resetMondayConfig = () => {
     setMondayConfig(undefined)
-    // window.Main.sendSyncRequest({
-    //   method: 'setMondayConfig',
-    //   params: [undefined]
-    // });
+    window.Main.sendSyncRequest({
+      method: 'setMondayConfig',
+      params: [undefined]
+    });
     navigate('/monday-config')
+  }
+
+  const resetEverything = () => {
+    setMondayConfig(undefined)
+    setKeyConfig(undefined)
+    window.Main.sendSyncRequest({
+      method: 'setMondayConfig',
+      params: [undefined]
+    });
+
+    window.Main.sendSyncRequest({
+      method: 'setKeyConfig',
+      params: [undefined]
+    });
+
+    window.Main.sendSyncRequest({
+      method: 'setOptionalConfig',
+      params: [undefined]
+    });
+    navigate('/config')
   }
 
   return (
     <>
-      <Button variant={'ghost'} colorScheme={'blue'} onClick={resetKeyConfig}>Edit your API Keys</Button>
-      <Button variant={'ghost'} colorScheme={'yellow'} onClick={resetMondayConfig}>Edit your Monday configuration</Button>
+      <Button variant={'ghost'} colorScheme={'blue'} onClick={resetKeyConfig}>API Keys</Button>
+      <Button variant={'ghost'} colorScheme={'yellow'} onClick={resetMondayConfig}>Monday Board</Button>
+      <Button variant={'ghost'} colorScheme={'red'} onClick={resetEverything}>Reset</Button>
     </>
   )
 }
