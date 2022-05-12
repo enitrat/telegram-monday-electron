@@ -1,9 +1,5 @@
 import Home from "./pages/Home";
-import {
-  HashRouter,
-  Routes,
-  Route, Outlet,
-} from "react-router-dom";
+import {HashRouter, Outlet, Route, Routes,} from "react-router-dom";
 import Config from "./pages/Config";
 import FillBoard from "./pages/FillBoard";
 import {MondayConfig} from "./components/MondayConfig/MondayConfig";

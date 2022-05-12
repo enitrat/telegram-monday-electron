@@ -93,7 +93,7 @@
     "forge": {
       "packagerConfig": {
         "name": "Gramday",
-        "executableName": "gramday",
+        "executableName": "Gramday",
         "icon": "assets/icon",
         "extraResource": [
           "assets"

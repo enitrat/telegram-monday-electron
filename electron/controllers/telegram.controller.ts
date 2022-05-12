@@ -1,7 +1,5 @@
 import {StringSession} from "telegram/sessions";
-import {Api, TelegramClient} from "telegram";
-import {waitPromptInput} from "../promptWindow";
-import {RateLimiter} from "limiter";
+import {TelegramClient} from "telegram";
 import bigInt from "big-integer";
 import {TelegramService} from "../services/telegram.service";
 

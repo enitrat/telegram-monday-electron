@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Flex, Spinner, Select, Button, Box, useColorModeValue} from "@chakra-ui/react";
+import {Box, Button, Flex, Select, Spinner, useColorModeValue} from "@chakra-ui/react";
 import {useNavigate} from "react-router-dom"
 import MessageFeed from "../components/MessageFeed/MessageFeed";
 import {useRunningState} from "../hooks/useRunning";

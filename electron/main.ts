@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, ipcRenderer} from 'electron'
+import {app, BrowserWindow, ipcMain} from 'electron'
 import Controller from "./controllers/controller";
 import {handleRequest} from "./requestHandler";
 

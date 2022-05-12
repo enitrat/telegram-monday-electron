@@ -1,12 +1,4 @@
-import {
-  Box, Button, Checkbox, Flex,
-  FormControl,
-  FormLabel,
-  Grid,
-  HStack,
-  Input,
-  MenuList, Select, Text
-} from "@chakra-ui/react";
+import {Box, Checkbox, Flex, FormControl, FormLabel, Grid, Input, Select, Text} from "@chakra-ui/react";
 import {useBoardState} from "../../hooks/useBoard";
 import {useEffect} from "react";
 import {DeleteIcon} from "@chakra-ui/icons";

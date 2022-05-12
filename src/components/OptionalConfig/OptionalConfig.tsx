@@ -1,12 +1,5 @@
 import {useEffect, useState} from "react";
-import {
-  Box, Button,
-  Flex,
-  Heading,
-  Stack,
-  Text,
-  useColorModeValue
-} from "@chakra-ui/react";
+import {Box, Button, Flex, Heading, Stack, Text, useColorModeValue} from "@chakra-ui/react";
 import {useStateConfig} from "../../hooks/useConfig";
 import {additionalConfigParams} from "./constants";
 import FormItem from "./FormItem";

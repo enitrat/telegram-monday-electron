@@ -1,5 +1,5 @@
 import Settings from "./Settings";
-import {Box, Button, Flex, Grid} from "@chakra-ui/react";
+import {Button, Flex, Grid} from "@chakra-ui/react";
 import {useLocation, useNavigate} from "react-router-dom";
 import {useRunningState} from "../hooks/useRunning";
 import ErrorsDisplay from "./Errors";

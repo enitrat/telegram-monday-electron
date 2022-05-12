@@ -1,4 +1,4 @@
-import {Button, FormControl, FormHelperText, FormLabel, Input} from "@chakra-ui/react";
+import {Button, FormControl, FormLabel, Input} from "@chakra-ui/react";
 
 const Prompt = () => {
 

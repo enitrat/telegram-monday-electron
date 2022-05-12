@@ -1,24 +1,6 @@
-import KeyConfig from "../components/KeyConfig/KeyConfig";
-import {MondayConfig} from "../components/MondayConfig/MondayConfig";
 import {useStateConfig} from "../hooks/useConfig";
 import {useEffect} from "react";
-import {useLocation, useNavigate, useParams} from "react-router-dom";
-import {
-  Flex,
-  Box,
-  FormControl,
-  FormLabel,
-  Input,
-  InputGroup,
-  HStack,
-  InputRightElement,
-  Stack,
-  Button,
-  Heading,
-  Text,
-  useColorModeValue,
-  Link,
-} from '@chakra-ui/react';
+import {useLocation, useNavigate} from "react-router-dom";
 
 
 const Config = (props: any) => {

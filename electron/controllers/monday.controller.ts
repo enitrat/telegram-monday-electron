@@ -1,4 +1,3 @@
-import fetch from "node-fetch-commonjs";
 import {MondayService} from "../services/monday.service";
 import {MondayBoard} from "../../shared/types";
 import {sendError} from "../main";

@@ -1,18 +1,7 @@
 import {useEffect, useState} from "react";
-import {
-  Box,
-  Button,
-  Flex,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
-  useColorModeValue
-} from "@chakra-ui/react";
+import {Box, Flex, Menu, MenuButton, MenuDivider, MenuItem, MenuList, useColorModeValue} from "@chakra-ui/react";
 import {InfoOutlineIcon} from "@chakra-ui/icons";
 import {Simulate} from "react-dom/test-utils";
-import error = Simulate.error;
 
 const ErrorsDisplay = () => {
 

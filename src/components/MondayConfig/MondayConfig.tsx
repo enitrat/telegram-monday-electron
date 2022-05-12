@@ -1,19 +1,16 @@
 import {
-  Flex,
   Box,
-  FormControl,
-  FormLabel,
-  Input,
-  InputGroup,
-  HStack,
-  InputRightElement,
-  Stack,
   Button,
+  Flex,
+  FormControl,
+  FormHelperText,
+  FormLabel,
   Heading,
+  Select,
+  Spinner,
+  Stack,
   Text,
-  useColorModeValue,
-  Link,
-  FormHelperText, Select, Spinner
+  useColorModeValue
 } from '@chakra-ui/react';
 import {useStateConfig} from "../../hooks/useConfig";
 import {mondayConfigParams} from "./constants";
@@ -159,7 +156,7 @@ export const MondayConfig = () => {
                     return (
                       <FormControl key={param.name} id={param.name} isRequired={param.required}>
                       <FormLabel htmlFor={param.name}>{param.label}</FormLabel>
-                      <Select value={config[param.name]} defaultValue={param.defaultValue} onChange={onSelectEvent}>
+                      <Select defaultValue={config[param.name]} onChange={onSelectEvent}>
                         {param.values.map((value, index) => {
                           return (
                             <option key={index} value={value.title}>{value.title}</option>
