@@ -1,12 +1,9 @@
 //@ts-nocheck
-import {Container, Image, Text} from "../components/Greetings/styles";
+import {Image} from "../components/Greetings/styles";
 import {useNavigate} from "react-router-dom";
-import {useStateConfig} from "../hooks/useConfig";
 import tgLogo from "../assets/Telegram_logo.svg.png"
 import {Box, Button, chakra, Flex, Heading} from "@chakra-ui/react";
-import Config from "./Config";
 import {isValidMotionProp, motion} from "framer-motion";
-import Settings from "../components/Settings";
 
 
 const ChakraBox = chakra(motion.div, {
