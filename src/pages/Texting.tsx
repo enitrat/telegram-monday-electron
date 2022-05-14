@@ -6,7 +6,7 @@ import {
   CHANNEL_PARTICIPANTS
 } from "../../shared/constants";
 import {CustomDialog, CustomParticipant} from "../../shared/types";
-import {Box, Button, Flex, Grid, GridItem, Heading, Select, Textarea, Text} from "@chakra-ui/react";
+import {Box, Button, Flex, Heading, Select, Text, Textarea} from "@chakra-ui/react";
 import {NotificationManager} from 'react-notifications';
 import ScrollableFeed from "react-scrollable-feed";
 import {MessageBox} from "../components/MessageBox/MessageBox";
@@ -33,11 +33,8 @@ const Texting = () => {
 
   useEffect(() => {
     if (!selectedDialog) return;
-    console.log('getting participants for' + selectedDialog.title)
-    console.log(selectedDialog.id)
     window.Main.sendAsyncRequest({method: 'getGroupParticipants', params: [selectedDialog.id]});
     window.Main.once(CHANNEL_PARTICIPANTS, (data) => {
-      console.log(data)
       if (!data) {
         NotificationManager.error("Couldn't get participants")
         setParticipants([])
@@ -54,10 +51,8 @@ const Texting = () => {
 
   useEffect(() => {
     if (participants.length === 0) return;
-    console.log(participants[index].id)
     window.Main.sendAsyncRequest({method: 'getUserLastMessages', params: [participants[index].id]});
     window.Main.once(CHANNEL_LAST_MESSAGES, (data) => {
-      console.log(data)
       if (!data) {
         NotificationManager.error("Couldn't get messages")
         setPreviousMessages([])
@@ -71,34 +66,31 @@ const Texting = () => {
 
   const selectDialog = (e) => {
     const value = e.target.value
-    console.log(value)
     const correspondingDialog = dialogs.find((dialog) => dialog.title === value)
     setSelectedDialog(correspondingDialog)
   }
 
   const changeParticipant = (e) => {
     const value = e.target.value
-    console.log(value)
     setIndex(parseInt(value));
   }
 
   const sendMessage = () => {
-    console.log(messageToSend)
-    console.log(participants[index])
     window.Main.sendAsyncRequest({method: 'sendUserMessage', params: [participants[index].id, messageToSend]});
     window.Main.once(CHANNEL_MESSAGE_SENT, (data) => {
       NotificationManager.success('Message sent')
       setMessageToSend("")
-      setIndex(index + 1)
+      if(index!==participants.length-1) setIndex(index + 1)
     })
   }
 
   return (
     <Flex flexDir={'column'} alignItems={'center'} width={'100%'}>
       <Flex width={'50%'} flexDir={'column'}>
-        <Heading as={'h1'} size={'md'}>Select the group whose members you want to talk to</Heading>
+        <Heading alignSelf={'center'} justifySelf={'center'} as={'h1'} size={'md'} marginBottom={'5px'}>Select the group whose members you want to text</Heading>
         {dialogs.length > 0 &&
-        <Select defaultValue={dialogs[0].title} onChange={(value) => selectDialog(value)}>
+        <Select onChange={(value) => selectDialog(value)}>
+          <option value="" selected disabled hidden>Select a group</option>
           {dialogs.map((dialog, index) => {
             return (
               <option key={`${dialog.title}-${index}`} value={dialog.title}>{dialog.title}</option>
@@ -114,7 +106,7 @@ const Texting = () => {
           <Heading alignSelf={'center'} justifySelf={'center'} as={'h2'} size={'sm'} marginBottom={'30px'}>Write a
             message !</Heading>
           <Flex flexDir={'row'}>
-            <Flex flexDir={'column'}>
+            <Flex flexDir={'column'} width={'50%'}>
               <Select width='200px' alignSelf={'flex-start'} value={index}
                       onChange={(value) => changeParticipant(value)}>
                 {participants.map((participant, index) => {
@@ -136,7 +128,7 @@ const Texting = () => {
                 </ScrollableFeed>
               </Box>
             </Flex>
-            <Flex marginLeft='30px' width={'60%'} flexDir={'column'} alignItems='center' maxHeight={'300px'}
+            <Flex marginLeft='30px' width={'50%'} flexDir={'column'} alignItems='center' maxHeight={'300px'}
                   justifyContent={'center'} borderRadius={'20px'} background={'gray.50'} padding={'20px'}>
               <Flex flexDir={'column'}>
                 <Text size={'md'}>{participants[index].firstName} {participants[index].lastName}</Text>

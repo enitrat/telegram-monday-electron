@@ -31,6 +31,17 @@ export class TelegramController {
 
   }
 
+  getApi() {
+    const properties = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
+    const api = properties.reduce((endpoints: any, property) => {
+      if (property === "constructor") {
+        return endpoints;
+      }
+      endpoints[property] = (this as any)[property].bind(this)
+      return endpoints;
+    }, {});
+    return api;
+  }
 
   async startClient() {
     await this.telegramService.startClient();

@@ -1,4 +1,4 @@
-import {Flex, Tag, Text} from "@chakra-ui/react";
+import {Flex, Text} from "@chakra-ui/react";
 
 export const MessageBox = ({message}) => {
   const authorMe = message.type==="error" || message.author==="me"
@@ -11,8 +11,8 @@ export const MessageBox = ({message}) => {
     messageColor="green.100";
   }
   return (
-    <Flex my={2} p={2}>
-      <Flex flexDirection="column" width="100%">
+    <Flex my={2} p={2} width={'100%'}>
+      <Flex flexDirection="column" width="90%">
         {/*{error && <Tag*/}
         {/*  variant="subtle"*/}
         {/*  mb={2}*/}
@@ -34,8 +34,10 @@ export const MessageBox = ({message}) => {
           boxShadow="0 2px 2px #0f0f0f0f"
           ml={authorMe ? "auto" : undefined}
           mr={authorMe ? undefined : "auto"}
+          flexWrap={'wrap'}
+          maxWidth={'100%'}
         >
-          <Text fontSize={15} maxWidth={400}>
+          <Text fontSize={15} wordBreak={'break-word'}>
             {message?.text}
           </Text>
           <Flex
