@@ -69,9 +69,7 @@ const Home = () => {
       </Flex>
       <Heading as={'h1'} size={'2xl'} marginBottom={'15px'}>Gramday</Heading>
       <Heading as={'h2'} size={'sm'}>Export your Telegram Groups to the Monday CRM</Heading>
-      <Flex flexDir={'row'} width={'350px'} justifyContent={"space-between"}>
-        <Button width='150px' variant='solid' colorScheme='green' marginTop={'100px'} onClick={handleStart}>Export Chats</Button>
-        <Button width='150px' variant='solid' colorScheme='blue' marginTop={'100px'} onClick={handleUpdate}>Update boards</Button>
+      <Flex flexDir={'row'} width={'350px'} justifyContent={"center"}>
         <Button width='150px' variant='solid' colorScheme='blue' marginTop={'100px'} onClick={handleMenu}>Menu</Button>
       </Flex>
 

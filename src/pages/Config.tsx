@@ -26,10 +26,6 @@ const Config = (props: any) => {
     if (!keyConfig) navigate('/key-config')
     if (keyConfig && !mondayConfig) navigate('/monday-config')
 
-    window.Main.sendSyncRequest({
-      method: 'initializeControllers'
-    });
-
     if (keyConfig && mondayConfig && destination === 'fill') navigate('/fill-board');
     if (keyConfig && mondayConfig && destination === 'update') navigate('/update-board');
     if (keyConfig && destination === 'menu') navigate('/menu');
