@@ -6,10 +6,16 @@ import {MondayConfig} from "./components/MondayConfig/MondayConfig";
 import KeyConfig from "./components/KeyConfig/KeyConfig";
 import Navbar from "./components/Navbar";
 import UpdateBoard from "./pages/UpdateBoard";
+import Texting from "./pages/Texting";
+import MainMenu from "./pages/MainMenu";
+import {NotificationContainer} from 'react-notifications';
+import 'react-notifications/lib/notifications.css';
+
 
 export function App() {
   return (
     <>
+      <NotificationContainer/>
       <HashRouter>
         <Routes>
           <Route path="/" element={<LayoutsWithNavbar/>}>
@@ -19,6 +25,9 @@ export function App() {
             <Route path="/monday-config" element={<MondayConfig/>}/>
             <Route path="/fill-board" element={<FillBoard/>}/>
             <Route path="/update-board" element={<UpdateBoard/>}/>
+            <Route path="/menu" element={<MainMenu/>}/>
+            <Route path="/texting" element={<Texting/>}/>
+
           </Route>
         </Routes>
       </HashRouter>

@@ -65,7 +65,6 @@ export class TelegramService {
       if (!dialog.entity) continue;
       const link = `${BASE_GROUP_URL}-${dialog.entity.id}`;
 
-      //TODO SUPPORT FOR 1:1 USERS
       if (dialog.entity instanceof Api.User) {
         let lastName = dialog.entity.lastName || dialog.entity.username;
         const fullName = `${dialog.entity.firstName || ''} ${lastName}`;
@@ -93,22 +92,39 @@ export class TelegramService {
     return {fmtGroups: fmtGroups, fmtPrivate: fmtPrivate}
   }
 
-  async getChatParticipants(groupName: string, groupId: bigInt.BigInteger) {
+  async getChatParticipants(groupId: bigInt.BigInteger) {
+    console.log('participants for ')
+    console.log(groupId)
     if (!this.telegramClient?.connected) throw Error("Telegram disconnected")
     try {
       const participants = await this.telegramClient.getParticipants(groupId, {});
       let fmtParticipants = participants.map((participant) => {
-        // return {
-        //   id: participant.id,
-        //   username: participant.username,
-        //   firstName: participant.firstName,
-        // }
-        return participant.username
+        return {
+          id: participant.id,
+          username: participant.username,
+          firstName: participant.firstName,
+          lastName:participant.lastName,
+        }
+        // return participant.username
       })
       return fmtParticipants
     } catch (e) {
       if(e.code!==400) throw e
     }
+  }
+
+  async sendMessage(userId:bigInt.BigInteger, message:string){
+    await this.telegramClient.sendMessage(userId,{message:message});
+  }
+
+  async getLastMessages(chatId:bigInt.BigInteger){
+    const messages = await this.telegramClient.getMessages(chatId,{limit:5})
+    return messages.map((message)=>{
+      return {
+        author: message.fromId ? "me" : "contact",
+        text:message.message
+      }
+    }).reverse()
   }
 
 }

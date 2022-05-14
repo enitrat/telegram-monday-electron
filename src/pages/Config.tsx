@@ -21,11 +21,19 @@ const Config = (props: any) => {
 
     if (keyConfig) setKeyConfig(keyConfig);
     if (mondayConfig) setMondayConfig(mondayConfig);
-    console.log(keyConfig,mondayConfig)
+
+
     if (!keyConfig) navigate('/key-config')
     if (keyConfig && !mondayConfig) navigate('/monday-config')
-    if (keyConfig && mondayConfig && destination==='fill') navigate('/fill-board');
-    if (keyConfig && mondayConfig && destination==='update') navigate('/update-board');
+
+    window.Main.sendSyncRequest({
+      method: 'initializeControllers'
+    });
+
+    if (keyConfig && mondayConfig && destination === 'fill') navigate('/fill-board');
+    if (keyConfig && mondayConfig && destination === 'update') navigate('/update-board');
+    if (keyConfig && destination === 'menu') navigate('/menu');
+    if (keyConfig && destination === 'texting') navigate('/texting');
 
 
   }, [])

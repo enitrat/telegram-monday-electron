@@ -48,8 +48,16 @@ export class TelegramController {
    return await this.telegramService.getDialogs()
   }
 
-  async getChatParticipants(groupName: string, groupId: bigInt.BigInteger) {
-    return await this.telegramService.getChatParticipants(groupName,groupId);
+  async getChatParticipants(groupId: bigInt.BigInteger) {
+    return await this.telegramService.getChatParticipants(groupId);
+  }
+
+  async sendMessage(userId:bigInt.BigInteger, message:string){
+    return await this.telegramService.sendMessage(userId,message);
+  }
+
+  async getLastMessages(chatId:bigInt.BigInteger){
+    return await this.telegramService.getLastMessages(chatId)
   }
 
 
