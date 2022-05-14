@@ -26,6 +26,10 @@ const Home = () => {
     navigate('/config?destination=update')
   }
 
+  function handleMenu() {
+    navigate('/config?destination=menu')
+  }
+
   // @ts-ignore
   return (
     <Flex flexDir={'column'} height={'100vh-40px'} padding={'25px'} alignItems={'center'} justifyContent={'center'}>
@@ -68,6 +72,7 @@ const Home = () => {
       <Flex flexDir={'row'} width={'350px'} justifyContent={"space-between"}>
         <Button width='150px' variant='solid' colorScheme='green' marginTop={'100px'} onClick={handleStart}>Export Chats</Button>
         <Button width='150px' variant='solid' colorScheme='blue' marginTop={'100px'} onClick={handleUpdate}>Update boards</Button>
+        <Button width='150px' variant='solid' colorScheme='blue' marginTop={'100px'} onClick={handleMenu}>Menu</Button>
       </Flex>
 
     </Flex>

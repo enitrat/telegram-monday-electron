@@ -14,9 +14,9 @@ const ErrorsDisplay = () => {
       setNewError(newError);
     })
 
-    return (() => {
-      window.Main.off('error', undefined)
-    })
+    // return (() => {
+    //   window.Main.off('error', undefined)
+    // })
   }, [])
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const ErrorsDisplay = () => {
           >
             {errors.map((error, index) => {
                 return (
-                  <>
+                  <Box key={error.toString+index.toString()}>
                     <MenuItem
                       _active={{bg: "brand.navbar"}}
                       _focus={{bg: "brand.body"}}
@@ -55,7 +55,7 @@ const ErrorsDisplay = () => {
                       {error.toString()}
                     </MenuItem>
                     <MenuDivider margin={0}/>
-                  </>
+                  </Box>
                 );
               }
             )}
