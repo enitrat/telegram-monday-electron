@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {Box, Flex, Menu, MenuButton, MenuDivider, MenuItem, MenuList, useColorModeValue} from "@chakra-ui/react";
 import {InfoOutlineIcon} from "@chakra-ui/icons";
+import {NotificationManager} from "react-notifications";
 
 const ErrorsDisplay = () => {
 
@@ -11,6 +12,7 @@ const ErrorsDisplay = () => {
   useEffect(() => {
     window.Main.on('error', (newError) => {
       setNewError(newError);
+      NotificationManager.error(newError)
     })
 
     // return (() => {

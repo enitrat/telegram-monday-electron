@@ -6,10 +6,10 @@ import {MondayConfig} from "./components/MondayConfig/MondayConfig";
 import KeyConfig from "./components/KeyConfig/KeyConfig";
 import Navbar from "./components/Navbar";
 import UpdateBoard from "./pages/UpdateBoard";
-import Texting from "./pages/Texting";
-import MainMenu from "./pages/MainMenu";
 import {NotificationContainer} from 'react-notifications';
 import 'react-notifications/lib/notifications.css';
+import Texting from "./pages/Texting";
+import MainMenu from "./pages/MainMenu";
 
 
 export function App() {
