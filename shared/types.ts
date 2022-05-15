@@ -27,7 +27,7 @@ export type CustomDialog = {
   link: string;
   lastMsg: string | undefined;
   id: long;
-  title: any;
+  title: string;
   type: "UserEmpty" | "User" | "Chat" | "Channel" | "ChatEmpty" | "ChatForbidden" | "ChannelForbidden"
 }
 

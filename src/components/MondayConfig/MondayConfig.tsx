@@ -48,7 +48,6 @@ export const MondayConfig = () => {
 
     window.Main.once('all_boards', (boards: MondayBoard[]) => {
       if(!boards) return;
-      console.log(boards)
       setAllBoards(boards);
       if (boards.length > 0) setSelectedBoard(boards[0]);
       mondayConfigParams(boards[0]).forEach((param) => {

@@ -211,7 +211,6 @@ export default class Controller {
     try {
       const bigIntId = bigInt(chatId.value);
       const messages = await this.telegramController.getLastMessages(bigIntId)
-      console.log(messages)
       this.sendChannelMessage(CHANNEL_LAST_MESSAGES,messages)
     } catch (e) {
       sendError("Couldn't get chat history : " + e.message);

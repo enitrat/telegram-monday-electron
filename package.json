@@ -27,6 +27,7 @@
     "@timfish/webpack-asset-relocator-loader": "^0.1.0",
     "@vercel/webpack-asset-relocator-loader": "1.7.0",
     "@zeit/webpack-asset-relocator-loader": "^0.8.0",
+    "chakra-ui-autocomplete": "^1.4.5",
     "electron-store": "^8.0.1",
     "framer-motion": "^6.3.2",
     "limiter": "^2.1.0",

@@ -19,7 +19,6 @@ export class TelegramService {
     await this.telegramClient.start({
       phoneNumber: async () => {
         const phoneNumber = await waitPromptInput('Please enter your phone number');
-        console.log(phoneNumber)
         if (!phoneNumber) throw Error('no phone number specified')
         return phoneNumber
       },
@@ -93,8 +92,6 @@ export class TelegramService {
   }
 
   async getChatParticipants(groupId: bigInt.BigInteger) {
-    console.log('participants for ')
-    console.log(groupId)
     if (!this.telegramClient?.connected) throw Error("Telegram disconnected")
     try {
       const participants = await this.telegramClient.getParticipants(groupId, {});

@@ -26,7 +26,6 @@ export class MondayService {
     })
       .then(res => res.json())
       .then((res: any) => {
-        console.log(res)
         return res.data.boards
       });
   }
@@ -106,7 +105,6 @@ export class MondayService {
     let newColumns = []
     for (const column of col_details) {
       let query = `mutation {create_column(board_id: ${board_id}, title:\"${column.name}\", column_type:${column.type}){id title}}`
-      console.log(query)
       const created = await fetch(this.base_url, {
         method: 'post',
         headers: this.headers,
@@ -137,7 +135,6 @@ export class MondayService {
     })
       .then(res => res.json());
     if (accountData.errors) {
-      console.log(accountData.errors)
       if (accountData.errors.includes('Not Authenticated')) {
         throw new Error('Not authenticated : wrong monday API key in config. \n ' +
           'Please reset API Keys config and fill in the correct value')
@@ -180,7 +177,6 @@ export class MondayService {
     if (targetBoardGroup) {
       targetGroup = targetBoard.groups.find((o: any) => o.title.toLowerCase() === targetBoardGroup.toLowerCase());
     }
-    console.log(configColumns)
     const columns = targetBoard.columns;
     const linkColumn = columns.find((o: any) => o.title.toLowerCase() === configColumns.link_column.toLowerCase());
     const lastMessageDate = columns.find((o: any) => o.title.toLowerCase() === configColumns.last_date_column.toLowerCase());
