@@ -238,9 +238,10 @@ export default class Controller {
    */
   async startTexting() {
     try {
-      if(!this.telegramController) this.telegramController = new TelegramController(this.getKeyConfig())
-      // if(!this.telegramController.telegramClient await this.telegramController.startClient()
-      if (!this.telegramController.telegramClient.connected) await this.telegramController.connectTelegram(this.getKeyConfig());
+      this.telegramController = new TelegramController(this.getKeyConfig())
+      await this.telegramController.startClient()
+      const newConfig = await this.telegramController.connectTelegram(this.getKeyConfig());
+      if (newConfig) this.setKeyConfig(newConfig);
       await this.getGroups()
     } catch (e) {
       sendError("Couldn't connect to telegram : " + e.message)
@@ -412,7 +413,7 @@ export default class Controller {
         let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
         if (foundGroup) continue;
         const participants = await this.telegramController!.getChatParticipants(group.id)
-        const usernames = participants.map((participant) => participant.username)
+        const usernames = participants?.map((participant) => participant.username) //can be undefined if no admin rights
         if (filterParticipantsGroup(usernames, this.mondayController.config[fillBoardId])) continue;
         const targetBoardGroup = getTargetItemGroup(group, this.mondayController.config[fillBoardId]);
         if (!targetBoardGroup) continue;

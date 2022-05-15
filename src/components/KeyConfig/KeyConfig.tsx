@@ -47,7 +47,7 @@ const KeyConfig = () => {
       params: [data]
     });
     setKeyConfig(data);
-    navigate('/config?destination=fill')
+    navigate('/config?destination=menu')
 
   }
 

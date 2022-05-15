@@ -22,14 +22,33 @@ const Config = (props: any) => {
     if (keyConfig) setKeyConfig(keyConfig);
     if (mondayConfig) setMondayConfig(mondayConfig);
 
-
+    //Always need API keys, but not
     if (!keyConfig) navigate('/key-config')
-    if (keyConfig && !mondayConfig) navigate('/monday-config')
 
-    if (keyConfig && mondayConfig && destination === 'fill') navigate('/fill-board');
-    if (keyConfig && mondayConfig && destination === 'update') navigate('/update-board');
-    if (keyConfig && destination === 'menu') navigate('/menu');
-    if (keyConfig && destination === 'texting') navigate('/texting');
+    //Don't need monday config to go to menu or texting
+    if (keyConfig && destination === 'menu') {
+      navigate('/menu');
+      return;
+    }
+
+    if (keyConfig && destination === 'texting') {
+      navigate('/texting');
+      return
+    }
+
+    //We need monday config to update and fill boards
+    if (keyConfig && !mondayConfig) {
+      navigate('/monday-config')
+      return;
+    }
+    if (keyConfig && mondayConfig && destination === 'fill') {
+      navigate('/fill-board');
+      return;
+    }
+    if (keyConfig && mondayConfig && destination === 'update') {
+      navigate('/update-board');
+      return;
+    }
 
 
   }, [])
