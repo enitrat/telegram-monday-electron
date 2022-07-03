@@ -18,6 +18,10 @@ export const api = {
     ipcRenderer.send(channel, message)
   },
 
+  download: (data) => {
+    ipcRenderer.send('download-csv', data)
+  },
+
   sendAsyncRequest: (request: Request) => {
     ipcRenderer.send('asyncRequest', request)
   },

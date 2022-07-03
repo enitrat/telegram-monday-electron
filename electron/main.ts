@@ -1,6 +1,8 @@
 import {app, BrowserWindow, ipcMain} from 'electron'
 import Controller from "./controllers/controller";
 import {handleRequest} from "./requestHandler";
+import electronDl from "electron-dl"
+import {download} from "electron-dl"
 
 let mainWindow: BrowserWindow | null
 let secondWindow: BrowserWindow | null
@@ -10,6 +12,7 @@ let controller:Controller;
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
+electronDl()
 
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
@@ -61,6 +64,11 @@ async function registerListeners() {
   ipcMain.on('asyncRequest', (_, request) => {
     const payload = request
     const response = handleRequest(api, payload);
+  })
+
+  ipcMain.on('download-csv', async (event, {url}) => {
+    const win = BrowserWindow.getFocusedWindow();
+    await download(win, url,{saveAs:true,openFolderWhenDone:true});
   })
 
 

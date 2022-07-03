@@ -17,6 +17,11 @@ const MainMenu = () => {
     navigate('/texting')
   }
 
+  function handleExport() {
+    navigate('/export')
+  }
+
+
   return (
     <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
       <Heading as={'h1'} size={'l'}>Menu</Heading>
@@ -32,6 +37,10 @@ const MainMenu = () => {
         <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
                 marginTop={'100px'} onClick={handleTexting}>
           <Text wordBreak={'break-all'}>Text</Text>
+        </Button>
+        <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
+                marginTop={'100px'} onClick={handleExport}>
+          <Text wordBreak={'break-all'}>Export to CSV</Text>
         </Button>
       </Grid>
     </Flex>
