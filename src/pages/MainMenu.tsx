@@ -17,6 +17,10 @@ const MainMenu = () => {
     navigate('/texting')
   }
 
+  function handleMassDM() {
+    navigate('/massDM')
+  }
+
   function handleExport() {
     navigate('/export')
   }
@@ -37,6 +41,10 @@ const MainMenu = () => {
         <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
                 marginTop={'100px'} onClick={handleTexting}>
           <Text wordBreak={'break-all'}>Text</Text>
+        </Button>
+        <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
+                marginTop={'100px'} onClick={handleMassDM}>
+          <Text wordBreak={'break-all'}>Mass DM</Text>
         </Button>
         <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
                 marginTop={'100px'} onClick={handleExport}>

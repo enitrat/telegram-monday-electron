@@ -34,6 +34,6 @@ export type CustomDialog = {
 export type CustomParticipant = {
   firstName: string,
   lastName: string,
-  id: BigInteger,
+  id: {value:BigInt},
   username: string,
 }

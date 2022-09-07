@@ -11,6 +11,7 @@ import 'react-notifications/lib/notifications.css';
 import Texting from "./pages/Texting";
 import MainMenu from "./pages/MainMenu";
 import ExportToCSV from "./pages/ExportToCSV";
+import MassDM from "./pages/MassDM";
 
 
 export function App() {
@@ -28,6 +29,7 @@ export function App() {
             <Route path="/update-board" element={<UpdateBoard/>}/>
             <Route path="/menu" element={<MainMenu/>}/>
             <Route path="/texting" element={<Texting/>}/>
+            <Route path="/massDM" element={<MassDM/>}/>
             <Route path={"/export"} element={<ExportToCSV/>}/>
 
           </Route>
