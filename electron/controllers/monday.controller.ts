@@ -55,7 +55,7 @@ export class MondayController {
     try {
       return await this.mondayService.getAllBoards();
     } catch (e) {
-      sendError(e.message + ' There could be a problem with your Monday API Key.')
+      sendError('mondayController - getAllBoard |' + e + '\n There could be a problem with your Monday API Key.')
     }
   }
 
@@ -69,7 +69,7 @@ export class MondayController {
       const newBoardId = await this.mondayService.createBoard(options)
       this.setConfigKey('board_id', newBoardId);
     } catch (e) {
-      sendError(e.message + ' There could be a problem with your Monday API Key.')
+      sendError('mondayController - createBoard |' + e + '\n There could be a problem with your Monday API Key.')
     }
   }
 

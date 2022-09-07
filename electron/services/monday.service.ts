@@ -64,7 +64,7 @@ export class MondayService {
 
   async createBoardGroup(board_id: string, options) {
     const group_name = options.group_name || "Telegram Chats"
-    if (!board_id) throw Error("Can't create item in invalid board" + board_id)
+    if (!board_id) throw Error("mondayService - createBoardGroup - Can't create item in invalid board" + board_id)
     let query = `mutation { create_group (board_id: ${board_id}, group_name: \"${group_name} \") { id title } }`;
 
     return fetch(this.base_url, {
@@ -81,7 +81,7 @@ export class MondayService {
   }
 
   async createBoardColumns(board_id, options) {
-    if (!board_id) throw Error("Can't create item in invalid board" + board_id)
+    if (!board_id) throw Error("mondayService - createBoardColumns - Can't create item in invalid board" + board_id)
 
     const col_details = [
       {
@@ -139,7 +139,7 @@ export class MondayService {
         throw new Error('Not authenticated : wrong monday API key in config. \n ' +
           'Please reset API Keys config and fill in the correct value')
       } else {
-        throw new Error(JSON.stringify(accountData.errors));
+        throw new Error(' mondayService : getBoard ' + JSON.stringify(accountData.errors));
       }
     }
     const targetBoard = accountData.data.boards[0];
@@ -153,9 +153,9 @@ export class MondayService {
    */
   async getExportedChats(lastDateColumn, targetBoard: MondayBoard) {
 
-    if (!targetBoard) throw Error('target board not found');
+    if (!targetBoard) throw Error('mondayService : getExportedChats - target board not found');
     const items = targetBoard.items
-    if (!items) throw Error('board items not found');
+    if (!items) throw Error('mondayService : getExportedChats' + 'board items not found');
     const exportedChats = items.map((item: any) => {
       let lastMsgColumn = item.column_values.find((o: any) => o.title.toLowerCase() === lastDateColumn.toLowerCase())
       return {
@@ -203,12 +203,16 @@ export class MondayService {
     })
       .then(res => res.json());
     if (updatedItem.error_code) {
-      throw new Error(`${updatedItem.error_message}\n 
+      throw new Error(`mondayService : updateItem ${updatedItem.error_message}\n 
       Please check that all your columns are of type 'text'.`);
       return;
     }
     if (updatedItem.errors) {
-      throw new Error(`${JSON.stringify(updatedItem.errors)}\n`);
+      if(JSON.stringify(updatedItem.errors).includes('Complexity')) {
+        return
+      }else {
+        throw new Error(`mondayService - updateItem : ${JSON.stringify(updatedItem.errors)}\n`);
+      }
     }
 
   }
@@ -225,11 +229,15 @@ export class MondayService {
       .then(res => res.json());
     if (createdItem.error_code) {
       console.log(createdItem)
-      throw new Error(`${createdItem.error_message}\n 
+      throw new Error(` mondayService : createItem ${createdItem.error_message}\n 
       Please check that all your columns are of type 'text'.`);
     }
     if (createdItem.errors) {
-      throw new Error(`${JSON.stringify(createdItem.errors)}\n`);
+      if(JSON.stringify(createdItem.errors).includes('Complexity')){
+        return
+      }else {
+        throw new Error(`mondayService : createItem ${JSON.stringify(createdItem.errors)}\n`);
+      }
     }
   }
 

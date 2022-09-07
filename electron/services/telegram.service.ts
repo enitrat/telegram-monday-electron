@@ -15,7 +15,7 @@ export class TelegramService {
   }
 
   async startClient() {
-    if (!this.telegramClient) throw Error("Couldn't connect to telegram");
+    if (!this.telegramClient) throw Error("telegramService - startClient | Couldn't connect to telegram");
     await this.telegramClient.start({
       phoneNumber: async () => {
         const phoneNumber = await waitPromptInput('Please enter your phone number');
@@ -33,23 +33,23 @@ export class TelegramService {
         return phoneCode
       },
       onError: (err: any) => {
-        throw Error(err)
+        throw Error('telegramService - startClient |' + err)
         console.log(err)
       },
     });
   }
 
   async stopClient() {
-    if (!this.telegramClient) throw Error("Telegram already stopped");
+    if (!this.telegramClient) throw Error("telegramService - stopClient |  Telegram already stopped");
     await this.telegramClient.destroy()
     this.telegramClient = undefined;
   }
 
   async connectTelegram(config: any) {
-    if (!this.telegramClient) throw Error("Couldn't connect to telegram");
+    if (!this.telegramClient) throw Error("telegramService - connectTelegram | Couldn't connect to telegram");
     await this.telegramClient.connect();
     if (!config.STRING_SESSION) {
-      config.STRING_SESSION = this.telegramClient.session.save()
+      config.STRING_SESSION = this.telegramClient?.session.save()
       return config;
     }
     return;
@@ -57,7 +57,7 @@ export class TelegramService {
 
 
   async getDialogs() {
-    if (!this.telegramClient?.connected) throw Error("Telegram disconnected")
+    if (!this.telegramClient?.connected) throw Error("telegramService - getDialogs| Telegram disconnected")
     let fmtGroups = [];
     let fmtPrivate = [];
     for await (const dialog of (this.telegramClient.iterDialogs)({})) {
@@ -92,7 +92,7 @@ export class TelegramService {
   }
 
   async getChatParticipants(groupId: bigInt.BigInteger) {
-    if (!this.telegramClient?.connected) throw Error("Telegram disconnected")
+    if (!this.telegramClient?.connected) throw Error("telegramService - getChatParticipants | Telegram disconnected")
     try {
       const participants = await this.telegramClient.getParticipants(groupId, {});
       let fmtParticipants = participants.map((participant) => {
@@ -106,7 +106,7 @@ export class TelegramService {
       })
       return fmtParticipants
     } catch (e) {
-      if(e.code!==400) throw e
+      if(e.code!==400) throw Error('telegramService - getChatParticipants | '+e)
     }
   }
 

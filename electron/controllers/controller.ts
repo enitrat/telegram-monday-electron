@@ -16,7 +16,7 @@ import bigInt from "big-integer";
 const limiter = new RateLimiter({tokensPerInterval: 22, interval: "minute"});
 
 interface ReceivedId {
-  value:number
+  value: number
 }
 
 const formatStore = (store) => {
@@ -136,6 +136,7 @@ export default class Controller {
    * Creates a new board on a monday account
    */
   async createNewBoard() {
+    clearInterval(this.scanInterval)
     if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
     try {
       await this.mondayController.createPreconfigBoard({});
@@ -147,7 +148,7 @@ export default class Controller {
 
     } catch (e) {
       customLog(e)
-      sendError("Couldn't create board : " + e.message);
+      sendError("Couldn't create board : " + e.stack);
     }
   }
 
@@ -155,7 +156,7 @@ export default class Controller {
    * Gets board with specified id
    * @param id board id
    */
-  async getCurrentBoard(id:string) {
+  async getCurrentBoard(id: string) {
     if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
     const currentBoard = await this.mondayController.getBoard(id);
     this.windowChannel.send('currentBoard', currentBoard);
@@ -170,7 +171,7 @@ export default class Controller {
       const {fmtGroups} = await this.telegramController.getDialogs()
       this.sendChannelMessage(CHANNEL_GROUPS, fmtGroups)
     } catch (e) {
-      sendError("Couldn't get dialogs : " + e.message);
+      sendError("Couldn't get dialogs : " + e.stack);
     }
   }
 
@@ -184,7 +185,7 @@ export default class Controller {
       const participants = await this.telegramController.getChatParticipants(bigIntId)
       this.sendChannelMessage(CHANNEL_PARTICIPANTS, participants)
     } catch (e) {
-      sendError("Couldn't get participants : " + e.message);
+      sendError("Couldn't get participants : " + e.stack);
     }
   }
 
@@ -193,13 +194,13 @@ export default class Controller {
    * @param userId id of recipient
    * @param message message to send
    */
-  async sendUserMessage(userId:ReceivedId, message) {
+  async sendUserMessage(userId: ReceivedId, message) {
     try {
       const bigIntId = bigInt(userId.value);
       await this.telegramController.sendMessage(bigIntId, message)
       this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "")
     } catch (e) {
-      sendError("Couldn't send message : " + e.message);
+      sendError("Couldn't send message : " + e.stack);
     }
   }
 
@@ -207,13 +208,13 @@ export default class Controller {
    * Gets 5 last messages from a chat with a user
    * @param chatId id of the chat to get messages from
    */
-  async getUserLastMessages(chatId:ReceivedId) {
+  async getUserLastMessages(chatId: ReceivedId) {
     try {
       const bigIntId = bigInt(chatId.value);
       const messages = await this.telegramController.getLastMessages(bigIntId)
-      this.sendChannelMessage(CHANNEL_LAST_MESSAGES,messages)
+      this.sendChannelMessage(CHANNEL_LAST_MESSAGES, messages)
     } catch (e) {
-      sendError("Couldn't get chat history : " + e.message);
+      sendError("Couldn't get chat history : " + e.stack);
     }
   }
 
@@ -243,7 +244,7 @@ export default class Controller {
       if (newConfig) this.setKeyConfig(newConfig);
       await this.getGroups()
     } catch (e) {
-      sendError("Couldn't connect to telegram : " + e.message)
+      sendError("Couldn't connect to telegram : " + e.stack)
     }
   }
 
@@ -251,8 +252,9 @@ export default class Controller {
    * Starts board filling functionnality
    * @param fillBoardId id of board to fill
    */
-  async startBoardFill(fillBoardId:string) {
+  async startBoardFill(fillBoardId: string) {
     try {
+      clearInterval(this.scanInterval)
       this.telegramController = new TelegramController(this.getKeyConfig())
       if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
       await this.telegramController.startClient()
@@ -264,8 +266,9 @@ export default class Controller {
       customLog(e)
       this.sendUpdateMessage({
         type: "error",
-        text: e.message
+        text: e
       });
+      sendError(e.stack)
     }
 
   }
@@ -275,6 +278,7 @@ export default class Controller {
    */
   async startBoardUpdates() {
     try {
+      clearInterval(this.scanInterval)
       const board_ids = this.getOptionalConfig().updated_boards.map((board) => board.id);
       this.telegramController = new TelegramController(this.getKeyConfig())
       if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
@@ -294,8 +298,9 @@ export default class Controller {
       customLog(e)
       this.sendUpdateMessage({
         type: "error",
-        text: e.message
+        text: 'There was an error - Please check the logs and report it'
       });
+      sendError(e.stack)
     }
 
   }
@@ -322,25 +327,41 @@ export default class Controller {
    * @returns {Promise<void>}
    */
   async updateBoard(id: string): Promise<void> {
-    this.sendUpdateMessage({
-      type: "info",
-      text: "Updating board..." + id || ""
-    });
 
-    //get group accounts, private chats, and already exported chats. if no id specified => using config id.
-    let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups(id);
-    for (const group of [...accountGroups, ...privateChats]) {
-      // if (filterKeywordGroup(this.mondayController!.config[id], group)) continue;
-      let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
-      if (!exportedItem) continue;
-      let lastMsgDate = group.lastMsgDate! * 1000
-      const exportedDate = JSON.parse(exportedItem.lastMsg)
-      let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
-      if (parsedExportedDate === lastMsgDate) {
-        continue;
+    try {
+
+      this.sendUpdateMessage({
+        type: "info",
+        text: "Updating board..." + id || ""
+      });
+
+      //get group accounts, private chats, and already exported chats. if no id specified => using config id.
+      let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups(id);
+
+      for (const group of [...accountGroups, ...privateChats]) {
+        try {
+          // if (filterKeywordGroup(this.mondayController!.config[id], group)) continue;
+          let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+          if (!exportedItem) continue;
+          let lastMsgDate = group.lastMsgDate! * 1000
+          const exportedDate = JSON.parse(exportedItem.lastMsg)
+          let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
+          if (parsedExportedDate === lastMsgDate) {
+            continue;
+          }
+          await limiter.removeTokens(1);
+          await this.updateItem(targetBoard, group, exportedItem)
+        } catch (e) {
+          customLog(e)
+          this.sendUpdateMessage({
+            type: "error",
+            text: 'There was an error - Please check the logs and report it'
+          });
+          sendError(e.stack)
+        }
       }
-      await limiter.removeTokens(1);
-      await this.updateItem(targetBoard, group, exportedItem)
+    } catch (e) {
+      sendError("Couldn't update board : " + e.stack)
     }
 
   }
@@ -353,9 +374,9 @@ export default class Controller {
   async scanGroups(id: string) {
     await limiter.removeTokens(1);
     const targetBoard = await this.mondayController!.getBoard(id);
-    if (!targetBoard) throw new Error(`Couldn't get Monday board with id ${id}`)
+    if (!targetBoard) throw new Error(`controller - scanGroups | Couldn't get Monday board with id ${id}`)
     let exportedChats = await this.mondayController!.getExportedChats(targetBoard);
-    if (!exportedChats) throw Error("couldn't get board chats");
+    if (!exportedChats) throw Error("controller - scanGroups | couldn't get board chats");
     const {fmtGroups: accountGroups, fmtPrivate: privateChats} = await this.telegramController!.getDialogs();
     return {
       accountGroups: accountGroups,
@@ -403,29 +424,39 @@ export default class Controller {
     try {
       this.sendUpdateMessage({
         type: "info",
-        text: "Searching for new chats..."
+        text: "Searching for new chats in board..." + fillBoardId + "..."
       });
       //TODO here targetBoard must not come from here
       let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups(fillBoardId);
       for (const group of [...accountGroups, ...privateChats]) {
-        if (filterKeywordGroup(this.mondayController!.config[fillBoardId], group)) continue;
-        let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
-        if (foundGroup) continue;
-        const participants = await this.telegramController!.getChatParticipants(group.id)
-        const usernames = participants?.map((participant) => participant.username) //can be undefined if no admin rights
-        if (filterParticipantsGroup(usernames, this.mondayController.config[fillBoardId])) continue;
-        const targetBoardGroup = getTargetItemGroup(group, this.mondayController.config[fillBoardId]);
-        if (!targetBoardGroup) continue;
-        await limiter.removeTokens(1);
-        //TODO REAL VALUE HERE
-        await this.createItem(targetBoard, targetBoardGroup, group, usernames)
+        try {
+          if (filterKeywordGroup(this.mondayController!.config[fillBoardId], group)) continue;
+          let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+          if (foundGroup) continue;
+          const participants = await this.telegramController!.getChatParticipants(group.id)
+          const usernames = participants?.map((participant) => participant.username) //can be undefined if no admin rights
+          if (filterParticipantsGroup(usernames, this.mondayController.config[fillBoardId])) continue;
+          const targetBoardGroup = getTargetItemGroup(group, this.mondayController.config[fillBoardId]);
+          if (!targetBoardGroup) continue;
+          await limiter.removeTokens(1);
+          //TODO REAL VALUE HERE
+          await this.createItem(targetBoard, targetBoardGroup, group, usernames)
+        } catch (e) {
+          customLog(e)
+          this.sendUpdateMessage({
+            type: "error",
+            text: 'There was an error - Please check the logs and report it'
+          });
+          sendError(e.stack)
+        }
       }
     } catch (e) {
       customLog(e)
       this.sendUpdateMessage({
         type: "error",
-        text: e.message
+        text: 'There was an error - Please check the logs and report it'
       });
+      sendError(e.stack)
     }
   }
 

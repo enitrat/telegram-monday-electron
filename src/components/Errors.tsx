@@ -12,7 +12,7 @@ const ErrorsDisplay = () => {
   useEffect(() => {
     window.Main.on('error', (newError) => {
       setNewError(newError);
-      NotificationManager.error(newError)
+      // NotificationManager.error(newError)
     })
 
     // return (() => {
@@ -46,12 +46,13 @@ const ErrorsDisplay = () => {
             bg="brand.navbar"
             padding={0}
           >
-            {errors.map((error, index) => {
+            {errors.reverse().map((error, index) => {
                 return (
                   <Box key={error.toString+index.toString()}>
                     <MenuItem
                       _active={{bg: "brand.navbar"}}
                       _focus={{bg: "brand.body"}}
+                      onClick={() => navigator.clipboard.writeText(error.toString())}
                     >
                       {error.toString()}
                     </MenuItem>
