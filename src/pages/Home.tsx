@@ -1,8 +1,7 @@
 //@ts-nocheck
-import {Image} from "../components/Greetings/styles";
 import {useNavigate} from "react-router-dom";
 import tgLogo from "../assets/Telegram_logo.svg.png"
-import {Box, Button, chakra, Flex, Heading} from "@chakra-ui/react";
+import {Box, Button, chakra, Flex, Heading,Image} from "@chakra-ui/react";
 import {isValidMotionProp, motion} from "framer-motion";
 
 

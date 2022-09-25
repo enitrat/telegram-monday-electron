@@ -15,7 +15,7 @@ export class MondayService {
   }
 
   async getAllBoards() {
-    let query = `{ boards { name id description groups {id title} columns { id title } } }`
+    let query = `{ boards (limit:100) { name id description groups {id title} columns { id title } } }`
 
     return fetch(this.base_url, {
       method: 'post',

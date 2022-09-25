@@ -9,7 +9,12 @@ import {CustomDialog, CustomParticipant} from "../../shared/types";
 import {Box, Button, Divider, Flex, Heading, Input, Select, Text, Textarea} from "@chakra-ui/react";
 import {NotificationManager} from 'react-notifications';
 import ScrollableFeed from "react-scrollable-feed";
-import {MessageBox} from "../components/MessageBox/MessageBox";
+import {BiCheckboxChecked, BiCheckbox} from "react-icons/bi"
+import {ImCheckboxChecked} from 'react-icons/im'
+import {TbMailFast} from 'react-icons/tb'
+import {Icon} from "@chakra-ui/icons";
+import {RateLimiter} from "limiter";
+
 
 
 const hoverProps = {
@@ -17,6 +22,9 @@ const hoverProps = {
   transition: "all .2s ease-in-out",
   transform: "scale(1.15)"
 }
+
+const limiter = new RateLimiter({tokensPerInterval: 15, interval: "minute"});
+
 
 const MassDM = () => {
 
@@ -30,6 +38,7 @@ const MassDM = () => {
   const [inputValue, setInputValue] = useState("")
   const searchInput = useRef(null)
   const [excludedUsers, setExcludedUsers] = useState<{ [key: string]: boolean }>({})
+  let [msgSent, setMsgSent] = useState<{ [key: string]: boolean }>({})
 
   useEffect(() => {
     window.Main.sendAsyncRequest({method: 'startTexting'});
@@ -77,6 +86,10 @@ const MassDM = () => {
 
   }, [index || participants || selectedDialog])
 
+  useEffect(()=>{
+    console.log(msgSent)
+  },[msgSent])
+
   const selectDialog = (e) => {
     const value = e.target.value
     const correspondingDialog = dialogs.find((dialog) => dialog.title === value)
@@ -94,16 +107,33 @@ const MassDM = () => {
     let isExcluded = excludedUsers[id] === true
     excludedUsers[id] = !isExcluded
     setExcludedUsers({...excludedUsers})
-    console.log(excludedUsers)
   }
 
-  const sendMessage = () => {
-    window.Main.sendAsyncRequest({method: 'sendUserMessage', params: [participants[index].id, messageToSend]});
-    window.Main.once(CHANNEL_MESSAGE_SENT, (data) => {
-      NotificationManager.success('Message sent')
-      setMessageToSend("")
-      if (index !== participants.length - 1) setIndex(index + 1)
-    })
+  const waitForMsgSent = async (timeout: number,id:any) => {
+    return new Promise(async (resolve, reject) => {
+      await limiter.removeTokens(1);
+      window.Main.sendAsyncRequest({method: 'sendUserMessage', params: [id, messageToSend]});
+      window.Main.once(CHANNEL_MESSAGE_SENT, (data) => {
+        msgSent[Number(id.value).toString()] = true
+        setMsgSent({...msgSent})
+        resolve(true)
+      })
+      setTimeout(resolve, 10 * 1000);
+
+    });
+
+  }
+
+  const sendMessages = async () => {
+    msgSent = {}
+    for (const participant of participants) {
+      const id = Number(participant.id.value).toString()
+      const isExcluded = excludedUsers[id] === true
+      if (isExcluded) continue;
+      const sent = await waitForMsgSent(10 * 1000,participant.id)
+      if (!sent) NotificationManager.error('Message couldnt be sent to ' + participant.username) // REFACTOR NEW MANAGER NOTIF
+    }
+
   }
 
   const changeSuggestions = (e) => {
@@ -117,7 +147,7 @@ const MassDM = () => {
     <Flex flexDir={'column'} alignItems={'center'} width={'100%'}>
       <Flex width={'50%'} flexDir={'column'}>
         <Heading alignSelf={'center'} justifySelf={'center'} as={'h1'} size={'md'} marginBottom={'5px'}>Select the group
-          whose members you want to text</Heading>
+          whose members you want to text, or import a CSV file</Heading>
         {dialogs.length > 0 &&
         <Flex flexDir={'column'}>
           <Input autoFocus type={'text'} ref={searchInput} value={inputValue}
@@ -170,11 +200,17 @@ const MassDM = () => {
                         >
                           <Text textAlign={'center'} fontSize={'14px'} wordBreak={'break-word'}>
                             {excluded ?
-                              <s>
+                              <Box>
+                                <Icon as={BiCheckbox}/>
                                 {participant.username}
-                              </s>
-                              : participant.username
+                              </Box>
+                              :
+                              <Box>
+                                <Icon as={ImCheckboxChecked}/>
+                                {participant.username}
+                              </Box>
                             }
+                            {msgSent[id] && <Icon as={TbMailFast} color={'green.500'}/>}
                           </Text>
                         </Flex>
                       )
@@ -193,8 +229,7 @@ const MassDM = () => {
                   </Textarea>
                 </Box>
                 <Flex width={'100%'} marginTop={'10px'} justifyContent={'space-between'}>
-                  <Button color={'green.500'} onClick={sendMessage}>Send message</Button>
-                  <Button color={'blue.300'} onClick={() => setIndex(index + 1)}
+                  <Button color={'green.500'} onClick={sendMessages}>Send message</Button>
                 </Flex>
               </Flex>
             </Flex>

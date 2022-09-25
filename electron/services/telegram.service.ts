@@ -63,7 +63,7 @@ export class TelegramService {
     for await (const dialog of (this.telegramClient.iterDialogs)({})) {
       if (!dialog.entity) continue;
       const link = `${BASE_GROUP_URL}-${dialog.entity.id}`;
-
+      if ( (dialog.entity instanceof Api.Chat) && (dialog.entity.participantsCount === 0) ) continue;
       if (dialog.entity instanceof Api.User) {
         let lastName = dialog.entity.lastName || dialog.entity.username;
         const fullName = `${dialog.entity.firstName || ''} ${lastName}`;
