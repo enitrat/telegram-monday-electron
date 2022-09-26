@@ -1,10 +1,15 @@
 import fetch from "node-fetch-commonjs";
 import {MondayBoard} from "../../shared/types";
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+
 export class MondayService {
   base_url = "https://api.monday.com/v2"
   headers: any;
   _apiKey
+  remainingComplexity = 1000000;
+  resetInSeconds = 0;
 
   constructor(apiKey: string) {
     this._apiKey = apiKey;
@@ -124,7 +129,15 @@ export class MondayService {
     return newColumns
   }
 
+  async checkComplexity(){
+    if (this.remainingComplexity <=50000){
+      await sleep(this.resetInSeconds*1000);
+      this.remainingComplexity = 1000000;
+    }
+  }
+
   async getBoard(board_id: string):Promise<MondayBoard> {
+    await this.checkComplexity()
     let query = `{ boards (ids:[${board_id}]) { name id description groups {id title} columns { id title } items { id name column_values { title value } } } }`
     const accountData: any = await fetch(this.base_url, {
       method: 'post',
@@ -193,6 +206,7 @@ export class MondayService {
   }
 
   async updateItem(query: string, vars: any) {
+    await this.checkComplexity()
     const updatedItem: any = await fetch(this.base_url, {
       method: 'post',
       headers: this.headers,
@@ -202,9 +216,11 @@ export class MondayService {
       })
     })
       .then(res => res.json());
+    this.remainingComplexity = updatedItem.data.complexity?.after
+    this.resetInSeconds = updatedItem.data.complexity?.reset_in_x_seconds
     if (updatedItem.error_code) {
       throw new Error(`mondayService : updateItem ${updatedItem.error_message}\n 
-      Please check that all your columns are of type 'text'.`);
+      `);
       return;
     }
     if (updatedItem.errors) {
@@ -215,9 +231,11 @@ export class MondayService {
       }
     }
 
+
   }
 
   async createItem(query: string, vars: any) {
+    await this.checkComplexity();
     const createdItem: any = await fetch(this.base_url, {
       method: 'post',
       headers: this.headers,
@@ -227,10 +245,10 @@ export class MondayService {
       })
     })
       .then(res => res.json());
+    this.remainingComplexity = createdItem.data.complexity?.after
+    this.resetInSeconds = createdItem.data.complexity?.reset_in_x_seconds
     if (createdItem.error_code) {
-      console.log(createdItem)
-      throw new Error(` mondayService : createItem ${createdItem.error_message}\n 
-      Please check that all your columns are of type 'text'.`);
+      throw new Error(` mondayService : createItem ${createdItem.error_message}\n`);
     }
     if (createdItem.errors) {
       if(JSON.stringify(createdItem.errors).includes('Complexity')){
@@ -239,6 +257,7 @@ export class MondayService {
         throw new Error(`mondayService : createItem ${JSON.stringify(createdItem.errors)}\n`);
       }
     }
+
   }
 
 

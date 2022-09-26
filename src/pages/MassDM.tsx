@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {
-  CHANNEL_GROUPS,
+  CHANNEL_GROUPS, CHANNEL_IDS,
   CHANNEL_LAST_MESSAGES,
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS
@@ -14,6 +14,8 @@ import {ImCheckboxChecked} from 'react-icons/im'
 import {TbMailFast} from 'react-icons/tb'
 import {Icon} from "@chakra-ui/icons";
 import {RateLimiter} from "limiter";
+import Papa from "papaparse";
+
 
 
 
@@ -37,6 +39,7 @@ const MassDM = () => {
   const [suggestions, setSuggestions] = useState([])
   const [inputValue, setInputValue] = useState("")
   const searchInput = useRef(null)
+  const fileInput = useRef(null)
   const [excludedUsers, setExcludedUsers] = useState<{ [key: string]: boolean }>({})
   let [msgSent, setMsgSent] = useState<{ [key: string]: boolean }>({})
 
@@ -86,6 +89,17 @@ const MassDM = () => {
 
   }, [index || participants || selectedDialog])
 
+  const getIdsFromUsernames = (usernames:string[]) =>{
+    window.Main.sendAsyncRequest({method: 'getIdsFromUsernames', params: [usernames]});
+    window.Main.once(CHANNEL_IDS, (data) => {
+      if (!data) {
+        NotificationManager.error("Couldn't get user ids");
+        return;
+      }
+      setParticipants(data)
+    })
+  }
+
   useEffect(()=>{
     console.log(msgSent)
   },[msgSent])
@@ -95,6 +109,7 @@ const MassDM = () => {
     const correspondingDialog = dialogs.find((dialog) => dialog.title === value)
     setInputValue(correspondingDialog.title)
     setSelectedDialog(correspondingDialog)
+    fileInput.current.value=null;
   }
 
   const changeParticipant = (e) => {
@@ -143,6 +158,18 @@ const MassDM = () => {
     setSuggestions(newSuggestions)
   }
 
+  const handleFileUpload = (e) => {
+    e.preventDefault();
+    Papa.parse(e.target.files[0], {
+      header:true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const usernames = results.data.map((participant)=>participant.username);
+        getIdsFromUsernames(usernames)
+      },
+    });
+  };
+
   return (
     <Flex flexDir={'column'} alignItems={'center'} width={'100%'}>
       <Flex width={'50%'} flexDir={'column'}>
@@ -171,6 +198,13 @@ const MassDM = () => {
             }
           </Flex>
           }
+          <input
+            type={"file"}
+            id={"csvFileInput"}
+            accept={".csv"}
+            ref={fileInput}
+            onChange={handleFileUpload}
+          />
         </Flex>
         }
       </Flex>
@@ -197,6 +231,7 @@ const MassDM = () => {
                               _hover={{...hoverProps, transform: "scale(1.05)"}}
                               onClick={(e) => excludeUser(e, participant)}
                               flexWrap={'wrap'}
+                              key={id}
                         >
                           <Text textAlign={'center'} fontSize={'14px'} wordBreak={'break-word'}>
                             {excluded ?

@@ -115,6 +115,10 @@ export class TelegramService {
     await this.telegramClient.sendMessage(userId,{message:message});
   }
 
+  async getIdFromUsername(username:string){
+    return await this.telegramClient.getEntity(username)
+  }
+
   async getLastMessages(chatId:bigInt.BigInteger){
     const messages = await this.telegramClient.getMessages(chatId,{limit:5})
     return messages.map((message)=>{

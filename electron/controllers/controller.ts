@@ -6,14 +6,14 @@ import {RateLimiter} from "limiter";
 import {customLog, filterKeywordGroup, filterParticipantsGroup, getTargetItemGroup} from "../utils/helpers";
 import {sendError} from "../main";
 import {
-  CHANNEL_GROUPS,
+  CHANNEL_GROUPS, CHANNEL_IDS,
   CHANNEL_LAST_MESSAGES,
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS
 } from "../../shared/constants";
 import bigInt from "big-integer";
 
-const limiter = new RateLimiter({tokensPerInterval: 22, interval: "minute"});
+const limiter = new RateLimiter({tokensPerInterval: 40, interval: "minute"});
 
 interface ReceivedId {
   value: number
@@ -218,6 +218,15 @@ export default class Controller {
     }
   }
 
+  async getIdsFromUsernames(usernames: string[]) {
+    try {
+      const ids = await this.telegramController.getIdsFromUsernames(usernames);
+      this.sendChannelMessage(CHANNEL_IDS, ids);
+    } catch (e) {
+      sendError("Couldnt get ids from usernames")
+    }
+  }
+
   /**
    * Stops the telegram client and clears scanning interval
    */
@@ -401,7 +410,13 @@ export default class Controller {
       time: lastMsgDate.toLocaleTimeString('en-GB'),
     }
 
-    let query = `mutation($board: Int!, $itemId: Int!, $columnVals: JSON!) {change_multiple_column_values ( board_id:$board, item_id:$itemId, column_values:$columnVals) {name} }`
+    let query = `mutation($board: Int!, $itemId: Int!, $columnVals: JSON!) {
+      complexity{
+      after
+      reset_in_x_seconds
+      }
+      change_multiple_column_values ( board_id:$board, item_id:$itemId, column_values:$columnVals) {name}
+     }`
 
     let vars = {
       "board": elementsIds.boardId,
@@ -481,7 +496,13 @@ export default class Controller {
 
     let chatLink = tgGroup.link;
 
-    let query = `mutation ($board: Int!, $group: String!, $myItemName: String!, $columnVals: JSON!) { create_item (board_id: $board, group_id:$group, item_name:$myItemName, column_values:$columnVals) { id } }`;
+    let query = `mutation ($board: Int!, $group: String!, $myItemName: String!, $columnVals: JSON!) {
+      complexity{
+        after
+        reset_in_x_seconds
+      }
+      create_item (board_id: $board, group_id:$group, item_name:$myItemName, column_values:$columnVals) { id }
+      }`;
     let vars = {
       "board": elementsIds.boardId,
       "group": elementsIds.targetGroup,

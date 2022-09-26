@@ -75,5 +75,16 @@ export class TelegramController {
     return await this.telegramService.getLastMessages(chatId)
   }
 
+  async getIdsFromUsernames(usernames:string[]){
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    const ids = []
+    for (const username of usernames){
+      const id = await this.telegramService.getIdFromUsername(username)
+      console.log(id,username)
+      ids.push(id)
+    }
+    return ids;
+  }
+
 
 }
