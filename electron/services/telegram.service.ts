@@ -48,6 +48,7 @@ export class TelegramService {
   async connectTelegram(config: any) {
     if (!this.telegramClient) throw Error("telegramService - connectTelegram | Couldn't connect to telegram");
     await this.telegramClient.connect();
+    console.log('starting tg')
     if (!config.STRING_SESSION) {
       config.STRING_SESSION = this.telegramClient?.session.save()
       return config;

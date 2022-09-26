@@ -11,7 +11,7 @@ export class TelegramController {
   private readonly _apiHash: string;
   private readonly _stringSession: StringSession;
   public telegramClient: TelegramClient;
-  private telegramService:TelegramService
+  private telegramService: TelegramService
 
   constructor(config: any) {
     this._apiId = parseInt(config.API_ID);
@@ -23,7 +23,7 @@ export class TelegramController {
       this._stringSession = new StringSession("");
     }
 
-    this.telegramService = new TelegramService(this._apiId,this._apiHash,this._stringSession);
+    this.telegramService = new TelegramService(this._apiId, this._apiHash, this._stringSession);
 
     this.telegramClient = new TelegramClient(this._stringSession, this._apiId, this._apiHash, {
       connectionRetries: 5,
@@ -47,7 +47,7 @@ export class TelegramController {
     await this.telegramService.startClient();
   }
 
-  async stopClient(){
+  async stopClient() {
     await this.telegramService.stopClient();
   }
 
@@ -56,22 +56,22 @@ export class TelegramController {
   }
 
   async getDialogs() {
-    await this.connectTelegram({});
-   return await this.telegramService.getDialogs()
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    return await this.telegramService.getDialogs()
   }
 
   async getChatParticipants(groupId: bigInt.BigInteger) {
-    await this.connectTelegram({});
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.getChatParticipants(groupId);
   }
 
-  async sendMessage(userId:bigInt.BigInteger, message:string){
-    await this.connectTelegram({});
-    return await this.telegramService.sendMessage(userId,message);
+  async sendMessage(userId: bigInt.BigInteger, message: string) {
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    return await this.telegramService.sendMessage(userId, message);
   }
 
-  async getLastMessages(chatId:bigInt.BigInteger){
-    await this.connectTelegram({});
+  async getLastMessages(chatId: bigInt.BigInteger) {
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.getLastMessages(chatId)
   }
 
