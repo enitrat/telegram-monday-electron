@@ -1,7 +1,7 @@
 {
   "name": "Gramday",
   "author": "Mathieu Saugier <msaug@protonmail.com>",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Export your telegram chats to the CRM Monday",
   "main": "./.webpack/main",
   "engines": {
@@ -29,6 +29,7 @@
     "electron-dl": "^3.3.1",
     "electron-fetch": "^1.7.4",
     "electron-icon-maker": "^0.0.5",
+    "electron-log": "^4.4.8",
     "electron-store": "^8.0.1",
     "ffmpeg-static": "^5.0.0",
     "framer-motion": "^6",

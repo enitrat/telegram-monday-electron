@@ -216,8 +216,10 @@ export class MondayService {
       })
     })
       .then(res => res.json());
-    this.remainingComplexity = updatedItem.data.complexity?.after
-    this.resetInSeconds = updatedItem.data.complexity?.reset_in_x_seconds
+    if (updatedItem.data){
+      this.remainingComplexity = updatedItem.data.complexity?.after
+      this.resetInSeconds = updatedItem.data.complexity?.reset_in_x_seconds
+    }
     if (updatedItem.error_code) {
       throw new Error(`mondayService : updateItem ${updatedItem.error_message}\n 
       `);
@@ -245,8 +247,10 @@ export class MondayService {
       })
     })
       .then(res => res.json());
-    this.remainingComplexity = createdItem.data.complexity?.after
-    this.resetInSeconds = createdItem.data.complexity?.reset_in_x_seconds
+    if (createdItem.data){
+      this.remainingComplexity = createdItem.data.complexity?.after
+      this.resetInSeconds = createdItem.data.complexity?.reset_in_x_seconds
+    }
     if (createdItem.error_code) {
       throw new Error(` mondayService : createItem ${createdItem.error_message}\n`);
     }
