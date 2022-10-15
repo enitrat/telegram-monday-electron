@@ -189,6 +189,36 @@ export default class Controller {
     }
   }
 
+  async getOrderedByLastDMParticipants(groupId) {
+    try {
+      const bigIntId = bigInt(groupId.value);
+      const participants = await this.telegramController.getChatParticipants(bigIntId);
+      const dialogs = await this.telegramController.getDialogs();
+      const participantsWithDates = participants.map((p: any) => {
+        const foundDialog = dialogs.fmtPrivate.find((d) => d.id.value === p.id.value)
+        if (foundDialog) {
+          return {...p, lastDM: foundDialog.lastMsgDate}
+        }
+        return {...p, lastDM: 0};
+      })
+      const orderedParticipants = participantsWithDates.sort((a: any, b: any) => {
+        if (a.lastDM === b.lastDM) {
+          if ((a.username || a.firstName) < (b.username || b.firstName)) {
+            return 1;
+          }
+          if ((a.username || a.firstName) > (b.username || b.firstName)) {
+            return -1;
+          }
+          return 0
+        }
+        return a.lastDM - b.lastDM //from oldest to newest
+      })
+      this.sendChannelMessage(CHANNEL_PARTICIPANTS, orderedParticipants);
+    } catch (e) {
+      sendError("Couldn't get participants : " + e.stack);
+    }
+  }
+
   /**
    * Sends a telegram message to a user
    * @param userId id of recipient

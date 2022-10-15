@@ -39,7 +39,7 @@ const Texting = () => {
     setParticipants([])
     setIndex(0)
     if (!selectedDialog) return;
-    window.Main.sendAsyncRequest({method: 'getGroupParticipants', params: [selectedDialog.id]});
+    window.Main.sendAsyncRequest({method: 'getOrderedByLastDMParticipants', params: [selectedDialog.id]});
     window.Main.once(CHANNEL_PARTICIPANTS, (data) => {
       if (!data) {
         NotificationManager.error("Couldn't get participants")
