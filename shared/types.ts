@@ -37,3 +37,9 @@ export type CustomParticipant = {
   id: {value:BigInt},
   username: string,
 }
+
+export interface CustomFolder {
+  title: string,
+  peerIds: number[],
+  id: number,
+}

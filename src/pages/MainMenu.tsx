@@ -1,4 +1,4 @@
-import {Button, Flex, Grid, Heading,Text} from "@chakra-ui/react";
+import {Button, Flex, Grid, Heading, Text} from "@chakra-ui/react";
 import {useNavigate} from "react-router-dom";
 
 const MainMenu = () => {
@@ -25,6 +25,10 @@ const MainMenu = () => {
     navigate('/export')
   }
 
+  function handleFillFolders() {
+    navigate('/fillFolders')
+  }
+
 
   return (
     <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
@@ -49,6 +53,10 @@ const MainMenu = () => {
         <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
                 marginTop={'100px'} onClick={handleExport}>
           <Text wordBreak={'break-all'}>Export to CSV</Text>
+        </Button>
+        <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
+                marginTop={'100px'} onClick={handleFillFolders}>
+          <Text wordBreak={'break-all'}>Autofill folders</Text>
         </Button>
       </Grid>
     </Flex>

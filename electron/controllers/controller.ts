@@ -6,12 +6,15 @@ import {RateLimiter} from "limiter";
 import {customLog, filterKeywordGroup, filterParticipantsGroup, getTargetItemGroup} from "../utils/helpers";
 import {sendError} from "../main";
 import {
+  CHANNEL_EDIT_FOLDERS,
+  CHANNEL_FOLDERS,
   CHANNEL_GROUPS, CHANNEL_IDS,
   CHANNEL_LAST_MESSAGES,
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS
 } from "../../shared/constants";
 import bigInt from "big-integer";
+import {CustomFolder} from "../../shared/types";
 
 const limiter = new RateLimiter({tokensPerInterval: 40, interval: "minute"});
 
@@ -163,6 +166,17 @@ export default class Controller {
   }
 
   //TELEGRAM FUNCTIONS
+
+  async fillFolder(title: string, keyword: string) {
+    try {
+      const res = await this.telegramController.fillFolder(title, keyword)
+      this.sendChannelMessage(CHANNEL_EDIT_FOLDERS, res)
+    } catch (e) {
+      customLog(e)
+      sendError("Couldn't fill folders : " + e.stack);
+    }
+  }
+
   /**
    * Returns all >Groups< (no 1:1) from a telegram account
    */
@@ -172,6 +186,15 @@ export default class Controller {
       this.sendChannelMessage(CHANNEL_GROUPS, fmtGroups)
     } catch (e) {
       sendError("Couldn't get dialogs : " + e.stack);
+    }
+  }
+
+  async getFolders() {
+    try {
+      const folders: CustomFolder[] = await this.telegramController.getFolders()
+      this.sendChannelMessage(CHANNEL_FOLDERS, folders)
+    } catch (e) {
+      sendError("Couldn't get folders : " + e.stack);
     }
   }
 

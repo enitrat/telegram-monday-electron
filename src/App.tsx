@@ -12,6 +12,7 @@ import Texting from "./pages/Texting";
 import MainMenu from "./pages/MainMenu";
 import ExportToCSV from "./pages/ExportToCSV";
 import MassDM from "./pages/MassDM";
+import {FillFolders} from "./pages/FillFolders";
 
 
 export function App() {
@@ -31,7 +32,7 @@ export function App() {
             <Route path="/texting" element={<Texting/>}/>
             <Route path="/massDM" element={<MassDM/>}/>
             <Route path={"/export"} element={<ExportToCSV/>}/>
-
+            <Route path={"/fillFolders"} element={<FillFolders/>}/>
           </Route>
         </Routes>
       </HashRouter>

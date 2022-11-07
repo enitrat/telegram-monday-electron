@@ -1,5 +1,5 @@
 import {StringSession} from "telegram/sessions";
-import {TelegramClient} from "telegram";
+import {Api, TelegramClient} from "telegram";
 import bigInt from "big-integer";
 import {TelegramService} from "../services/telegram.service";
 
@@ -53,6 +53,21 @@ export class TelegramController {
 
   async connectTelegram(config: any) {
     return await this.telegramService.connectTelegram(config);
+  }
+
+  async fillFolder(title:string,keyword:string){
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    const dialogs = await this.telegramService.getDialogsRaw();
+    const selectedDialogs = dialogs.filter(dialog => dialog.title.toLowerCase().includes(keyword.toLowerCase()))
+    if (selectedDialogs.length< 0) return;
+    const folders = await this.telegramService.getRawFolders()
+    const selectedFolder = folders.find(folder => folder.title?.toLowerCase() === title.toLowerCase())
+    return await this.telegramService.fillFolder(selectedFolder,selectedDialogs)
+  }
+
+  async getFolders(){
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    return await this.telegramService.getFolders()
   }
 
   async getDialogs() {
