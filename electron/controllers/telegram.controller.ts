@@ -55,22 +55,22 @@ export class TelegramController {
     return await this.telegramService.connectTelegram(config);
   }
 
-  async addUsersToGroup(groupId: bigInt.BigInteger,userIds: string[], ) {
+  async addUsersToGroup(groupId: bigInt.BigInteger, userIds: string[],) {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.addUsersToGroup(userIds, groupId);
   }
 
-  async fillFolder(title:string,keyword:string){
+  async fillFolder(title: string, keyword: string) {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     const dialogs = await this.telegramService.getDialogsRaw();
     const selectedDialogs = dialogs.filter(dialog => dialog.title.toLowerCase().includes(keyword.toLowerCase()))
-    if (selectedDialogs.length< 0) return;
+    if (selectedDialogs.length < 0) return;
     const folders = await this.telegramService.getRawFolders()
     const selectedFolder = folders.find(folder => folder.title?.toLowerCase() === title.toLowerCase())
-    return await this.telegramService.fillFolder(selectedFolder,selectedDialogs)
+    return await this.telegramService.fillFolder(selectedFolder, selectedDialogs)
   }
 
-  async getFolders(){
+  async getFolders() {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.getFolders()
   }
@@ -79,6 +79,25 @@ export class TelegramController {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.getDialogs()
   }
+
+  async getContactsAndBots() {
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    const contacts = (await this.telegramService.getContacts()).map(contact => {
+      return {id: contact.id, username: contact.username}
+    });
+    console.log(contacts)
+    const rawDialogs = await this.telegramService.getDialogsRaw();
+    const userDialogs = rawDialogs.filter(dialog => (dialog.entity && dialog.entity instanceof Api.User));
+    const bots = userDialogs.filter(userDialog => userDialog.entity.username?.endsWith("bot")).map((dialog) => {
+      return {
+        id: Number(dialog.entity.id.value),
+        username: dialog.entity.username,
+      }
+    });
+    console.log(bots)
+    return [...contacts, ...bots];
+  }
+
 
   async getContacts() {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
@@ -100,12 +119,12 @@ export class TelegramController {
     return await this.telegramService.getLastMessages(chatId)
   }
 
-  async getIdsFromUsernames(usernames:string[]){
+  async getIdsFromUsernames(usernames: string[]) {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     const ids = []
-    for (const username of usernames){
+    for (const username of usernames) {
       const id = await this.telegramService.getIdFromUsername(username)
-      console.log(id,username)
+      console.log(id, username)
       ids.push(id)
     }
     return ids;

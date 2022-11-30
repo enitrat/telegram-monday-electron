@@ -5,7 +5,7 @@ import MessageFeed from "../components/MessageFeed/MessageFeed";
 import {useRunningState} from "../hooks/useRunning";
 import {MondayBoard} from "../../shared/types";
 import {DeleteIcon} from "@chakra-ui/icons";
-import {CHANNEL_CONTACTS} from "../../shared/constants";
+import {CHANNEL_CONTACTS, CHANNEL_CONTACTSBOTS} from "../../shared/constants";
 
 export const UpdateBoard = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export const UpdateBoard = () => {
   const [ready, setReady] = useState(false);
   const {running, setRunning} = useRunningState();
 
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [contactBots, setContactBots] = useState<any[]>([]);
   const [userToAdd, setUserToAdd] = useState([]);
 
 
@@ -62,11 +62,12 @@ export const UpdateBoard = () => {
     })
 
     window.Main.sendAsyncRequest({
-      method: 'getContacts',
+      method: 'getContactsAndBots',
     })
 
-    window.Main.once(CHANNEL_CONTACTS, (contacts) => {
-      setContacts(contacts);
+    window.Main.once(CHANNEL_CONTACTSBOTS, (data) => {
+      console.log(data)
+      setContactBots(data);
     });
 
     window.Main.once('all_boards', (boards: MondayBoard[]) => {
@@ -158,7 +159,7 @@ export const UpdateBoard = () => {
               <Select placeholder='Add contact to exported groups' w={"80%"} onChange={(e) => {
                 setUserToAdd([...userToAdd, e.target.value])
               }}>
-                {contacts.map((contact) => {
+                {contactBots.map((contact) => {
                     return (
                       <option key={contact.id} value={contact.id}>{contact.username}</option>
                     )
@@ -167,7 +168,7 @@ export const UpdateBoard = () => {
               </Select>
               {userToAdd.length > 0 && <p>These users will be automatically added to the group chat:</p>}
               {userToAdd.map((id) => {
-                const userContact = contacts.find((contact) => Number(contact.id) === Number(id))
+                const userContact = contactBots.find((contact) => Number(contact.id) === Number(id))
                 return (
                   <Box>
                     {`   -  ${userContact?.username}`}

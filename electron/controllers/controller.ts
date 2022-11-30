@@ -6,7 +6,7 @@ import {RateLimiter} from "limiter";
 import {customLog, filterKeywordGroup, filterParticipantsGroup, getTargetItemGroup} from "../utils/helpers";
 import {sendError} from "../main";
 import {
-  CHANNEL_CONTACTS,
+  CHANNEL_CONTACTS, CHANNEL_CONTACTSBOTS,
   CHANNEL_EDIT_FOLDERS,
   CHANNEL_FOLDERS,
   CHANNEL_GROUPS, CHANNEL_IDS,
@@ -219,6 +219,17 @@ export default class Controller {
       await this.telegramController.startClient()
       const contacts = await this.telegramController.getContacts()
       this.sendChannelMessage(CHANNEL_CONTACTS, contacts)
+    } catch (e) {
+      sendError("Couldn't get contacts : " + e.stack);
+    }
+  }
+
+  async getContactsAndBots() {
+    try {
+      this.telegramController = new TelegramController(this.getKeyConfig())
+      await this.telegramController.startClient()
+      const contactsAndBots = await this.telegramController.getContactsAndBots()
+      this.sendChannelMessage(CHANNEL_CONTACTSBOTS, contactsAndBots)
     } catch (e) {
       sendError("Couldn't get contacts : " + e.stack);
     }

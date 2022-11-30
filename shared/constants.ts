@@ -6,4 +6,5 @@ export const CHANNEL_IDS = 'user_ids';
 export const CHANNEL_FOLDERS = 'folders';
 export const CHANNEL_EDIT_FOLDERS = 'edit_folders';
 export const CHANNEL_CONTACTS = 'contacts';
+export const CHANNEL_CONTACTSBOTS = 'contacts_bots';
 
