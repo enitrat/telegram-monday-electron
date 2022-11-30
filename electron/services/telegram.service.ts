@@ -3,6 +3,7 @@ import bigInt from "big-integer";
 import {waitPromptInput} from "../promptWindow";
 import {CustomFolder} from "../../shared/types";
 import DialogFilter = Api.DialogFilter;
+import Contacts = Api.contacts.Contacts;
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#"
 
@@ -58,9 +59,79 @@ export class TelegramService {
     return;
   }
 
+  async getContacts() {
+    if (!this.telegramClient?.connected) throw Error("telegramService - getContacts | Telegram disconnected")
+    const contacts: Contacts = (await this.telegramClient.invoke(new Api.contacts.GetContacts({})) as any);
+    const contactInfos = contacts.users.map((user: any) => {
+      return {username: user.username, firstName: user.firstName, lastName: user.lastName, id: Number(user.id.value)}
+    })
+    return contactInfos;
+  }
+
+  async addUsersToGroup(userIds: any[], groupId: bigInt.BigInteger, isChannel = true) {
+    const bigintIds = userIds.map((id) => bigInt(id))
+    if (isChannel) {
+      try {
+        await this.telegramClient.invoke(new Api.channels.InviteToChannel({
+          channel: groupId,
+          users: bigintIds
+        }));
+      } catch (e) {
+        // If the error contains `Cannot cast InputPeerChat to any kind of InputChannel`, retry
+        if (e.message.includes('Cannot cast InputPeerChat to any kind of InputChannel')) {
+          return this.addUsersToGroup(userIds, groupId, false)
+        }
+      }
+      // make all of the added users admins
+      for (const id of bigintIds) {
+        try {
+          await this.telegramClient.invoke(new Api.channels.EditAdmin({
+            channel: groupId,
+            userId: id,
+            adminRights: new Api.ChatAdminRights({
+              changeInfo: true,
+              postMessages: true,
+              editMessages: true,
+              deleteMessages: true,
+              banUsers: true,
+              inviteUsers: true,
+              pinMessages: true,
+              addAdmins: true,
+              anonymous: true,
+              manageCall: true,
+              other: true
+            }),
+            rank: ""
+          }));
+        } catch (e) {
+          console.log("Admin error\n", e)
+        }
+      }
+    } else {
+      for (const userId of userIds) {
+        try {
+          await this.telegramClient.invoke(new Api.messages.AddChatUser({
+            chatId: groupId,
+            userId: userId,
+            fwdLimit: 1000
+          }));
+          await this.telegramClient.invoke(new Api.messages.EditChatAdmin({
+            chatId: groupId,
+            userId: userId,
+            isAdmin: true
+          }));
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    }
+
+
+  }
+
   async fillFolder(folder: DialogFilter, peers: any[]) {
     if (!this.telegramClient) throw Error("telegramService - connectTelegram | Couldn't connect to telegram");
-    const includePeers = Array.from(new Set([...peers.map((peer)=>peer.inputEntity), ...folder.includePeers])) as any;
+    const includePeers = Array.from(new Set([...peers.map((peer) => peer.inputEntity), ...folder.includePeers])) as any;
     const result = await this.telegramClient.invoke(
       new Api.messages.UpdateDialogFilter({
         id: folder.id,

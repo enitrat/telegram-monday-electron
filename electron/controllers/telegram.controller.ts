@@ -55,6 +55,11 @@ export class TelegramController {
     return await this.telegramService.connectTelegram(config);
   }
 
+  async addUsersToGroup(groupId: bigInt.BigInteger,userIds: string[], ) {
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    return await this.telegramService.addUsersToGroup(userIds, groupId);
+  }
+
   async fillFolder(title:string,keyword:string){
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     const dialogs = await this.telegramService.getDialogsRaw();
@@ -73,6 +78,11 @@ export class TelegramController {
   async getDialogs() {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.getDialogs()
+  }
+
+  async getContacts() {
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    return await this.telegramService.getContacts();
   }
 
   async getChatParticipants(groupId: bigInt.BigInteger) {

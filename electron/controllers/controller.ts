@@ -6,6 +6,7 @@ import {RateLimiter} from "limiter";
 import {customLog, filterKeywordGroup, filterParticipantsGroup, getTargetItemGroup} from "../utils/helpers";
 import {sendError} from "../main";
 import {
+  CHANNEL_CONTACTS,
   CHANNEL_EDIT_FOLDERS,
   CHANNEL_FOLDERS,
   CHANNEL_GROUPS, CHANNEL_IDS,
@@ -212,6 +213,17 @@ export default class Controller {
     }
   }
 
+  async getContacts() {
+    try {
+      this.telegramController = new TelegramController(this.getKeyConfig())
+      await this.telegramController.startClient()
+      const contacts = await this.telegramController.getContacts()
+      this.sendChannelMessage(CHANNEL_CONTACTS, contacts)
+    } catch (e) {
+      sendError("Couldn't get contacts : " + e.stack);
+    }
+  }
+
   async getOrderedByLastDMParticipants(groupId) {
     try {
       const bigIntId = bigInt(groupId.value);
@@ -338,7 +350,7 @@ export default class Controller {
   /**
    * Starts board update functionnality.
    */
-  async startBoardUpdates() {
+  async startBoardUpdates(usersToAdd:string[]) {
     try {
       clearInterval(this.scanInterval)
       const board_ids = this.getOptionalConfig().updated_boards.map((board) => board.id);
@@ -349,7 +361,7 @@ export default class Controller {
       if (newConfig) this.setKeyConfig(newConfig);
 
       for (const id of board_ids) {
-        await this.updateBoard(id)
+        await this.updateBoard(id, usersToAdd)
       }
 
       this.sendUpdateMessage({
@@ -388,7 +400,7 @@ export default class Controller {
    * @param id?:string optional target board id.
    * @returns {Promise<void>}
    */
-  async updateBoard(id: string): Promise<void> {
+  async updateBoard(id: string, usersToAdd:string[]): Promise<void> {
 
     try {
 
@@ -405,6 +417,8 @@ export default class Controller {
           // if (filterKeywordGroup(this.mondayController!.config[id], group)) continue;
           let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
           if (!exportedItem) continue;
+          // Only add users if the group is exported
+          await this.telegramController.addUsersToGroup(group.id, usersToAdd);
           let lastMsgDate = group.lastMsgDate! * 1000
           const exportedDate = JSON.parse(exportedItem.lastMsg)
           let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
@@ -413,6 +427,8 @@ export default class Controller {
           }
           await limiter.removeTokens(1);
           await this.updateItem(targetBoard, group, exportedItem)
+
+
         } catch (e) {
           customLog(e)
           this.sendUpdateMessage({
