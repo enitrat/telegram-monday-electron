@@ -2,6 +2,7 @@ import {Api, TelegramClient} from "telegram";
 import bigInt from "big-integer";
 import {waitPromptInput} from "../promptWindow";
 import {CustomFolder} from "../../shared/types";
+import {EntityLike} from "telegram/define";
 import DialogFilter = Api.DialogFilter;
 import Contacts = Api.contacts.Contacts;
 
@@ -37,7 +38,6 @@ export class TelegramService {
       },
       onError: (err: any) => {
         throw Error('telegramService - startClient |' + err)
-        console.log(err)
       },
     });
   }
@@ -62,10 +62,9 @@ export class TelegramService {
   async getContacts() {
     if (!this.telegramClient?.connected) throw Error("telegramService - getContacts | Telegram disconnected")
     const contacts: Contacts = (await this.telegramClient.invoke(new Api.contacts.GetContacts({})) as any);
-    const contactInfos = contacts.users.map((user: any) => {
+    return contacts.users.map((user: any) => {
       return {username: user.username, firstName: user.firstName, lastName: user.lastName, id: Number(user.id.value)}
-    })
-    return contactInfos;
+    });
   }
 
   async addUsersToGroup(userIds: any[], groupId: bigInt.BigInteger, isChannel = true) {
@@ -132,28 +131,27 @@ export class TelegramService {
   async fillFolder(folder: DialogFilter, peers: any[]) {
     if (!this.telegramClient) throw Error("telegramService - connectTelegram | Couldn't connect to telegram");
     const includePeers = Array.from(new Set([...peers.map((peer) => peer.inputEntity), ...folder.includePeers])) as any;
-    const result = await this.telegramClient.invoke(
-      new Api.messages.UpdateDialogFilter({
-        id: folder.id,
-        filter: new Api.DialogFilter({
+    return await this.telegramClient.invoke(
+        new Api.messages.UpdateDialogFilter({
           id: folder.id,
-          title: folder.title,
-          pinnedPeers: folder.pinnedPeers,
-          includePeers: includePeers,
-          excludePeers: folder.excludePeers,
-          contacts: folder.contacts,
-          nonContacts: folder.nonContacts,
-          groups: folder.groups,
-          broadcasts: folder.broadcasts,
-          bots: folder.bots,
-          excludeMuted: folder.excludeMuted,
-          excludeRead: folder.excludeRead,
-          excludeArchived: folder.excludeArchived,
-          emoticon: folder.emoticon,
-        }),
-      })
+          filter: new Api.DialogFilter({
+            id: folder.id,
+            title: folder.title,
+            pinnedPeers: folder.pinnedPeers,
+            includePeers: includePeers,
+            excludePeers: folder.excludePeers,
+            contacts: folder.contacts,
+            nonContacts: folder.nonContacts,
+            groups: folder.groups,
+            broadcasts: folder.broadcasts,
+            bots: folder.bots,
+            excludeMuted: folder.excludeMuted,
+            excludeRead: folder.excludeRead,
+            excludeArchived: folder.excludeArchived,
+            emoticon: folder.emoticon,
+          }),
+        })
     );
-    return result;
   }
 
   async getFolders(): Promise<CustomFolder[]> {
@@ -217,11 +215,24 @@ export class TelegramService {
     return {fmtGroups: fmtGroups, fmtPrivate: fmtPrivate}
   }
 
+  async getGroups() {
+    if (!this.telegramClient?.connected) throw Error("telegramService - getGroups| Telegram disconnected")
+    let fmtGroups = [];
+    for await (const dialog of (this.telegramClient.iterDialogs)({})) {
+      if (!dialog.entity) continue;
+      if ((dialog.entity instanceof Api.Chat) && (dialog.entity.participantsCount === 0)) continue;
+      if (dialog.entity instanceof Api.Chat) {
+        fmtGroups.push(dialog)
+      }
+    }
+    return fmtGroups
+  }
+
   async getChatParticipants(groupId: bigInt.BigInteger) {
     if (!this.telegramClient?.connected) throw Error("telegramService - getChatParticipants | Telegram disconnected")
     try {
       const participants = await this.telegramClient.getParticipants(groupId, {});
-      let fmtParticipants = participants.map((participant) => {
+      return participants.map((participant) => {
         return {
           id: participant.id,
           username: participant.username,
@@ -230,7 +241,6 @@ export class TelegramService {
         }
         // return participant.username
       })
-      return fmtParticipants
     } catch (e) {
       if (e.code !== 400) throw Error('telegramService - getChatParticipants | ' + e)
     }
@@ -238,6 +248,10 @@ export class TelegramService {
 
   async sendMessage(userId: bigInt.BigInteger, message: string) {
     await this.telegramClient.sendMessage(userId, {message: message});
+  }
+
+  async sendMessageToGroup (group: EntityLike, message: string) {
+    await this.telegramClient.sendMessage(group, {message : message});
   }
 
   async getIdFromUsername(username: string) {

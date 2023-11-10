@@ -19,6 +19,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "types": [
+      "node",
       "react/next",
       "react-dom/next"
     ]

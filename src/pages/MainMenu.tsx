@@ -29,11 +29,16 @@ const MainMenu = () => {
     navigate('/fillFolders')
   }
 
+  function handleMassGroupDM() {
+    console.log('mass group dm')
+    navigate('/massGroupDM')
+  }
+
 
   return (
     <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
       <Heading as={'h1'} size={'l'}>Menu</Heading>
-      <Grid templateColumns={'1fr 1fr 1fr'} gap={10}>
+      <Grid templateColumns={'1fr 1fr 1fr 1fr'} gap={10}>
         <Button width='124px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='green'
                 marginTop={'100px'} onClick={handleStart}>Export
           Chats
@@ -57,6 +62,10 @@ const MainMenu = () => {
         <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
                 marginTop={'100px'} onClick={handleFillFolders}>
           <Text wordBreak={'break-all'}>Autofill folders</Text>
+        </Button>
+        <Button width='125px' height={'100px'} borderRadius={'30px'} variant='solid' colorScheme='orange'
+                marginTop={'100px'} onClick={handleMassGroupDM}>
+          <Text wordBreak={'break-all'}>Mass group DM</Text>
         </Button>
       </Grid>
     </Flex>

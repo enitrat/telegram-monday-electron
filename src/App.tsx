@@ -13,6 +13,7 @@ import MainMenu from "./pages/MainMenu";
 import ExportToCSV from "./pages/ExportToCSV";
 import MassDM from "./pages/MassDM";
 import {FillFolders} from "./pages/FillFolders";
+import MassGroupDM from "./pages/MassGroupDM";
 
 
 export function App() {
@@ -31,6 +32,7 @@ export function App() {
             <Route path="/menu" element={<MainMenu/>}/>
             <Route path="/texting" element={<Texting/>}/>
             <Route path="/massDM" element={<MassDM/>}/>
+            <Route path="/massGroupDM" element={<MassGroupDM/>}/>
             <Route path={"/export"} element={<ExportToCSV/>}/>
             <Route path={"/fillFolders"} element={<FillFolders/>}/>
           </Route>

@@ -1,6 +1,3 @@
-import {Api} from "telegram";
-import long = Api.long;
-
 export type MondayBoard = {
   name: string,
   id: string,
@@ -26,7 +23,7 @@ export type CustomDialog = {
   lastMsgDate: number | undefined;
   link: string;
   lastMsg: string | undefined;
-  id: long;
+  id: bigint;
   title: string;
   type: "UserEmpty" | "User" | "Chat" | "Channel" | "ChatEmpty" | "ChatForbidden" | "ChannelForbidden"
 }

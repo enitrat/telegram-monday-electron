@@ -6,16 +6,18 @@ import {RateLimiter} from "limiter";
 import {customLog, filterKeywordGroup, filterParticipantsGroup, getTargetItemGroup} from "../utils/helpers";
 import {sendError} from "../main";
 import {
-  CHANNEL_CONTACTS, CHANNEL_CONTACTSBOTS,
+  CHANNEL_CONTACTS,
+  CHANNEL_CONTACTSBOTS,
   CHANNEL_EDIT_FOLDERS,
   CHANNEL_FOLDERS,
-  CHANNEL_GROUPS, CHANNEL_IDS,
+  CHANNEL_GROUPS,
+  CHANNEL_IDS,
   CHANNEL_LAST_MESSAGES,
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS
 } from "../../shared/constants";
 import bigInt from "big-integer";
-import {CustomFolder} from "../../shared/types";
+import {CustomDialog, CustomFolder} from "../../shared/types";
 
 const limiter = new RateLimiter({tokensPerInterval: 40, interval: "minute"});
 
@@ -50,14 +52,13 @@ export default class Controller {
   //EXPOSE API//
   getApi() {
     const properties = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
-    const api = properties.reduce((endpoints: any, property) => {
+    return properties.reduce((endpoints: any, property) => {
       if (property === "constructor") {
         return endpoints;
       }
       endpoints[property] = (this as any)[property].bind(this)
       return endpoints;
     }, {});
-    return api;
   }
 
 
@@ -280,6 +281,16 @@ export default class Controller {
     }
   }
 
+  async sendGroupMessage(groupId: ReceivedId, message: string) {
+    try {
+      const bigIntId = bigInt(groupId.value);
+      await this.telegramController.sendMessage(bigIntId, message)
+      this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "")
+    } catch (e) {
+      sendError("Couldn't send message : " + e.stack);
+    }
+  }
+
   /**
    * Gets 5 last messages from a chat with a user
    * @param chatId id of the chat to get messages from
@@ -331,6 +342,22 @@ export default class Controller {
     } catch (e) {
       sendError("Couldn't connect to telegram : " + e.stack)
     }
+  }
+
+  logGroups(groups:CustomDialog[]) {
+    console.log('groups')
+    console.log(groups.length)
+    for (const group of groups) {
+      console.log(group.title)
+    }
+  }
+
+  logGroupss() {
+    console.log('groupss')
+    /*console.log(groups.length)
+    for (const group of groups) {
+      console.log(group.title)
+    }*/
   }
 
   /**

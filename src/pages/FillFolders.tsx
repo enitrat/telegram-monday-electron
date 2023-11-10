@@ -1,7 +1,7 @@
 import {Button, Flex, Heading, Input, Select, Spinner} from "@chakra-ui/react"
 import {CustomFolder} from "../../shared/types";
 import {useEffect, useState} from "react";
-import {CHANNEL_EDIT_FOLDERS, CHANNEL_FOLDERS, CHANNEL_GROUPS, CHANNEL_PARTICIPANTS} from "../../shared/constants";
+import {CHANNEL_EDIT_FOLDERS, CHANNEL_FOLDERS, CHANNEL_GROUPS} from "../../shared/constants";
 import {NotificationManager} from "react-notifications";
 
 export const FillFolders = () => {
@@ -15,7 +15,7 @@ export const FillFolders = () => {
     setLoadingFolders(true)
 
     window.Main.sendAsyncRequest({method: 'startTexting'});
-    window.Main.once(CHANNEL_GROUPS, (data) => {
+    window.Main.once(CHANNEL_GROUPS, () => {
       window.Main.sendAsyncRequest({method: 'getFolders', params: []});
     })
     window.Main.once(CHANNEL_FOLDERS, (data) => {
@@ -23,7 +23,7 @@ export const FillFolders = () => {
         NotificationManager.error("Couldn't get participants")
         return;
       }
-      ;
+
       setFolders(data)
       setLoadingFolders(false);
     })
@@ -47,7 +47,7 @@ export const FillFolders = () => {
         NotificationManager.error("Couldn't edit folder")
         return;
       }
-      ;
+
       NotificationManager.success("Success")
       setLoading(false);
     })

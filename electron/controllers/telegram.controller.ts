@@ -33,14 +33,13 @@ export class TelegramController {
 
   getApi() {
     const properties = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
-    const api = properties.reduce((endpoints: any, property) => {
+    return properties.reduce((endpoints: any, property) => {
       if (property === "constructor") {
         return endpoints;
       }
       endpoints[property] = (this as any)[property].bind(this)
       return endpoints;
     }, {});
-    return api;
   }
 
   async startClient() {
@@ -114,6 +113,11 @@ export class TelegramController {
     return await this.telegramService.sendMessage(userId, message);
   }
 
+  /*async sendMessageToGroup (group: CustomDialog, message: string) {
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    return await this.telegramService.sendMessageToGroup(group, message);
+  }*/
+
   async getLastMessages(chatId: bigInt.BigInteger) {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.getLastMessages(chatId)
@@ -129,6 +133,11 @@ export class TelegramController {
     }
     return ids;
   }
+
+  /*async getGroups () {
+    if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
+    return await this.telegramService.getGroups();
+  }*/
 
 
 }
