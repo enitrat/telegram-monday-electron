@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Box, Flex, Menu, MenuButton, MenuDivider, MenuItem, MenuList, useColorModeValue} from "@chakra-ui/react";
+import {Box, Flex, Menu, MenuButton, MenuDivider, Button, MenuItem, MenuList, useColorModeValue} from "@chakra-ui/react";
 import {InfoOutlineIcon} from "@chakra-ui/icons";
 import {NotificationManager} from "react-notifications";
 
@@ -30,7 +30,7 @@ const ErrorsDisplay = () => {
       {errors.length > 0 &&
       <Menu>
           <MenuButton
-            as={Box}
+            as={Button}
             rounded={'full'}
             variant={'link'}
             cursor={'pointer'}
