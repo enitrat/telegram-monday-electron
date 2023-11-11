@@ -172,8 +172,6 @@ const MassGroupDM = () => {
 
             </Flex>
 
-            {
-                document.activeElement !== searchInput.current &&
                 <Box marginTop={'50px'} height={'100%'} width={'90%'}>
                     {importedGroups.length > 0 &&
                         <Flex flexDir={'column'}>
@@ -230,7 +228,7 @@ const MassGroupDM = () => {
                         </Flex>
                     }
                 </Box>
-            }
+
         </Flex>
     )
 }
