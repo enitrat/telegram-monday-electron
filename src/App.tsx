@@ -14,6 +14,7 @@ import ExportToCSV from "./pages/ExportToCSV";
 import MassDM from "./pages/MassDM";
 import { FillFolders } from "./pages/FillFolders";
 import MassGroupDM from "./pages/MassGroupDM";
+import DownloadGroupsParticipants from "./pages/DlGroupsParticipants";
 
 export function App() {
   return (
@@ -32,6 +33,7 @@ export function App() {
             <Route path="/texting" element={<Texting />} />
             <Route path="/massDM" element={<MassDM />} />
             <Route path="/massGroupDM" element={<MassGroupDM />} />
+            <Route path={"/dlGroupsParticipants"} element={<DownloadGroupsParticipants/>}/>
             <Route path={"/export"} element={<ExportToCSV />} />
             <Route path={"/fillFolders"} element={<FillFolders />} />
           </Route>

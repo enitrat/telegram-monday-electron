@@ -33,6 +33,12 @@ const MainMenu = () => {
     navigate("/massGroupDM");
   }
 
+  function handleDlGroupsParticipants() {
+    console.log('dl groups participants')
+    navigate('/dlGroupsParticipants')
+  }
+
+
   return (
     <Flex flexDir={"column"} justifyContent={"center"} alignItems={"center"}>
       <Heading as={"h1"} size={"l"}>
@@ -112,10 +118,21 @@ const MainMenu = () => {
           variant="solid"
           colorScheme="orange"
           marginTop={"100px"}
-          onClick={handleMassGroupDM}
+          onClick={handleDlGroupsParticipants}
         >
-          <Text wordBreak={"break-all"}>Mass group DM</Text>
+          <Text wordBreak={"break-all"}>Download group members</Text>
         </Button>
+          <Button
+              width="125px"
+              height={"100px"}
+              borderRadius={"30px"}
+              variant="solid"
+              colorScheme="orange"
+              marginTop={"100px"}
+              onClick={handleMassGroupDM}
+          >
+              <Text wordBreak={"break-all"}>Mass group DM</Text>
+          </Button>
       </Grid>
     </Flex>
   );
