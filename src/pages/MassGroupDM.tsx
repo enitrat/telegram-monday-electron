@@ -4,11 +4,14 @@ import {
     CHANNEL_MESSAGE_SENT,
 } from "../../shared/constants";
 import {CustomDialog} from "../../shared/types";
-import {Box, Button, Flex, Heading, Input, Select, Spinner, Text, Textarea} from "@chakra-ui/react";
+import {Box, Button, filter, Flex, Heading, Input, Progress, Select, Spinner, Text, Textarea} from "@chakra-ui/react";
 import {NotificationManager} from 'react-notifications';
 import ScrollableFeed from "react-scrollable-feed";
 import {RateLimiter} from "limiter";
 import Papa from "papaparse";
+import {Icon} from "@chakra-ui/icons";
+import {TbMailFast} from "react-icons/tb";
+
 
 
 const hoverProps = {
@@ -23,8 +26,9 @@ const limiter = new RateLimiter({tokensPerInterval: 15, interval: "minute"});
 const MassGroupDM = () => {
 
     const [dialogs, setDialogs] = useState<CustomDialog[]>([])
-    const [importedGroups, setImportedGroups] = useState<CustomDialog[]>([])
-    const [selectedGroupNames, setSelectedGroupNames] = useState<Set<string>>(new Set())
+    let [importedGroups, setImportedGroups] = useState<CustomDialog[]>([])
+    //let [selectedGroupNames, setSelectedGroupNames] = useState<String[]>([])
+    let selectedGroupNames : String[] = []
     const [messageToSend, setMessageToSend] = useState<string>("");
     const [keyword, setKeyword] = useState<string>("")
     const [loading, setLoading] = useState<boolean>(false)
@@ -33,6 +37,8 @@ const MassGroupDM = () => {
     const searchInput = useRef(null)
     const fileInput = useRef(null)
     let [msgSent, setMsgSent] = useState<{ [key: string]: boolean }>({})
+    let [sending, setSending] = useState<boolean>(false)
+    let [progress, setProgress] = useState<number>(0)
 
     const filterDialogs = (dialogs: CustomDialog[]) => {
         if (keyword === "") return dialogs;
@@ -43,38 +49,62 @@ const MassGroupDM = () => {
         console.log(msgSent)
     }, [msgSent])
 
-    const waitForMsgSent = async (timeout: number, groupId: BigInt) => {
-        return new Promise(async (resolve) => {
-            await limiter.removeTokens(1);
-            window.Main.sendAsyncRequest({method: 'sendGroupMessage', params: [groupId, messageToSend]});
-            window.Main.once(CHANNEL_MESSAGE_SENT, () => {
-                msgSent[Number(groupId).toString()] = true
-                setMsgSent({...msgSent})
-                resolve(true)
-            })
-            setTimeout(resolve, 10 * 1000);
+    const waitForMsgSent = async (timeout, groupId) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await limiter.removeTokens(1);
+                window.Main.sendAsyncRequest({method: 'sendGroupMessage', params: [groupId, messageToSend]});
 
+                // Using event listener to handle message sent
+                const handleMessageSent = () => {
+                    // Use functional update to ensure we have the latest state
+                    setMsgSent(prevMsgSent => ({
+                        ...prevMsgSent,
+                        [groupId.value.toString()]: true
+                    }));
+                    resolve(true);
+                };
+
+                window.Main.once(CHANNEL_MESSAGE_SENT, handleMessageSent);
+
+                // Handle timeout scenario
+                setTimeout(() => {
+                    resolve(false); // or reject(new Error('Timeout'));
+                }, timeout * 1000);
+
+            } catch (error) {
+                reject(error);
+            }
         });
+    };
 
-    }
 
     const sendMessages = async () => {
+        setSending(true)
         msgSent = {}
+        let _progress = progress
         for (const group of importedGroups) {
             const sent = await waitForMsgSent(10 * 1000, group.id)
-            if (!sent) NotificationManager.error('Message couldnt be sent to ' + group.title) // REFACTOR NEW MANAGER NOTIF
+            if (!sent) NotificationManager.error('Message couldnt be sent to ' + group.title)
+            _progress++
+            setProgress(_progress)
         }
+        setSending(false)
     }
 
     const handleFileUpload = (e) => {
         e.preventDefault();
-        window.Main.sendSyncRequest({method: 'logGroups'});
         Papa.parse(e.target.files[0], {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-                const groupNames = results.data.map((group) => group.title.toLowerCase())
-                setSelectedGroupNames(new Set(groupNames))
+                /*const groupNames = results.data.map((group) => group.title.toLowerCase())
+                setSelectedGroupNames(new Set(groupNames))*/
+                //setSelectedGroupNames(results.data.map((group) => group.title))
+                selectedGroupNames = results.data.map((group) => group.title.toLowerCase())
+                window.Main.sendSyncRequest({method: 'logGroups', params: [results.data]});
+                window.Main.sendSyncRequest({method: 'logGroups', params: [selectedGroupNames]});
+
                 startImport()
             },
         });
@@ -114,7 +144,9 @@ const MassGroupDM = () => {
     }
 
     const filterDialogsByName = (data: CustomDialog[]) => {
-        return data.filter((dialog) => selectedGroupNames.has(dialog.title.toLowerCase()))
+        window.Main.sendSyncRequest({method: 'logGroups', params: [data]});
+        window.Main.sendSyncRequest({method: 'logGroups', params: [selectedGroupNames]});
+        return data.filter((dialog) => selectedGroupNames.includes(dialog.title.toLowerCase()))
     }
 
 
@@ -122,12 +154,16 @@ const MassGroupDM = () => {
         //const titles = new Set(["Aurelien e Mathieu 2", "Aurelien e Mathieu"].map((title)=>title.toLowerCase()))
         //setSelectedGroupNames(titles)
         setLoading(true)
+        setProgress(0)
+        setMsgSent({})
+        setMessageToSend("")
         window.Main.sendAsyncRequest({method: 'startTexting'});
         window.Main.once(CHANNEL_GROUPS, (data) => {
-            setImportedGroups(filterDialogsByName(data))
+            //setImportedGroups()
+            let filtered :CustomDialog[] = data as CustomDialog[]
+            setImportedGroups(filterDialogsByName(filtered))
+            //setImportedGroups(data)
             setLoading(false)
-            window.Main.sendSyncRequest({method: 'logGroups', params: [importedGroups]});
-            window.Main.sendSyncRequest({method: 'logGroups', params: [dialogs]});
         })
     }
 
@@ -183,6 +219,7 @@ const MassGroupDM = () => {
                                     <Box width={"100%"} maxHeight={'200px'} p={1}>
                                         <ScrollableFeed>
                                             {importedGroups.map((group: CustomDialog) => {
+                                                const id = group.id.toString()
                                                 return (
                                                     <Flex borderRadius={'10px'}
                                                           marginBottom={'5px'} boxShadow={'md'} height={"40px"}
@@ -192,13 +229,14 @@ const MassGroupDM = () => {
                                                           _hover={{...hoverProps, transform: "scale(1.05)"}}
                                                         //onClick={(e) => excludeUser(e, participant)}
                                                           flexWrap={'wrap'}
-                                                        //key={id}
+                                                        key={id}
                                                     >
                                                         <Text textAlign={'center'} fontSize={'14px'}
                                                               wordBreak={'break-word'}>
                                                             <Box>
                                                                 {group.title}
                                                             </Box>
+                                                            {msgSent[id] && <Icon as={TbMailFast} color={'green.500'}/>}
                                                         </Text>
                                                     </Flex>
                                                 )
@@ -218,12 +256,17 @@ const MassGroupDM = () => {
                                             </Textarea>
                                         </Box>
                                         <Flex width={'100%'} marginTop={'10px'} justifyContent={'space-between'}>
-                                            <Button color={'green.500'} onClick={sendMessages}>Send message
-                                                to {importedGroups.length} groups</Button>
+
+                                                <Button color={'green.500'} onClick={sendMessages}>
+                                                    {sending ? <span> {progress} / {importedGroups.length} </span> :
+                                                    <span>
+                                                    Send message to {importedGroups.length} groups </span>}
+                                                </Button>
                                         </Flex>
                                     </Flex>
 
                                 </Flex>
+
                             </Flex>
                         </Flex>
                     }
