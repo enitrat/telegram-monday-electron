@@ -1,10 +1,15 @@
 import Store from "electron-store";
 import ElectronStore from "electron-store";
-import {TelegramController} from "./telegram.controller";
-import {MondayController} from "./monday.controller";
-import {RateLimiter} from "limiter";
-import {customLog, filterKeywordGroup, filterParticipantsGroup, getTargetItemGroup} from "../utils/helpers";
-import {sendError} from "../main";
+import { TelegramController } from "./telegram.controller";
+import { MondayController } from "./monday.controller";
+import { RateLimiter } from "limiter";
+import {
+  customLog,
+  filterKeywordGroup,
+  filterParticipantsGroup,
+  getTargetItemGroup,
+} from "../utils/helpers";
+import { sendError } from "../main";
 import {
   CHANNEL_CONTACTS,
   CHANNEL_CONTACTSBOTS,
@@ -14,25 +19,24 @@ import {
   CHANNEL_IDS,
   CHANNEL_LAST_MESSAGES,
   CHANNEL_MESSAGE_SENT,
-  CHANNEL_PARTICIPANTS
+  CHANNEL_PARTICIPANTS,
 } from "../../shared/constants";
 import bigInt from "big-integer";
-import {CustomDialog, CustomFolder} from "../../shared/types";
+import { CustomDialog, CustomFolder } from "../../shared/types";
 
-const limiter = new RateLimiter({tokensPerInterval: 40, interval: "minute"});
+const limiter = new RateLimiter({ tokensPerInterval: 40, interval: "minute" });
 
 interface ReceivedId {
-  value: number
+  value: number;
 }
 
 const formatStore = (store) => {
-  if (Object.keys(store).length === 0)
-    return undefined;
+  if (Object.keys(store).length === 0) return undefined;
   return store;
-}
+};
 
 export default class Controller {
-  public windowChannel: Electron.WebContents
+  public windowChannel: Electron.WebContents;
   private readonly _mondayStore: ElectronStore;
   private readonly _keyStore: ElectronStore;
   private readonly _optionalStore: ElectronStore;
@@ -40,13 +44,11 @@ export default class Controller {
   public telegramController: TelegramController | undefined;
   public mondayController: MondayController | undefined;
 
-
   constructor(windowChannel: Electron.WebContents) {
     this.windowChannel = windowChannel;
-    this._keyStore = new Store({name: 'keyConfig'});
-    this._mondayStore = new Store({name: 'mondayConfig'})
-    this._optionalStore = new Store({name: 'optionalConfig'})
-
+    this._keyStore = new Store({ name: "keyConfig" });
+    this._mondayStore = new Store({ name: "mondayConfig" });
+    this._optionalStore = new Store({ name: "optionalConfig" });
   }
 
   //EXPOSE API//
@@ -56,11 +58,10 @@ export default class Controller {
       if (property === "constructor") {
         return endpoints;
       }
-      endpoints[property] = (this as any)[property].bind(this)
+      endpoints[property] = (this as any)[property].bind(this);
       return endpoints;
     }, {});
   }
-
 
   //GETTERS//
   getKeyConfig(): any {
@@ -75,7 +76,7 @@ export default class Controller {
 
   getOptionalConfig(): any {
     // console.log(this._optionalStore.store);
-    return formatStore(this._optionalStore.store)
+    return formatStore(this._optionalStore.store);
     // return this._optionalStore.get('config');
   }
 
@@ -83,24 +84,27 @@ export default class Controller {
     return {
       ...this.getMondayConfig(),
       ...this.getOptionalConfig(),
-    }
+    };
   }
 
   //SETTERS//
   setKeyConfig(config: any) {
     if (!config) {
       this.mondayController = undefined;
-      this._keyStore.clear()
+      this._keyStore.clear();
     } else {
-      this._keyStore.set(config)
+      this._keyStore.set(config);
     }
     //TODO check this
-    this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
+    this.mondayController = new MondayController(
+      this.getKeyConfig().MONDAY_API_KEY,
+      this.getFullConfig(),
+    );
   }
 
   setMondayConfig(config: any) {
     if (!config) {
-      this._mondayStore.clear()
+      this._mondayStore.clear();
     } else {
       this._mondayStore.set(config);
     }
@@ -109,7 +113,7 @@ export default class Controller {
 
   setOptionalConfig(config: any) {
     if (!config) {
-      this._optionalStore.clear()
+      this._optionalStore.clear();
     } else {
       this._optionalStore.set(config);
     }
@@ -122,37 +126,46 @@ export default class Controller {
   }
 
   sendUpdateMessage(message) {
-    this.windowChannel.send('scan_update', message);
+    this.windowChannel.send("scan_update", message);
   }
 
   //MONDAY FUNCTIONS//
   async getAllBoards() {
-    if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig());
-    const boards = await this.mondayController.getAllBoards()
-    this.windowChannel.send('all_boards', boards);
+    if (!this.mondayController)
+      this.mondayController = new MondayController(
+        this.getKeyConfig().MONDAY_API_KEY,
+        this.getFullConfig(),
+      );
+    const boards = await this.mondayController.getAllBoards();
+    this.windowChannel.send("all_boards", boards);
   }
 
   async getMondayBoard() {
-    const targetBoard = this.mondayController.getBoard(this.mondayController.config.board_id)
-    this.windowChannel.send('target_board', targetBoard);
+    const targetBoard = this.mondayController.getBoard(
+      this.mondayController.config.board_id,
+    );
+    this.windowChannel.send("target_board", targetBoard);
   }
 
   /**
    * Creates a new board on a monday account
    */
   async createNewBoard() {
-    clearInterval(this.scanInterval)
-    if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
+    clearInterval(this.scanInterval);
+    if (!this.mondayController)
+      this.mondayController = new MondayController(
+        this.getKeyConfig().MONDAY_API_KEY,
+        this.getFullConfig(),
+      );
     try {
       await this.mondayController.createPreconfigBoard({});
-      this.setMondayConfig(this.mondayController.config)
-      this.windowChannel.send('create_board', {
+      this.setMondayConfig(this.mondayController.config);
+      this.windowChannel.send("create_board", {
         result: "success",
-        data: this.getMondayConfig()
-      })
-
+        data: this.getMondayConfig(),
+      });
     } catch (e) {
-      customLog(e)
+      customLog(e);
       sendError("Couldn't create board : " + e.stack);
     }
   }
@@ -162,19 +175,23 @@ export default class Controller {
    * @param id board id
    */
   async getCurrentBoard(id: string) {
-    if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
+    if (!this.mondayController)
+      this.mondayController = new MondayController(
+        this.getKeyConfig().MONDAY_API_KEY,
+        this.getFullConfig(),
+      );
     const currentBoard = await this.mondayController.getBoard(id);
-    this.windowChannel.send('currentBoard', currentBoard);
+    this.windowChannel.send("currentBoard", currentBoard);
   }
 
   //TELEGRAM FUNCTIONS
 
   async fillFolder(title: string, keyword: string) {
     try {
-      const res = await this.telegramController.fillFolder(title, keyword)
-      this.sendChannelMessage(CHANNEL_EDIT_FOLDERS, res)
+      const res = await this.telegramController.fillFolder(title, keyword);
+      this.sendChannelMessage(CHANNEL_EDIT_FOLDERS, res);
     } catch (e) {
-      customLog(e)
+      customLog(e);
       sendError("Couldn't fill folders : " + e.stack);
     }
   }
@@ -184,8 +201,8 @@ export default class Controller {
    */
   async getGroups() {
     try {
-      const {fmtGroups} = await this.telegramController.getDialogs()
-      this.sendChannelMessage(CHANNEL_GROUPS, fmtGroups)
+      const { fmtGroups } = await this.telegramController.getDialogs();
+      this.sendChannelMessage(CHANNEL_GROUPS, fmtGroups);
     } catch (e) {
       sendError("Couldn't get dialogs : " + e.stack);
     }
@@ -193,8 +210,9 @@ export default class Controller {
 
   async getFolders() {
     try {
-      const folders: CustomFolder[] = await this.telegramController.getFolders()
-      this.sendChannelMessage(CHANNEL_FOLDERS, folders)
+      const folders: CustomFolder[] =
+        await this.telegramController.getFolders();
+      this.sendChannelMessage(CHANNEL_FOLDERS, folders);
     } catch (e) {
       sendError("Couldn't get folders : " + e.stack);
     }
@@ -206,9 +224,10 @@ export default class Controller {
    */
   async getGroupParticipants(groupId) {
     try {
-      const bigIntId = bigInt(groupId.value)
-      const participants = await this.telegramController.getChatParticipants(bigIntId)
-      this.sendChannelMessage(CHANNEL_PARTICIPANTS, participants)
+      const bigIntId = bigInt(groupId.value);
+      const participants =
+        await this.telegramController.getChatParticipants(bigIntId);
+      this.sendChannelMessage(CHANNEL_PARTICIPANTS, participants);
     } catch (e) {
       sendError("Couldn't get participants : " + e.stack);
     }
@@ -216,10 +235,10 @@ export default class Controller {
 
   async getContacts() {
     try {
-      this.telegramController = new TelegramController(this.getKeyConfig())
-      await this.telegramController.startClient()
-      const contacts = await this.telegramController.getContacts()
-      this.sendChannelMessage(CHANNEL_CONTACTS, contacts)
+      this.telegramController = new TelegramController(this.getKeyConfig());
+      await this.telegramController.startClient();
+      const contacts = await this.telegramController.getContacts();
+      this.sendChannelMessage(CHANNEL_CONTACTS, contacts);
     } catch (e) {
       sendError("Couldn't get contacts : " + e.stack);
     }
@@ -227,10 +246,11 @@ export default class Controller {
 
   async getContactsAndBots() {
     try {
-      this.telegramController = new TelegramController(this.getKeyConfig())
-      await this.telegramController.startClient()
-      const contactsAndBots = await this.telegramController.getContactsAndBots()
-      this.sendChannelMessage(CHANNEL_CONTACTSBOTS, contactsAndBots)
+      this.telegramController = new TelegramController(this.getKeyConfig());
+      await this.telegramController.startClient();
+      const contactsAndBots =
+        await this.telegramController.getContactsAndBots();
+      this.sendChannelMessage(CHANNEL_CONTACTSBOTS, contactsAndBots);
     } catch (e) {
       sendError("Couldn't get contacts : " + e.stack);
     }
@@ -239,27 +259,32 @@ export default class Controller {
   async getOrderedByLastDMParticipants(groupId) {
     try {
       const bigIntId = bigInt(groupId.value);
-      const participants = await this.telegramController.getChatParticipants(bigIntId);
+      const participants =
+        await this.telegramController.getChatParticipants(bigIntId);
       const dialogs = await this.telegramController.getDialogs();
       const participantsWithDates = participants.map((p: any) => {
-        const foundDialog = dialogs.fmtPrivate.find((d) => d.id.value === p.id.value)
+        const foundDialog = dialogs.fmtPrivate.find(
+          (d) => d.id.value === p.id.value,
+        );
         if (foundDialog) {
-          return {...p, lastDM: foundDialog.lastMsgDate}
+          return { ...p, lastDM: foundDialog.lastMsgDate };
         }
-        return {...p, lastDM: 0};
-      })
-      const orderedParticipants = participantsWithDates.sort((a: any, b: any) => {
-        if (a.lastDM === b.lastDM) {
-          if ((a.username || a.firstName) < (b.username || b.firstName)) {
-            return 1;
+        return { ...p, lastDM: 0 };
+      });
+      const orderedParticipants = participantsWithDates.sort(
+        (a: any, b: any) => {
+          if (a.lastDM === b.lastDM) {
+            if ((a.username || a.firstName) < (b.username || b.firstName)) {
+              return 1;
+            }
+            if ((a.username || a.firstName) > (b.username || b.firstName)) {
+              return -1;
+            }
+            return 0;
           }
-          if ((a.username || a.firstName) > (b.username || b.firstName)) {
-            return -1;
-          }
-          return 0
-        }
-        return a.lastDM - b.lastDM //from oldest to newest
-      })
+          return a.lastDM - b.lastDM; //from oldest to newest
+        },
+      );
       this.sendChannelMessage(CHANNEL_PARTICIPANTS, orderedParticipants);
     } catch (e) {
       sendError("Couldn't get participants : " + e.stack);
@@ -274,8 +299,8 @@ export default class Controller {
   async sendUserMessage(userId: ReceivedId, message) {
     try {
       const bigIntId = bigInt(userId.value);
-      await this.telegramController.sendMessage(bigIntId, message)
-      this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "")
+      await this.telegramController.sendMessage(bigIntId, message);
+      this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "");
     } catch (e) {
       sendError("Couldn't send message : " + e.stack);
     }
@@ -284,8 +309,8 @@ export default class Controller {
   async sendGroupMessage(groupId: ReceivedId, message: string) {
     try {
       const bigIntId = bigInt(groupId.value);
-      await this.telegramController.sendMessage(bigIntId, message)
-      this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "")
+      await this.telegramController.sendMessage(bigIntId, message);
+      this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "");
     } catch (e) {
       sendError("Couldn't send message : " + e.stack);
     }
@@ -298,8 +323,8 @@ export default class Controller {
   async getUserLastMessages(chatId: ReceivedId) {
     try {
       const bigIntId = bigInt(chatId.value);
-      const messages = await this.telegramController.getLastMessages(bigIntId)
-      this.sendChannelMessage(CHANNEL_LAST_MESSAGES, messages)
+      const messages = await this.telegramController.getLastMessages(bigIntId);
+      this.sendChannelMessage(CHANNEL_LAST_MESSAGES, messages);
     } catch (e) {
       sendError("Couldn't get chat history : " + e.stack);
     }
@@ -310,7 +335,7 @@ export default class Controller {
       const ids = await this.telegramController.getIdsFromUsernames(usernames);
       this.sendChannelMessage(CHANNEL_IDS, ids);
     } catch (e) {
-      sendError("Couldnt get ids from usernames")
+      sendError("Couldnt get ids from usernames");
     }
   }
 
@@ -318,13 +343,12 @@ export default class Controller {
    * Stops the telegram client and clears scanning interval
    */
   async stopTelegram() {
-    clearInterval(this.scanInterval)
+    clearInterval(this.scanInterval);
     await this.telegramController.stopClient();
-    this.sendUpdateMessage(
-      {
-        type: "info",
-        text: "Telegram client stopped"
-      })
+    this.sendUpdateMessage({
+      type: "info",
+      text: "Telegram client stopped",
+    });
   }
 
   //FUNCTIONNALITIES//
@@ -334,26 +358,28 @@ export default class Controller {
    */
   async startTexting() {
     try {
-      this.telegramController = new TelegramController(this.getKeyConfig())
-      await this.telegramController.startClient()
-      const newConfig = await this.telegramController.connectTelegram(this.getKeyConfig());
+      this.telegramController = new TelegramController(this.getKeyConfig());
+      await this.telegramController.startClient();
+      const newConfig = await this.telegramController.connectTelegram(
+        this.getKeyConfig(),
+      );
       if (newConfig) this.setKeyConfig(newConfig);
-      await this.getGroups()
+      await this.getGroups();
     } catch (e) {
-      sendError("Couldn't connect to telegram : " + e.stack)
+      sendError("Couldn't connect to telegram : " + e.stack);
     }
   }
 
-  logGroups(groups:CustomDialog[]) {
-    console.log('groups')
-    console.log(groups.length)
+  logGroups(groups: CustomDialog[]) {
+    console.log("groups");
+    console.log(groups.length);
     for (const group of groups) {
-      console.log(group.title)
+      console.log(group.title);
     }
   }
 
   logGroupss() {
-    console.log('groupss')
+    console.log("groupss");
     /*console.log(groups.length)
     for (const group of groups) {
       console.log(group.title)
@@ -366,55 +392,68 @@ export default class Controller {
    */
   async startBoardFill(fillBoardId: string) {
     try {
-      clearInterval(this.scanInterval)
-      this.telegramController = new TelegramController(this.getKeyConfig())
-      if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
-      await this.telegramController.startClient()
-      const newConfig = await this.telegramController.connectTelegram(this.getKeyConfig());
+      clearInterval(this.scanInterval);
+      this.telegramController = new TelegramController(this.getKeyConfig());
+      if (!this.mondayController)
+        this.mondayController = new MondayController(
+          this.getKeyConfig().MONDAY_API_KEY,
+          this.getFullConfig(),
+        );
+      await this.telegramController.startClient();
+      const newConfig = await this.telegramController.connectTelegram(
+        this.getKeyConfig(),
+      );
       if (newConfig) this.setKeyConfig(newConfig);
 
-      await this.startScanning(fillBoardId)
+      await this.startScanning(fillBoardId);
     } catch (e) {
-      customLog(e)
+      customLog(e);
       this.sendUpdateMessage({
         type: "error",
-        text: e
+        text: e,
       });
-      sendError(e.stack)
+      sendError(e.stack);
     }
-
   }
 
   /**
    * Starts board update functionnality.
    */
-  async startBoardUpdates(usersToAdd:string[]) {
+  async startBoardUpdates(usersToAdd: string[]) {
     try {
-      clearInterval(this.scanInterval)
-      const board_ids = this.getOptionalConfig().updated_boards.map((board) => board.id);
-      this.telegramController = new TelegramController(this.getKeyConfig())
-      if (!this.mondayController) this.mondayController = new MondayController(this.getKeyConfig().MONDAY_API_KEY, this.getFullConfig())
-      if (!this.telegramController.telegramClient?.connected) await this.telegramController.startClient()
-      const newConfig = await this.telegramController.connectTelegram(this.getKeyConfig());
+      clearInterval(this.scanInterval);
+      const board_ids = this.getOptionalConfig().updated_boards.map(
+        (board) => board.id,
+      );
+      this.telegramController = new TelegramController(this.getKeyConfig());
+      if (!this.mondayController)
+        this.mondayController = new MondayController(
+          this.getKeyConfig().MONDAY_API_KEY,
+          this.getFullConfig(),
+        );
+      if (!this.telegramController.telegramClient?.connected)
+        await this.telegramController.startClient();
+      const newConfig = await this.telegramController.connectTelegram(
+        this.getKeyConfig(),
+      );
       if (newConfig) this.setKeyConfig(newConfig);
 
       for (const id of board_ids) {
-        await this.updateBoard(id, usersToAdd)
+        await this.updateBoard(id, usersToAdd);
       }
 
       this.sendUpdateMessage({
         type: "update",
-        text: "success"
+        text: "success",
       });
     } catch (e) {
-      customLog(e)
+      customLog(e);
       this.sendUpdateMessage({
         type: "error",
-        text: 'There was an error - Please check the logs and report it'
+        text: "There was an error - Please check the logs and report it",
       });
-      sendError(e.stack)
+      sendError(e.stack);
     }
-
   }
 
   /**
@@ -426,11 +465,10 @@ export default class Controller {
     await this.fillBoard(fillBoardId);
 
     //This gets terminated if we don't catch the error before.
-    clearInterval(this.scanInterval)
+    clearInterval(this.scanInterval);
     this.scanInterval = setInterval(async () => {
       await this.fillBoard(fillBoardId);
-    }, 60 * 1000)
-
+    }, 60 * 1000);
   }
 
   /**
@@ -438,50 +476,50 @@ export default class Controller {
    * @param id?:string optional target board id.
    * @returns {Promise<void>}
    */
-  async updateBoard(id: string, usersToAdd:string[]): Promise<void> {
-
+  async updateBoard(id: string, usersToAdd: string[]): Promise<void> {
     try {
-
       this.sendUpdateMessage({
         type: "info",
-        text: "Updating board..." + id || ""
+        text: "Updating board..." + id || "",
       });
 
       //get group accounts, private chats, and already exported chats. if no id specified => using config id.
-      let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups(id);
+      let { accountGroups, privateChats, exportedChats, targetBoard } =
+        await this.scanGroups(id);
 
       for (const group of [...accountGroups, ...privateChats]) {
         try {
           // if (filterKeywordGroup(this.mondayController!.config[id], group)) continue;
-          let exportedItem = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+          let exportedItem = exportedChats.find(
+            (exportedChat: any) =>
+              exportedChat.name.toLowerCase() === group.title.toLowerCase(),
+          );
           if (!exportedItem) continue;
           // Only add users if the group is exported
           await this.telegramController.addUsersToGroup(group.id, usersToAdd);
-          let lastMsgDate = group.lastMsgDate! * 1000
-          const exportedDate = JSON.parse(exportedItem.lastMsg)
-          let parsedExportedDate = new Date(exportedDate.date + 'T' + exportedDate.time).getTime()
+          let lastMsgDate = group.lastMsgDate! * 1000;
+          const exportedDate = JSON.parse(exportedItem.lastMsg);
+          let parsedExportedDate = new Date(
+            exportedDate.date + "T" + exportedDate.time,
+          ).getTime();
           if (parsedExportedDate === lastMsgDate) {
             continue;
           }
           await limiter.removeTokens(1);
-          await this.updateItem(targetBoard, group, exportedItem)
-
-
+          await this.updateItem(targetBoard, group, exportedItem);
         } catch (e) {
-          customLog(e)
+          customLog(e);
           this.sendUpdateMessage({
             type: "error",
-            text: 'There was an error - Please check the logs and report it'
+            text: "There was an error - Please check the logs and report it",
           });
-          sendError(e.stack)
+          sendError(e.stack);
         }
       }
     } catch (e) {
-      sendError("Couldn't update board : " + e.stack)
+      sendError("Couldn't update board : " + e.stack);
     }
-
   }
-
 
   /**
    * Scans telegram groups, exported chats, and gets target board details
@@ -490,32 +528,37 @@ export default class Controller {
   async scanGroups(id: string) {
     await limiter.removeTokens(1);
     const targetBoard = await this.mondayController!.getBoard(id);
-    if (!targetBoard) throw new Error(`controller - scanGroups | Couldn't get Monday board with id ${id}`)
-    let exportedChats = await this.mondayController!.getExportedChats(targetBoard);
-    if (!exportedChats) throw Error("controller - scanGroups | couldn't get board chats");
-    const {fmtGroups: accountGroups, fmtPrivate: privateChats} = await this.telegramController!.getDialogs();
+    if (!targetBoard)
+      throw new Error(
+        `controller - scanGroups | Couldn't get Monday board with id ${id}`,
+      );
+    let exportedChats =
+      await this.mondayController!.getExportedChats(targetBoard);
+    if (!exportedChats)
+      throw Error("controller - scanGroups | couldn't get board chats");
+    const { fmtGroups: accountGroups, fmtPrivate: privateChats } =
+      await this.telegramController!.getDialogs();
     return {
       accountGroups: accountGroups,
       privateChats: privateChats,
       exportedChats: exportedChats,
-      targetBoard: targetBoard
-    }
+      targetBoard: targetBoard,
+    };
   }
-
 
   /**
    * Fills a board with specific id
    * @param fillBoardId
    */
   async updateItem(targetBoard: any, group: any, item: any) {
-    let lastMsgDate = new Date(group.lastMsgDate * 1000)
-    const elementsIds = this.mondayController!.getElementsIds(targetBoard)
+    let lastMsgDate = new Date(group.lastMsgDate * 1000);
+    const elementsIds = this.mondayController!.getElementsIds(targetBoard);
     let chatName = group.title.toString();
     let chatLink = group.link;
     const dateObject = {
-      date: lastMsgDate.toISOString().split('T')[0],
-      time: lastMsgDate.toLocaleTimeString('en-GB'),
-    }
+      date: lastMsgDate.toISOString().split("T")[0],
+      time: lastMsgDate.toLocaleTimeString("en-GB"),
+    };
 
     let query = `mutation($board: Int!, $itemId: Int!, $columnVals: JSON!) {
       complexity{
@@ -523,65 +566,89 @@ export default class Controller {
       reset_in_x_seconds
       }
       change_multiple_column_values ( board_id:$board, item_id:$itemId, column_values:$columnVals) {name}
-     }`
+     }`;
 
     let vars = {
-      "board": elementsIds.boardId,
-      "itemId": parseInt(item.id),
-      "columnVals": JSON.stringify({
-        [elementsIds.lastMessageDate]: dateObject
-      })
-    }
-    await this.mondayController!.updateItem(query, vars)
+      board: elementsIds.boardId,
+      itemId: parseInt(item.id),
+      columnVals: JSON.stringify({
+        [elementsIds.lastMessageDate]: dateObject,
+      }),
+    };
+    await this.mondayController!.updateItem(query, vars);
     // console.log(`chat ${chatName} was updated ! | ${chatLink}`);
     this.sendUpdateMessage({
       type: "info",
-      text: `chat ${chatName} was updated ! | ${chatLink}`
+      text: `chat ${chatName} was updated ! | ${chatLink}`,
     });
-
-
   }
 
   async fillBoard(fillBoardId) {
     try {
       this.sendUpdateMessage({
         type: "info",
-        text: "Searching for new chats in board..." + fillBoardId + "..."
+        text: "Searching for new chats in board..." + fillBoardId + "...",
       });
       //TODO here targetBoard must not come from here
-      let {accountGroups, privateChats, exportedChats, targetBoard} = await this.scanGroups(fillBoardId);
+      let { accountGroups, privateChats, exportedChats, targetBoard } =
+        await this.scanGroups(fillBoardId);
       for (const group of [...accountGroups, ...privateChats]) {
         try {
-          if (filterKeywordGroup(this.mondayController!.config[fillBoardId], group)) continue;
-          let foundGroup = exportedChats.find((exportedChat: any) => exportedChat.name.toLowerCase() === group.title.toLowerCase());
+          if (
+            filterKeywordGroup(
+              this.mondayController!.config[fillBoardId],
+              group,
+            )
+          )
+            continue;
+          let foundGroup = exportedChats.find(
+            (exportedChat: any) =>
+              exportedChat.name.toLowerCase() === group.title.toLowerCase(),
+          );
           if (foundGroup) continue;
-          const participants = await this.telegramController!.getChatParticipants(group.id)
-          const usernames = participants?.map((participant) => participant.username) //can be undefined if no admin rights
-          if (filterParticipantsGroup(usernames, this.mondayController.config[fillBoardId])) continue;
-          const targetBoardGroup = getTargetItemGroup(group, this.mondayController.config[fillBoardId]);
+          const participants =
+            await this.telegramController!.getChatParticipants(group.id);
+          const usernames = participants?.map(
+            (participant) => participant.username,
+          ); //can be undefined if no admin rights
+          if (
+            filterParticipantsGroup(
+              usernames,
+              this.mondayController.config[fillBoardId],
+            )
+          )
+            continue;
+          const targetBoardGroup = getTargetItemGroup(
+            group,
+            this.mondayController.config[fillBoardId],
+          );
           if (!targetBoardGroup) continue;
           await limiter.removeTokens(1);
           //TODO REAL VALUE HERE
-          await this.createItem(targetBoard, targetBoardGroup, group, usernames)
+          await this.createItem(
+            targetBoard,
+            targetBoardGroup,
+            group,
+            usernames,
+          );
         } catch (e) {
-          customLog(e)
+          customLog(e);
           this.sendUpdateMessage({
             type: "error",
-            text: 'There was an error - Please check the logs and report it'
+            text: "There was an error - Please check the logs and report it",
           });
-          sendError(e.stack)
+          sendError(e.stack);
         }
       }
     } catch (e) {
-      customLog(e)
+      customLog(e);
       this.sendUpdateMessage({
         type: "error",
-        text: 'There was an error - Please check the logs and report it'
+        text: "There was an error - Please check the logs and report it",
       });
-      sendError(e.stack)
+      sendError(e.stack);
     }
   }
-
 
   /**
    * Creates an item inside a board
@@ -590,16 +657,24 @@ export default class Controller {
    * @param tgGroup telegramGroup to export
    * @param participants group participants
    */
-  async createItem(targetBoard: any, targetBoardGroup: any, tgGroup: any, participants: any) {
+  async createItem(
+    targetBoard: any,
+    targetBoardGroup: any,
+    tgGroup: any,
+    participants: any,
+  ) {
     //Get all elements ids from the board
-    const elementsIds = this.mondayController!.getElementsIds(targetBoard, targetBoardGroup)
+    const elementsIds = this.mondayController!.getElementsIds(
+      targetBoard,
+      targetBoardGroup,
+    );
     let chatName = tgGroup.title.toString();
-    let lastMsgDate = new Date(tgGroup.lastMsgDate * 1000)
+    let lastMsgDate = new Date(tgGroup.lastMsgDate * 1000);
 
     const lastMsgDateFmt = {
-      date: lastMsgDate.toISOString().split('T')[0],
-      time: lastMsgDate.toLocaleTimeString('en-GB'),
-    }
+      date: lastMsgDate.toISOString().split("T")[0],
+      time: lastMsgDate.toLocaleTimeString("en-GB"),
+    };
 
     let chatLink = tgGroup.link;
 
@@ -611,24 +686,23 @@ export default class Controller {
       create_item (board_id: $board, group_id:$group, item_name:$myItemName, column_values:$columnVals) { id }
       }`;
     let vars = {
-      "board": elementsIds.boardId,
-      "group": elementsIds.targetGroup,
-      "myItemName": chatName,
-      "columnVals": JSON.stringify({
+      board: elementsIds.boardId,
+      group: elementsIds.targetGroup,
+      myItemName: chatName,
+      columnVals: JSON.stringify({
         [elementsIds.linkColumn]: chatLink,
         [elementsIds.lastMessageDate]: lastMsgDateFmt,
-        [elementsIds.participantsCol]: participants ? JSON.stringify(participants) : ""
-      })
-    }
+        [elementsIds.participantsCol]: participants
+          ? JSON.stringify(participants)
+          : "",
+      }),
+    };
 
     await this.mondayController!.createItem(query, vars);
     // console.log(`New entry was created for chat ${chatName} | ${chatLink}`);
     this.sendUpdateMessage({
       type: "info",
-      text: `New entry was created for chat ${chatName} | ${chatLink}`
+      text: `New entry was created for chat ${chatName} | ${chatLink}`,
     });
-
   }
-
-
 }
