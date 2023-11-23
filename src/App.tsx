@@ -34,7 +34,10 @@ export function App() {
             <Route path="/texting" element={<Texting />} />
             <Route path="/massDM" element={<MassDM />} />
             <Route path="/massGroupDM" element={<MassGroupDM />} />
-            <Route path={"/dlGroupsParticipants"} element={<DownloadGroupsParticipants />}/>
+            <Route
+              path={"/dlGroupsParticipants"}
+              element={<DownloadGroupsParticipants />}
+            />
             <Route path={"/markAsRead"} element={<MarkAsRead />} />
             <Route path={"/export"} element={<ExportToCSV />} />
             <Route path={"/fillFolders"} element={<FillFolders />} />

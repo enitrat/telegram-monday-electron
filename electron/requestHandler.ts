@@ -1,9 +1,12 @@
-export function handleRequest(api: Record<string, any>, data: Record<string, any>) {
+export function handleRequest(
+  api: Record<string, any>,
+  data: Record<string, any>,
+) {
   let error = null;
   let result = null;
 
   if (!api[data.method]) {
-    console.log('Method not found:', data.method);
+    console.log("Method not found:", data.method);
     return {
       error: "Method not found",
     };
@@ -15,5 +18,4 @@ export function handleRequest(api: Record<string, any>, data: Record<string, any
     error = e;
   }
   return result;
-
 }

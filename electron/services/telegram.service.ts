@@ -5,6 +5,7 @@ import { CustomFolder } from "../../shared/types";
 import { EntityLike } from "telegram/define";
 import DialogFilter = Api.DialogFilter;
 import Contacts = Api.contacts.Contacts;
+import { TotalList } from "telegram/Helpers";
 import * as messageMethods from "telegram/client/messages";
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#";
@@ -70,14 +71,14 @@ export class TelegramService {
     return;
   }
 
-  async markAsRead (chatId: bigInt.BigInteger) : Promise<boolean> {
+  async markAsRead(chatId: bigInt.BigInteger): Promise<boolean> {
     if (!this.telegramClient?.connected)
       throw Error("telegramService - markAsRead | Telegram disconnected");
-    const markAsReadParams : messageMethods.MarkAsReadParams = {
+    const markAsReadParams: messageMethods.MarkAsReadParams = {
       maxId: 0,
       clearMentions: true,
-    }
-    console.log("marking as read")
+    };
+    console.log("marking as read");
     await this.telegramClient.markAsRead(chatId);
     return true;
     //return await this.telegramClient.markAsRead(chatId, undefined);
@@ -306,10 +307,8 @@ export class TelegramService {
         "telegramService - getChatParticipants | Telegram disconnected",
       );
     try {
-      const participants = await this.telegramClient.getParticipants(
-        groupId,
-        {},
-      );
+      const participants: TotalList<Api.User> =
+        await this.telegramClient.getParticipants(groupId, {});
       return participants.map((participant) => {
         return {
           id: participant.id,
@@ -333,7 +332,7 @@ export class TelegramService {
     await this.telegramClient.sendMessage(group, { message: message });
   }
 
-  async getIdFromUsername(username: string) {
+  async getEntityFromUsername(username: string) {
     return await this.telegramClient.getEntity(username);
   }
 
@@ -352,11 +351,11 @@ export class TelegramService {
   }
 
   async getLastMessage(chatId: bigInt.BigInteger) {
-    console.log("getting last message in service")
+    console.log("getting last message in service");
     const messages = await this.telegramClient.getMessages(chatId, {
       limit: 1,
     });
-    console.log(messages[0].message)
+    console.log(messages[0].message);
     return messages[0].message;
   }
 }

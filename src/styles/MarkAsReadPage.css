@@ -1,87 +1,85 @@
 .container {
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
 h1 {
-    text-align: center;
-    margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .input-section {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .input-section input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
 }
 
 .input-section button {
-    margin-left: 10px;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 3px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
+  margin-left: 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 3px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
 }
 
 .group-list-container {
-    max-height: 200px; /* Set your desired height */
-    overflow-y: auto;
+  max-height: 200px; /* Set your desired height */
+  overflow-y: auto;
 }
 
 .group-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .group-list li {
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .group-list li.read {
-    background-color: #e8e8e8;
+  background-color: #e8e8e8;
 }
 
 .mark-all-btn {
-    display: inline-block; /* Change to inline-block for better inline display */
-    padding: 12px 24px; /* Adjust padding for a more spacious button */
-    border: none;
-    border-radius: 5px; /* Increase border-radius for a more rounded appearance */
-    background-color: #28a745;
-    color: white;
-    cursor: pointer;
-    text-decoration: none; /* Remove underlines if used as a link/button */
-    font-size: 16px; /* Adjust font size */
-    font-weight: bold; /* Apply bold font weight for better readability */
-    transition: background-color 0.3s ease; /* Add transition for smoother hover effect */
+  display: inline-block; /* Change to inline-block for better inline display */
+  padding: 12px 24px; /* Adjust padding for a more spacious button */
+  border: none;
+  border-radius: 5px; /* Increase border-radius for a more rounded appearance */
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+  text-decoration: none; /* Remove underlines if used as a link/button */
+  font-size: 16px; /* Adjust font size */
+  font-weight: bold; /* Apply bold font weight for better readability */
+  transition: background-color 0.3s ease; /* Add transition for smoother hover effect */
 }
 
 /* Add hover effect for better user interaction */
 .mark-all-btn:hover {
-    background-color: #218838;
-
+  background-color: #218838;
 }
 
 .mark-all-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.4);
-
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.4);
 }
