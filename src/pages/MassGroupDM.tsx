@@ -108,20 +108,9 @@ const MassGroupDM = () => {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        /*const groupNames = results.data.map((group) => group.title.toLowerCase())
-                setSelectedGroupNames(new Set(groupNames))*/
-        //setSelectedGroupNames(results.data.map((group) => group.title))
         selectedGroupNames = results.data.map((group) =>
           group.title.toLowerCase(),
         );
-        window.Main.sendSyncRequest({
-          method: "logGroups",
-          params: [results.data],
-        });
-        window.Main.sendSyncRequest({
-          method: "logGroups",
-          params: [selectedGroupNames],
-        });
 
         startImport();
       },
@@ -257,10 +246,8 @@ const MassGroupDM = () => {
         </Flex>
         {fileInput !== null &&
           fileInput.current !== null &&
-          fileInput.current.files.length > 0 && (
-            <Button onClick={startImport}>
-              {loading ? <Spinner /> : <span>Start import</span>}
-            </Button>
+          fileInput.current.files.length > 0 && loading && (
+                <Spinner />
           )}
       </Flex>
 

@@ -16,8 +16,8 @@ import {
   CHANNEL_EDIT_FOLDERS,
   CHANNEL_FOLDERS,
   CHANNEL_GROUPS,
-  CHANNEL_IDS,
-  CHANNEL_LAST_MESSAGES,
+  CHANNEL_IDS, CHANNEL_LAST_MESSAGE,
+  CHANNEL_LAST_MESSAGES, CHANNEL_MARK_AS_READ,
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS,
 } from "../../shared/constants";
@@ -230,6 +230,35 @@ export default class Controller {
       this.sendChannelMessage(CHANNEL_PARTICIPANTS, participants);
     } catch (e) {
       sendError("Couldn't get participants : " + e.stack);
+    }
+  }
+
+  async getLastMessage (groupIds) {
+    let result = []
+
+    console.log(groupIds.length)
+    try {
+      for (const groupId of groupIds) {
+        const bigIntId = groupId
+        const message = await this.telegramController.getLastMessage(bigIntId);
+        console.log("get last message in controller for group id : " + bigIntId);
+        console.log("message fetched : " + message);
+        result.push({groupId: groupId, message: message})
+      }
+      this.sendChannelMessage(CHANNEL_LAST_MESSAGE, result);
+    } catch (e) {
+      sendError("Couldn't get last message : " + e.stack);
+    }
+  }
+
+  async markAsRead(groupId) {
+    try {
+      const bigIntId = bigInt(groupId);
+      console.log("mark as read in controller for group id : " + bigIntId);
+      const result = await this.telegramController.markAsRead(bigIntId);
+      this.sendChannelMessage(CHANNEL_MARK_AS_READ, result);
+    } catch (e) {
+      sendError("Couldn't mark as read : " + e.stack);
     }
   }
 

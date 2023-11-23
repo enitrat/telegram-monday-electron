@@ -8,3 +8,7 @@ export const CHANNEL_EDIT_FOLDERS = 'edit_folders';
 export const CHANNEL_CONTACTS = 'contacts';
 export const CHANNEL_CONTACTSBOTS = 'contacts_bots';
 
+export const CHANNEL_MARK_AS_READ = 'mark_as_read';
+export const CHANNEL_LAST_MESSAGE = 'last_message';
+
+

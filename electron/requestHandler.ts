@@ -3,7 +3,7 @@ export function handleRequest(api: Record<string, any>, data: Record<string, any
   let result = null;
 
   if (!api[data.method]) {
-    console.log('not found')
+    console.log('Method not found:', data.method);
     return {
       error: "Method not found",
     };

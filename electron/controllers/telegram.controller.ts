@@ -57,6 +57,18 @@ export class TelegramController {
     await this.telegramService.stopClient();
   }
 
+  async markAsRead(chatId: bigInt.BigInteger) {
+    if (!this.telegramService.telegramClient.connected)
+      await this.connectTelegram({});
+    return await this.telegramService.markAsRead(chatId);
+  }
+
+  async getChatParticipants(groupId: bigInt.BigInteger) {
+    if (!this.telegramService.telegramClient.connected)
+      await this.connectTelegram({});
+    return await this.telegramService.getChatParticipants(groupId);
+  }
+
   async connectTelegram(config: any) {
     return await this.telegramService.connectTelegram(config);
   }
@@ -128,11 +140,7 @@ export class TelegramController {
     return await this.telegramService.getContacts();
   }
 
-  async getChatParticipants(groupId: bigInt.BigInteger) {
-    if (!this.telegramService.telegramClient.connected)
-      await this.connectTelegram({});
-    return await this.telegramService.getChatParticipants(groupId);
-  }
+
 
   async sendMessage(userId: bigInt.BigInteger, message: string) {
     if (!this.telegramService.telegramClient.connected)
@@ -149,6 +157,12 @@ export class TelegramController {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
     return await this.telegramService.getLastMessages(chatId);
+  }
+
+  async getLastMessage(chatId: bigInt.BigInteger) {
+    if (!this.telegramService.telegramClient.connected)
+      await this.connectTelegram({});
+    return await this.telegramService.getLastMessage(chatId);
   }
 
   async getIdsFromUsernames(usernames: string[]) {

@@ -5,6 +5,7 @@ import { CustomFolder } from "../../shared/types";
 import { EntityLike } from "telegram/define";
 import DialogFilter = Api.DialogFilter;
 import Contacts = Api.contacts.Contacts;
+import * as messageMethods from "telegram/client/messages";
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#";
 
@@ -67,6 +68,19 @@ export class TelegramService {
       return config;
     }
     return;
+  }
+
+  async markAsRead (chatId: bigInt.BigInteger) : Promise<boolean> {
+    if (!this.telegramClient?.connected)
+      throw Error("telegramService - markAsRead | Telegram disconnected");
+    const markAsReadParams : messageMethods.MarkAsReadParams = {
+      maxId: 0,
+      clearMentions: true,
+    }
+    console.log("marking as read")
+    await this.telegramClient.markAsRead(chatId);
+    return true;
+    //return await this.telegramClient.markAsRead(chatId, undefined);
   }
 
   async getContacts() {
@@ -335,5 +349,14 @@ export class TelegramService {
         };
       })
       .reverse();
+  }
+
+  async getLastMessage(chatId: bigInt.BigInteger) {
+    console.log("getting last message in service")
+    const messages = await this.telegramClient.getMessages(chatId, {
+      limit: 1,
+    });
+    console.log(messages[0].message)
+    return messages[0].message;
   }
 }
