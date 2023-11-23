@@ -233,19 +233,19 @@ export default class Controller {
     }
   }
 
-  async getLastMessage (groupIds) {
+  async getLastMessage (groupId) {
     let result = []
 
-    console.log(groupIds.length)
+    //console.log(groupIds.length)
     try {
-      for (const groupId of groupIds) {
+
         const bigIntId = groupId
         const message = await this.telegramController.getLastMessage(bigIntId);
         console.log("get last message in controller for group id : " + bigIntId);
         console.log("message fetched : " + message);
-        result.push({groupId: groupId, message: message})
-      }
-      this.sendChannelMessage(CHANNEL_LAST_MESSAGE, result);
+        //result.push({groupId: groupId, message: message})
+
+      this.sendChannelMessage(CHANNEL_LAST_MESSAGE, message);
     } catch (e) {
       sendError("Couldn't get last message : " + e.stack);
     }

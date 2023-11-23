@@ -76,26 +76,26 @@ const MarkAsRead = () => {
         return lowerMainMessage.includes(lowerIncludedMessage);
     }
 
-    const getLastMessage = async (ids: bigInt.BigInteger[], groupName: string): Promise<Array<{ groupId: bigInt.BigInteger; message: string }>> => {
-        for (const id of ids) {
-            console.log('get last message for group ' + id.valueOf());
-        }
+    const getLastMessage = async (id : bigInt.BigInteger, groupName: string): Promise<string> => {
+        console.log('get last message for group ' + id as unknown as bigint);
         try {
             console.log('get last message for group ' + groupName);
-            window.Main.sendAsyncRequest({ method: 'getLastMessage', params: [ids] });
+            window.Main.sendAsyncRequest({ method: 'getLastMessage', params: [id] });
 
-            const data = await new Promise<Array<{ groupId: bigInt.BigInteger; message: string }>>((resolve, reject) => {
-                const handleLastMessage = (lastMessageData: Array<{ groupId: bigInt.BigInteger; message: string }>) => {
+            const data = await new Promise<string>((resolve, reject) => {
+                const handleLastMessage = (lastMessageData: string) => {
                     window.Main.off(CHANNEL_LAST_MESSAGE, handleLastMessage);
                     resolve(lastMessageData);
                 };
                 window.Main.once(CHANNEL_LAST_MESSAGE, handleLastMessage);
             });
 
-            if (!data || !Array.isArray(data) || data.length !== ids.length) {
+            if (!data) {
                 console.log('Impossible to get last message for groups');
-                return [];
+                return null;
             }
+
+            console.log('last message for group ' + groupName + ' is ' + data);
 
             return data;
         } catch (error) {
@@ -124,16 +124,18 @@ const MarkAsRead = () => {
 
             setGroups(_groups);
 
-            const ids = _groups.map(group => group.id.value);
+            //const ids = _groups.map(group => group.id.value);
 
-            const lastMessages = await getLastMessage(ids, 'all groups');
+            //const lastMessages = await getLastMessage(ids, 'all groups');
+
+
 
             _groupNames = [];
 
-            for (const lastMessage of lastMessages) {
-                console.log('last message for group ' + Number(lastMessage.groupId) + ' is ' + lastMessage.message)
-                if (isMessageIncluded(lastMessage.message, inputMessage)) {
-                    _groupNames.push({ id: lastMessage.groupId as unknown as bigint, name: _groups.find(group => group.id.value == lastMessage.groupId)?.title as string, isRead: false, message:lastMessage.message });
+            for (const group of _groups) {
+                const lastMessage = await getLastMessage(group.id.value, group.title);
+                if (isMessageIncluded(lastMessage, inputMessage)) {
+                    _groupNames.push({ id: group.id.value as unknown as bigint, name: group.title, isRead: false, message:lastMessage });
                 }
             }
 
