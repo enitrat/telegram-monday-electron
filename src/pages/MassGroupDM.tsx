@@ -108,9 +108,23 @@ const MassGroupDM = () => {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        selectedGroupNames = results.data.map((group: { title: string }) =>
-          group.title.toLowerCase(),
-        );
+        try {
+          selectedGroupNames = results.data.map((group: { title: string }) =>
+              group.title.toLowerCase(),
+          );
+
+
+          if (selectedGroupNames.length == 0) {
+            console.log("pb lol")
+            NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
+            return
+          }
+
+
+        } catch (e) {
+          NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets");
+          return
+        }
 
         startImport();
       },

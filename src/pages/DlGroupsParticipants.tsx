@@ -5,6 +5,8 @@ import { Flex, Spinner } from "@chakra-ui/react";
 import { NotificationManager } from "react-notifications";
 import Papa from "papaparse";
 import styled from "styled-components";
+import {Api} from "telegram";
+import NotificationSoundRingtone = Api.NotificationSoundRingtone;
 
 const Container = styled.div`
   display: flex;
@@ -87,15 +89,26 @@ const DownloadGroupsParticipants = () => {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
-          selectedGroupNames = results.data.map((group: { title: string }) =>
-            group.title.toLowerCase(),
-          );
+
+          try {
+            selectedGroupNames = results.data.map((group: { title: string }) =>
+                group.title.toLowerCase(),
+            );
+
+            if (selectedGroupNames.length == 0) {
+              NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
+              return;
+            }
+          } catch (e) {
+            NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets");
+            return;
+          }
+
           startImport().then((r) => console.log("done"));
         },
       });
     } catch (e) {
       console.log(e);
-      NotificationManager.error("Veuillez sélectionner un fichier CSV valide");
     }
   };
 
