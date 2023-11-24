@@ -3,7 +3,7 @@ import { CHANNEL_GROUPS, CHANNEL_PARTICIPANTS } from "../../shared/constants";
 import { DialogModel, UserModel } from "../../shared/types";
 import { Flex, Spinner } from "@chakra-ui/react";
 import { NotificationManager } from "react-notifications";
-import Papa from "papaparse";
+import Papa, { ParseResult } from "papaparse";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -66,7 +66,7 @@ const DownloadGroupsParticipants = () => {
   let selectedGroupNames: String[] = [];
   const [loading, setLoading] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
-  const fileInput = useRef(null);
+  const fileInput = useRef<any>(null);
   let [participants, setParticipants] = useState<UserModel[]>([]);
   let fetchedParticipants: UserModel[] = [];
 
@@ -79,15 +79,15 @@ const DownloadGroupsParticipants = () => {
     setExporting(false);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e: any) => {
     try {
       reset();
       e.preventDefault();
       Papa.parse(e.target.files[0], {
         header: true,
         skipEmptyLines: true,
-        complete: (results) => {
-          selectedGroupNames = results.data.map((group: { title: string }) =>
+        complete: (results: ParseResult<{ title: string }>) => {
+          selectedGroupNames = results.data.map((group) =>
             group.title.toLowerCase(),
           );
           startImport().then((r) => console.log("done"));

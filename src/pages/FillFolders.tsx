@@ -29,7 +29,7 @@ export const FillFolders = () => {
     window.Main.once(CHANNEL_GROUPS, () => {
       window.Main.sendAsyncRequest({ method: "getFolders", params: [] });
     });
-    window.Main.once(CHANNEL_FOLDERS, (data) => {
+    window.Main.once(CHANNEL_FOLDERS, (data: FolderModel[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get participants");
         return;
@@ -40,11 +40,11 @@ export const FillFolders = () => {
     });
   }, []);
 
-  const handleSelection = (e) => {
+  const handleSelection = (e: any) => {
     setSelectedFolder(e.target.value);
   };
 
-  const handleInput = (e) => {
+  const handleInput = (e: any) => {
     setKeyword(e.target.value);
   };
 
@@ -55,7 +55,7 @@ export const FillFolders = () => {
       method: "fillFolder",
       params: [selectedFolder, keyword],
     });
-    window.Main.once(CHANNEL_EDIT_FOLDERS, (data) => {
+    window.Main.once(CHANNEL_EDIT_FOLDERS, (data: any) => {
       if (!data) {
         NotificationManager.error("Couldn't edit folder");
         return;

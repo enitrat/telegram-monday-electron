@@ -58,7 +58,7 @@ const MarkAsRead = () => {
 
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   let _groupNames: Group[] = [];
 
@@ -81,7 +81,7 @@ const MarkAsRead = () => {
   const getLastMessage = async (
     groupId: string,
     groupName: string,
-  ): Promise<MessageModel> => {
+  ): Promise<MessageModel | null> => {
     console.log("get last message for group " + groupId);
     try {
       console.log("get last message for group " + groupName);
@@ -138,12 +138,13 @@ const MarkAsRead = () => {
 
       for (const group of _groups) {
         const lastMessage = await getLastMessage(group.id, group.title);
-        if (isMessageIncluded(lastMessage.text, inputMessage)) {
+        if (!lastMessage) continue;
+        if (isMessageIncluded(lastMessage.text || "", inputMessage)) {
           _groupNames.push({
             id: group.id,
             name: group.title,
             isRead: false,
-            message: lastMessage.text,
+            message: lastMessage.text || "",
           });
         }
       }
@@ -161,7 +162,7 @@ const MarkAsRead = () => {
     window.Main.sendAsyncRequest({ method: "markAsRead", params: [groupId] });
     console.log(
       "mark as read for group " +
-        groupNames.find((group) => group.id === groupId).name,
+        groupNames.find((group) => group.id === groupId)?.name,
     );
     console.log("mark as read for group " + groupId);
     let _markAsRead: boolean = await new Promise((resolve) => {
@@ -198,7 +199,7 @@ const MarkAsRead = () => {
     }
   };
 
-  const handleSeeMessage = (message, groupId) => {
+  const handleSeeMessage = (message: string, groupId: string) => {
     setDialogMessage(message); // Set the message for the dialog
     setSelectedGroupId(groupId); // Set the selected group ID
     setOpenDialog(true); // Open the dialog

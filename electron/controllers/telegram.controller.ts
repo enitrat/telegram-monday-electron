@@ -3,7 +3,7 @@ import { Api, TelegramClient } from "telegram";
 import bigInt from "big-integer";
 import { TelegramService } from "../services/telegram.service";
 import { Entity } from "telegram/define";
-import { UserModel } from "../../shared/types";
+import { UserIdModel, UserModel } from "../../shared/types";
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#";
 
@@ -59,14 +59,14 @@ export class TelegramController {
     await this.telegramService.stopClient();
   }
 
-  async markAsRead(chatId: bigInt.BigInteger) {
-    if (!this.telegramService.telegramClient.connected)
+  async markAsRead(chatId: string) {
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.markAsRead(chatId);
   }
 
-  async getChatParticipants(groupId: string) {
-    if (!this.telegramService.telegramClient.connected)
+  async getChatParticipants(groupId: string): Promise<UserModel[]> {
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.getChatParticipants(groupId);
   }
@@ -76,23 +76,24 @@ export class TelegramController {
   }
 
   async addUsersToGroup(groupId: string, userIds: string[]) {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.addUsersToGroup(userIds, groupId);
   }
 
   async fillFolder(title: string, keyword: string) {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     const dialogs = await this.telegramService.getDialogsRaw();
-    const selectedDialogs = dialogs.filter((dialog) =>
-      dialog.title.toLowerCase().includes(keyword.toLowerCase()),
+    const selectedDialogs = dialogs.filter(
+      (dialog) => dialog.title?.toLowerCase().includes(keyword.toLowerCase()),
     );
-    if (selectedDialogs.length < 0) return;
+    if (selectedDialogs.length < 0) return false;
     const folders = await this.telegramService.getRawFolders();
     const selectedFolder = folders.find(
       (folder) => folder.title?.toLowerCase() === title.toLowerCase(),
     );
+    if (!selectedFolder) return false;
     return await this.telegramService.fillFolder(
       selectedFolder,
       selectedDialogs,
@@ -100,19 +101,19 @@ export class TelegramController {
   }
 
   async getFolders() {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.getFolders();
   }
 
   async getDialogs() {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.getDialogs();
   }
 
   async getContactsAndBots() {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     const contacts = (await this.telegramService.getContacts()).map(
       (contact) => {
@@ -121,17 +122,20 @@ export class TelegramController {
     );
     const rawDialogs = await this.telegramService.getDialogsRaw();
     const bots = rawDialogs
-      .map((dialog) => {
+      .reduce((acc: UserIdModel[], dialog) => {
         let entity = dialog.entity;
         if (entity instanceof Api.User) {
-          return {
-            id: (
-              entity.id as unknown as { value: bigInt.BigInteger }
-            ).value.toString(),
-            username: entity.username,
-          };
+          if (entity.username?.toLowerCase().endsWith("bot")) {
+            acc.push({
+              id: (
+                entity.id as unknown as { value: bigInt.BigInteger }
+              ).value.toString(),
+              username: entity.username,
+            });
+          }
         }
-      })
+        return acc;
+      }, [])
       .filter((userDialog) => {
         if (userDialog.username.toLowerCase().endsWith("bot")) {
           return true;
@@ -143,13 +147,13 @@ export class TelegramController {
   }
 
   async getContacts() {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.getContacts();
   }
 
   async sendMessage(userId: string, message: string) {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.sendMessage(userId, message);
   }
@@ -160,13 +164,13 @@ export class TelegramController {
   }*/
 
   async getLastMessages(chatId: string) {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.getLastMessages(chatId);
   }
 
   async getLastMessage(chatId: string) {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     return await this.telegramService.getLastMessage(chatId);
   }
@@ -174,19 +178,19 @@ export class TelegramController {
   //TODO make this function also accept IDs so that there's no need to resolve the ID of an entity
   // This can then be used when importing CSVs.
   async getUsersFromUsernames(usernames: string[]) {
-    if (!this.telegramService.telegramClient.connected)
+    if (!this.telegramService.telegramClient?.connected)
       await this.connectTelegram({});
     const users: UserModel[] = [];
     for (const username of usernames) {
       const entity = await this.telegramService.getEntityFromUsername(username);
       if (entity instanceof Api.User) {
         users.push({
-          username: entity.username,
+          username: entity.username || "",
           id: (
             entity.id as unknown as { value: bigInt.BigInteger }
           ).value.toString(),
-          firstName: entity.firstName,
-          lastName: entity.lastName,
+          firstName: entity.firstName || "",
+          lastName: entity.lastName || "",
         });
       }
     }

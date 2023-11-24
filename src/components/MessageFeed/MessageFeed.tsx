@@ -1,8 +1,9 @@
 import { Box, Flex } from "@chakra-ui/react";
 import { MessageBox } from "../MessageBox/MessageBox";
 import ScrollableFeed from "react-scrollable-feed";
+import { MessageModel } from "../../../shared/types";
 
-const MessageFeed = ({ messages }) => {
+const MessageFeed = ({ messages }: { messages: MessageModel[] }) => {
   return (
     <Flex
       w="100%"

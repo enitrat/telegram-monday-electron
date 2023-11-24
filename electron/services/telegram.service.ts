@@ -17,13 +17,15 @@ import { Dialog } from "telegram/tl/custom/dialog";
 import { message } from "telegram/client";
 import { Message } from "discord.js";
 import BigInteger = require("big-integer");
+import Folder = Api.Folder;
+import { StringSession } from "telegram/sessions";
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#";
 
 export class TelegramService {
-  public telegramClient: TelegramClient;
+  public telegramClient: TelegramClient | undefined;
 
-  constructor(api_id, api_hash, string_session) {
+  constructor(api_id: number, api_hash: string, string_session: StringSession) {
     this.telegramClient = new TelegramClient(string_session, api_id, api_hash, {
       connectionRetries: 5,
     });
@@ -90,7 +92,7 @@ export class TelegramService {
    *
    * @throws {Error} If the Telegram client is not connected, the function throws an error with the message "telegramService - markAsRead | Telegram disconnected".
    */
-  async markAsRead(chatId: bigInt.BigInteger): Promise<boolean> {
+  async markAsRead(chatId: string): Promise<boolean> {
     if (!this.telegramClient?.connected)
       throw Error("telegramService - markAsRead | Telegram disconnected");
     const markAsReadParams: messageMethods.MarkAsReadParams = {
@@ -114,20 +116,27 @@ export class TelegramService {
     const contacts: Contacts = (await this.telegramClient.invoke(
       new Api.contacts.GetContacts({}),
     )) as any;
-    return contacts.users.map((user) => {
-      if (user instanceof Api.UserEmpty) return;
-      return {
+    return contacts.users.reduce((acc: ContactModel[], user) => {
+      if (user instanceof Api.UserEmpty) return acc;
+      acc.push({
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
         id: (
           user.id as unknown as { value: bigInt.BigInteger }
         ).value.toString(),
-      } as ContactModel;
-    });
+      } as ContactModel);
+      return acc;
+    }, []);
   }
 
-  async addUsersToGroup(userIds: any[], groupId: string, isChannel = true) {
+  async addUsersToGroup(
+    userIds: any[],
+    groupId: string,
+    isChannel = true,
+  ): Promise<void> {
+    if (!this.telegramClient?.connected)
+      throw Error("telegramService - addUsersToGroup | Telegram disconnected");
     const bigintIds = userIds.map((id) => bigInt(id));
     if (isChannel) {
       try {
@@ -243,24 +252,30 @@ export class TelegramService {
     const result = await this.telegramClient.invoke(
       new Api.messages.GetDialogFilters(),
     );
-    return result
-      .map((folder) => {
-        if (folder instanceof Api.DialogFilterDefault) return;
-        const dialogIds = folder.includePeers
-          ?.map((peer) => {
-            if (peer instanceof Api.InputPeerEmpty) return;
-            if (peer instanceof Api.InputPeerUser) return Number(peer.userId);
-            if (peer instanceof Api.InputPeerChannel)
-              return Number(peer.channelId);
-            if (peer instanceof Api.InputPeerChat) return Number(peer.chatId);
-          })
-          .filter((id) => id !== undefined);
-        if (folder.title)
-          return { title: folder.title, peerIds: dialogIds, id: folder.id };
-      })
-      .filter((folder) => folder !== undefined);
-  }
+    return result.reduce((acc: FolderModel[], currentValue) => {
+      if (currentValue instanceof Api.DialogFilterDefault) return acc;
 
+      const dialogIds: number[] = currentValue.includePeers.reduce(
+        (peerResults: number[], peer) => {
+          if (peer instanceof Api.InputPeerUser)
+            peerResults.push(Number(peer.userId));
+          if (peer instanceof Api.InputPeerChannel)
+            peerResults.push(Number(peer.channelId));
+          if (peer instanceof Api.InputPeerChat)
+            peerResults.push(Number(peer.chatId));
+          return peerResults;
+        },
+        [],
+      );
+
+      acc.push({
+        title: currentValue.title,
+        peerIds: dialogIds,
+        id: currentValue.id,
+      });
+      return acc;
+    }, []);
+  }
   /**
    * Retrieves the folders from the Telegram client, without any specific formatting.
    * @returns {Promise<DialogFilter[]>} A promise that resolves to an array of DialogFilter objects.
@@ -362,7 +377,7 @@ export class TelegramService {
    * @returns A Promise that resolves to an array of UserModel objects representing the chat participants.
    * @throws Error if the Telegram client is not connected or if there is an error retrieving the participants.
    */
-  async getChatParticipants(groupId: string) {
+  async getChatParticipants(groupId: string): Promise<UserModel[]> {
     if (!this.telegramClient?.connected)
       throw Error(
         "telegramService - getChatParticipants | Telegram disconnected",
@@ -370,21 +385,23 @@ export class TelegramService {
     try {
       const participants: TotalList<Api.User> =
         await this.telegramClient.getParticipants(groupId, {});
-      return participants.map((participant) => {
-        if (participant instanceof Api.UserEmpty) return;
-        return {
+      return participants.reduce((acc: UserModel[], participant) => {
+        if (participant instanceof Api.UserEmpty) return acc;
+        acc.push({
           id: (
             participant.id as unknown as { value: bigInt.BigInteger }
           ).value.toString(),
           username: participant.username,
           firstName: participant.firstName,
           lastName: participant.lastName,
-        } as UserModel;
-      });
+        } as UserModel);
+        return acc;
+      }, []);
     } catch (e) {
       if (e.code !== 400)
         throw Error("telegramService - getChatParticipants | " + e);
     }
+    return [];
   }
 
   /**
@@ -393,6 +410,8 @@ export class TelegramService {
    * @param message - The message to send.
    */
   async sendMessage(userId: string, message: string) {
+    if (!this.telegramClient?.connected)
+      throw Error("telegramService - sendMessage | Telegram disconnected");
     await this.telegramClient.sendMessage(userId, { message: message });
   }
 
@@ -402,6 +421,10 @@ export class TelegramService {
    * @param message - The message to send.
    */
   async sendMessageToGroup(group: EntityLike, message: string) {
+    if (!this.telegramClient?.connected)
+      throw Error(
+        "telegramService - sendMessageToGroup | Telegram disconnected",
+      );
     await this.telegramClient.sendMessage(group, { message: message });
   }
 
@@ -411,10 +434,16 @@ export class TelegramService {
    * @returns A Promise that resolves to the retrieved entity.
    */
   async getEntityFromUsername(username: string) {
+    if (!this.telegramClient?.connected)
+      throw Error(
+        "telegramService - getEntityFromUsername | Telegram disconnected",
+      );
     return await this.telegramClient.getEntity(username);
   }
 
   async getLastMessages(chatId: string) {
+    if (!this.telegramClient?.connected)
+      throw Error("telegramService - getLastMessages | Telegram disconnected");
     const messages = await this.telegramClient.getMessages(chatId, {
       limit: 5,
     });
@@ -428,7 +457,9 @@ export class TelegramService {
       .reverse();
   }
 
-  async getLastMessage(chatId: string): Promise<MessageModel | undefined> {
+  async getLastMessage(chatId: string) {
+    if (!this.telegramClient?.connected)
+      throw Error("telegramService - getLastMessage | Telegram disconnected");
     console.log("getting last message in service");
     const messages = await this.telegramClient.getMessages(chatId, {
       limit: 1,

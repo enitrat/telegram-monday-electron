@@ -26,7 +26,7 @@ import { ImCheckboxChecked } from "react-icons/im";
 import { TbMailFast } from "react-icons/tb";
 import { Icon } from "@chakra-ui/icons";
 import { RateLimiter } from "limiter";
-import Papa from "papaparse";
+import Papa, { ParseResult } from "papaparse";
 import { Entity } from "telegram/define";
 
 const hoverProps = {
@@ -46,8 +46,8 @@ const MassDM = () => {
   const [previousMessages, setPreviousMessages] = useState<MessageModel[]>([]);
   const [suggestions, setSuggestions] = useState<DialogModel[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const searchInput = useRef(null);
-  const fileInput = useRef(null);
+  const searchInput = useRef<any>(null);
+  const fileInput = useRef<any>(null);
   const [excludedUsers, setExcludedUsers] = useState<{
     [key: string]: boolean;
   }>({});
@@ -56,13 +56,13 @@ const MassDM = () => {
 
   useEffect(() => {
     window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
-    window.Main.once(CHANNEL_GROUPS, (data) => {
+    window.Main.once(CHANNEL_GROUPS, (data: DialogModel[]) => {
       setDialogs(data);
       setSuggestions(data);
     });
 
     return () => {
-      window.Main.off(CHANNEL_GROUPS, undefined);
+      window.Main.off(CHANNEL_GROUPS, () => {});
     };
   }, []);
 
@@ -74,7 +74,7 @@ const MassDM = () => {
       method: "getGroupParticipants",
       params: [selectedDialog.id],
     });
-    window.Main.once(CHANNEL_PARTICIPANTS, (data) => {
+    window.Main.once(CHANNEL_PARTICIPANTS, (data: UserModel[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get participants");
         return;
@@ -83,7 +83,7 @@ const MassDM = () => {
     });
 
     return () => {
-      window.Main.off(CHANNEL_PARTICIPANTS, undefined);
+      window.Main.off(CHANNEL_PARTICIPANTS, () => {});
     };
   }, [selectedDialog]);
 
@@ -119,22 +119,22 @@ const MassDM = () => {
     });
   };
 
-  const selectDialog = (e) => {
+  const selectDialog = (e: any) => {
     const value = e.target.value;
     const correspondingDialog = dialogs.find(
       (dialog) => dialog.title === value,
     );
-    setInputValue(correspondingDialog.title);
+    setInputValue(correspondingDialog?.title || "");
     setSelectedDialog(correspondingDialog);
     fileInput.current.value = null;
   };
 
-  const changeParticipant = (e) => {
+  const changeParticipant = (e: any) => {
     const value = e.target.value;
     setIndex(parseInt(value));
   };
 
-  const excludeUser = (e, participant: UserModel) => {
+  const excludeUser = (e: any, participant: UserModel) => {
     const id = participant.id;
     let isExcluded = excludedUsers[id] === true;
     excludedUsers[id] = !isExcluded;
@@ -148,7 +148,7 @@ const MassDM = () => {
         method: "sendUserMessage",
         params: [id, messageToSend],
       });
-      window.Main.once(CHANNEL_MESSAGE_SENT, (data) => {
+      window.Main.once(CHANNEL_MESSAGE_SENT, () => {
         msgSent[id] = true;
         setMsgSent({ ...msgSent });
         resolve(true);
@@ -171,7 +171,7 @@ const MassDM = () => {
     }
   };
 
-  const changeSuggestions = (e) => {
+  const changeSuggestions = (e: any) => {
     const value: string = e.target.value as string;
     setInputValue(value);
     const newSuggestions = dialogs.filter((dialog) =>
@@ -180,14 +180,14 @@ const MassDM = () => {
     setSuggestions(newSuggestions);
   };
 
-  const handleListUsernamesUpload = (e) => {
+  const handleListUsernamesUpload = (e: any) => {
     setImporting(true);
     e.preventDefault();
     Papa.parse(e.target.files[0], {
       header: true,
       skipEmptyLines: true,
-      complete: async (results) => {
-        if (!results.meta.fields.includes("username")) {
+      complete: async (results: ParseResult<{ username: string }>) => {
+        if (!results.meta.fields?.includes("username")) {
           NotificationManager.error("CSV file must have a 'username' column");
           setImporting(false);
           return;
@@ -212,7 +212,7 @@ const MassDM = () => {
     });
   };
 
-  const handleListGroupUpload = (e) => {
+  const handleListGroupUpload = (e: any) => {
     setImporting(true);
     setParticipants([]);
     setIndex(0);
@@ -220,7 +220,7 @@ const MassDM = () => {
     Papa.parse(e.target.files[0], {
       header: true,
       skipEmptyLines: true,
-      complete: async (results) => {
+      complete: async (results: ParseResult<{ title: string }>) => {
         if (results.errors.length > 1) {
           // there is one error when not able to identify delimiter
           NotificationManager.error("Couldn't parse CSV file");
@@ -249,7 +249,7 @@ const MassDM = () => {
             method: "getGroupParticipants",
             params: [group.id],
           });
-          window.Main.once(CHANNEL_PARTICIPANTS, (data) => {
+          window.Main.once(CHANNEL_PARTICIPANTS, (data: UserModel[]) => {
             if (!data) {
               reject("Couldn't get participants for group " + group.id);
             } else {
@@ -264,12 +264,12 @@ const MassDM = () => {
       }
     }
 
-    const participantIds = new Set();
+    const participantIds: Set<string> = new Set();
     const uniqueParticipants = [];
 
     for (const _participant of _participants) {
-      if (!participantIds.has(_participant.id.value)) {
-        participantIds.add(_participant.id.value);
+      if (!participantIds.has(_participant.id)) {
+        participantIds.add(_participant.id);
         uniqueParticipants.push(_participant);
       }
     }

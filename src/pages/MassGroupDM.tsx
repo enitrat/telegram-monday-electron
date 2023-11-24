@@ -17,7 +17,7 @@ import {
 import { NotificationManager } from "react-notifications";
 import ScrollableFeed from "react-scrollable-feed";
 import { RateLimiter } from "limiter";
-import Papa from "papaparse";
+import Papa, { ParseResult } from "papaparse";
 import { Icon, WarningIcon } from "@chakra-ui/icons";
 import { TbMailFast } from "react-icons/tb";
 
@@ -47,7 +47,7 @@ const MassGroupDM = () => {
   const [exporting, setExporting] = useState<boolean>(false);
   const [validatingKeyword, setValidatingKeyword] = useState<boolean>(false);
   const searchInput = useRef(null);
-  const fileInput = useRef(null);
+  const fileInput = useRef<any>(null);
   const [msgSent, setMsgSent] = useState<Record<string, Status>>({});
   let [sending, setSending] = useState<boolean>(false);
   let [progress, setProgress] = useState<number>(0);
@@ -102,12 +102,12 @@ const MassGroupDM = () => {
     setSending(false);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e: any) => {
     e.preventDefault();
     Papa.parse(e.target.files[0], {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: (results: ParseResult<{ title: string }>) => {
         selectedGroupNames = results.data.map((group: { title: string }) =>
           group.title.toLowerCase(),
         );
@@ -117,7 +117,7 @@ const MassGroupDM = () => {
     });
   };
 
-  const handleInput = (e) => {
+  const handleInput = (e: any) => {
     setKeyword(e.target.value);
   };
 

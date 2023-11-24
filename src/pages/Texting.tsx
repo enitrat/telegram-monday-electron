@@ -45,7 +45,7 @@ const Texting = () => {
     });
 
     return () => {
-      window.Main.off(CHANNEL_GROUPS, undefined);
+      window.Main.off(CHANNEL_GROUPS, () => {});
     };
   }, []);
 
@@ -66,7 +66,7 @@ const Texting = () => {
     });
 
     return () => {
-      window.Main.off(CHANNEL_PARTICIPANTS, undefined);
+      window.Main.off(CHANNEL_PARTICIPANTS, () => {});
     };
   }, [selectedDialog]);
 
@@ -87,16 +87,16 @@ const Texting = () => {
     });
   }, [index || participants || selectedDialog]);
 
-  const selectDialog = (e) => {
+  const selectDialog = (e: any) => {
     const value = e.target.value;
     const correspondingDialog = dialogs.find(
       (dialog) => dialog.title === value,
     );
-    setInputValue(correspondingDialog.title);
+    setInputValue(correspondingDialog?.title || "");
     setSelectedDialog(correspondingDialog);
   };
 
-  const changeParticipant = (e) => {
+  const changeParticipant = (e: any) => {
     const value = e.target.value;
     setIndex(parseInt(value));
   };
@@ -106,14 +106,14 @@ const Texting = () => {
       method: "sendUserMessage",
       params: [participants[index].id, messageToSend],
     });
-    window.Main.once(CHANNEL_MESSAGE_SENT, (data) => {
+    window.Main.once(CHANNEL_MESSAGE_SENT, () => {
       NotificationManager.success("Message sent");
       setMessageToSend("");
       if (index !== participants.length - 1) setIndex(index + 1);
     });
   };
 
-  const changeSuggestions = (e) => {
+  const changeSuggestions = (e: any) => {
     const value: string = e.target.value as string;
     setInputValue(value);
     const newSuggestions = dialogs.filter((dialog) =>

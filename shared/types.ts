@@ -63,7 +63,7 @@ export interface MessageModel {
 
 export type MessageAuthor = "me" | "contact";
 
-export interface ContactOrBotModel {
+export interface UserIdModel {
   username: string;
   id: string;
 }

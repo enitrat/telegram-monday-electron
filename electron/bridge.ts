@@ -18,7 +18,7 @@ export const api = {
     ipcRenderer.send(channel, message);
   },
 
-  download: (data) => {
+  download: (data: any) => {
     ipcRenderer.send("download-csv", data);
   },
 

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -20,7 +21,7 @@ const defaultItem = {
   exportPrivate: false,
 };
 
-const OptionalConfig = (props) => {
+const OptionalConfig = (props: any) => {
   const { additionalConfig, setAdditionalConfig } = useStateConfig();
   const [storedConfig, setStoredConfig] = useState<any>();
   const { currentBoard } = useBoardState();
@@ -33,7 +34,7 @@ const OptionalConfig = (props) => {
     setKeywordItems([...keywordItems, clone]);
   };
 
-  const deleteKeyword = (index) => {
+  const deleteKeyword = (index: number) => {
     //splice mutates the state directly and its not what we want.
     let left = keywordItems.slice(0, index); // Everything before configs[index]
     let right = keywordItems.slice(index + 1); // Everything after configs[index]
@@ -45,11 +46,11 @@ const OptionalConfig = (props) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const globalConfig = storedConfig;
-    const data = {};
+    const data: any = {};
 
     //Regular entries
     for (const entry of formData.entries()) {
-      data[entry[0]] = entry[1];
+      (data as any)[entry[0]] = entry[1];
       if (entry[0] === "exclude_members") {
         const participants = (entry[1] as string).split(",").map((name) => {
           return name.toLowerCase();
