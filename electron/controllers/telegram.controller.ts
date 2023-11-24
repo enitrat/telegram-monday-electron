@@ -140,8 +140,6 @@ export class TelegramController {
     return await this.telegramService.getContacts();
   }
 
-
-
   async sendMessage(userId: bigInt.BigInteger, message: string) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
@@ -165,13 +163,14 @@ export class TelegramController {
     return await this.telegramService.getLastMessage(chatId);
   }
 
+  //TODO make this function also accept IDs so that there's no need to resolve the ID of an entity
+  // This can then be used when importing CSVs.
   async getIdsFromUsernames(usernames: string[]) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
     const ids = [];
     for (const username of usernames) {
-      const id = await this.telegramService.getIdFromUsername(username);
-      console.log(id, username);
+      const id = await this.telegramService.getEntityFromUsername(username);
       ids.push(id);
     }
     return ids;

@@ -16,8 +16,10 @@ import {
   CHANNEL_EDIT_FOLDERS,
   CHANNEL_FOLDERS,
   CHANNEL_GROUPS,
-  CHANNEL_IDS, CHANNEL_LAST_MESSAGE,
-  CHANNEL_LAST_MESSAGES, CHANNEL_MARK_AS_READ,
+  CHANNEL_IDS,
+  CHANNEL_LAST_MESSAGE,
+  CHANNEL_LAST_MESSAGES,
+  CHANNEL_MARK_AS_READ,
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS,
 } from "../../shared/constants";
@@ -225,6 +227,7 @@ export default class Controller {
   async getGroupParticipants(groupId) {
     try {
       const bigIntId = bigInt(groupId.value);
+      console.log(bigIntId)
       const participants =
         await this.telegramController.getChatParticipants(bigIntId);
       this.sendChannelMessage(CHANNEL_PARTICIPANTS, participants);
@@ -233,17 +236,16 @@ export default class Controller {
     }
   }
 
-  async getLastMessage (groupId) {
-    let result = []
+  async getLastMessage(groupId) {
+    let result = [];
 
     //console.log(groupIds.length)
     try {
-
-        const bigIntId = groupId
-        const message = await this.telegramController.getLastMessage(bigIntId);
-        console.log("get last message in controller for group id : " + bigIntId);
-        console.log("message fetched : " + message);
-        //result.push({groupId: groupId, message: message})
+      const bigIntId = groupId;
+      const message = await this.telegramController.getLastMessage(bigIntId);
+      console.log("get last message in controller for group id : " + bigIntId);
+      console.log("message fetched : " + message);
+      //result.push({groupId: groupId, message: message})
 
       this.sendChannelMessage(CHANNEL_LAST_MESSAGE, message);
     } catch (e) {

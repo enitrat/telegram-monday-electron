@@ -108,7 +108,7 @@ const MassGroupDM = () => {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        selectedGroupNames = results.data.map((group) =>
+        selectedGroupNames = results.data.map((group: { title: string }) =>
           group.title.toLowerCase(),
         );
 
@@ -246,9 +246,8 @@ const MassGroupDM = () => {
         </Flex>
         {fileInput !== null &&
           fileInput.current !== null &&
-          fileInput.current.files.length > 0 && loading && (
-                <Spinner />
-          )}
+          fileInput.current.files.length > 0 &&
+          loading && <Spinner />}
       </Flex>
 
       <Box marginTop={"50px"} height={"100%"} width={"90%"}>
