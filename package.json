@@ -70,6 +70,7 @@
     "@electron-forge/plugin-webpack": "6.0.0-beta.63",
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "11.2.7",
+    "@trunkio/launcher": "^1.2.7",
     "@types/electron-devtools-installer": "2.2.0",
     "@types/jest": "26.0.23",
     "@types/react": "^18.0.11",

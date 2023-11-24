@@ -15,7 +15,6 @@ import {
   Heading,
   Input,
   Select,
-  Spinner,
   Text,
   Textarea,
 } from "@chakra-ui/react";
@@ -50,7 +49,6 @@ const MassDM = () => {
   const [excludedUsers, setExcludedUsers] = useState<{
     [key: string]: boolean;
   }>({});
-  const [importing, setImporting] = useState<boolean>(false);
   let [msgSent, setMsgSent] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
@@ -114,17 +112,12 @@ const MassDM = () => {
         return;
       }
       setParticipants(data);
-      setImporting(false);
     });
   };
 
   useEffect(() => {
     console.log(msgSent);
   }, [msgSent]);
-
-  useEffect(() => {
-    console.log(participants);
-  }, [participants]);
 
   const selectDialog = (e) => {
     const value = e.target.value;
@@ -188,55 +181,15 @@ const MassDM = () => {
   };
 
   const handleListUsernamesUpload = (e) => {
-    setImporting(true);
     e.preventDefault();
     Papa.parse(e.target.files[0], {
       header: true,
       skipEmptyLines: true,
-      complete: async (results) => {
-        if (!results.meta.fields.includes("username")) {
-          NotificationManager.error("CSV file must have a 'username' column");
-          setImporting(false);
-          return;
-        }
-        if (results.errors.length > 1) {
-          // there is one error when not able to identify delimiter
-          NotificationManager.error("Couldn't parse CSV file");
-          setImporting(false);
-          return;
-        }
-        // Extract usernames, filtering out rows without a 'username' or with an empty 'username'
-        const usernames = results.data
-          .filter((row: any) => row.username && row.username.trim() !== "")
-          .map((row: any) => row.username);
-
-        await getIdsFromUsernames(usernames);
-      },
-    });
-  };
-
-  const handleListGroupUpload = (e) => {
-    setImporting(true);
-    setParticipants([]);
-    setIndex(0);
-    e.preventDefault();
-    Papa.parse(e.target.files[0], {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        if (results.errors.length > 1) {
-          // there is one error when not able to identify delimiter
-          NotificationManager.error("Couldn't parse CSV file");
-          setImporting(false);
-          return;
-        }
-        const selectedGroupNames = results.data.map(
-          (group: { title: string }) => group.title.toLowerCase(),
+      complete: (results) => {
+        const usernames = results.data.map(
+          (participant) => participant.username,
         );
-        const matchingGroups = dialogs.filter((dialog) =>
-          selectedGroupNames.includes(dialog.title.toLowerCase()),
-        );
-        processGroups(matchingGroups);
+        getIdsFromUsernames(usernames);
       },
     });
   };
@@ -245,7 +198,7 @@ const MassDM = () => {
     const _participants = [];
 
     for (const group of groups) {
-      console.log(group)
+      console.log(group);
       try {
         const data: CustomParticipant[] = await new Promise(
           (resolve, reject) => {
@@ -280,12 +233,11 @@ const MassDM = () => {
     }
 
     setParticipants(uniqueParticipants);
-    setImporting(false);
   }
 
   return (
     <Flex flexDir={"column"} alignItems={"center"} width={"100%"}>
-      <Flex width={"90%"} flexDir={"column"}>
+      <Flex width={"50%"} flexDir={"column"}>
         <Heading
           alignSelf={"center"}
           justifySelf={"center"}
@@ -295,9 +247,7 @@ const MassDM = () => {
         >
           Select the group whose members you want to text, or import a CSV file
         </Heading>
-        {dialogs.length === 0 ? (
-          <Spinner />
-        ) : (
+        {dialogs.length > 0 && (
           <Flex flexDir={"column"}>
             <Input
               autoFocus
@@ -340,155 +290,117 @@ const MassDM = () => {
                   })}
               </Flex>
             )}
-            <Flex justifyContent="center" alignItems="center">
-              <Box width="50%" p={4} textAlign="center">
-                <Text mb={2} fontWeight="bold">
-                  Upload a csv list of usernames to text:
-                </Text>
-                <Text fontSize="sm" mb={4}>
-                  The first row is the header with a single column named
-                  "username". Each subsequent row (user1, user2, etc.) contains
-                  a username.
-                </Text>
-                <Input
-                  type="file"
-                  id="csvFileInputUsernames"
-                  accept=".csv"
-                  ref={fileInput}
-                  onChange={handleListUsernamesUpload}
-                />
-              </Box>
-
-              <Box width="50%" p={4} textAlign="center">
-                <Text mb={2} fontWeight="bold">
-                  Upload a csv list of groups. All participants of these groups
-                  will be texted.
-                </Text>
-                <Text fontSize="sm" mb={4}>
-                  The first row is the header with a single column named
-                  "title". Each subsequent row (title1, title2, etc.) contains a
-                  group title.
-                </Text>
-                <Input
-                  type="file"
-                  id="csvFileInputGroup"
-                  accept=".csv"
-                  ref={fileInput}
-                  onChange={handleListGroupUpload}
-                />
-              </Box>
-            </Flex>
+            <input
+              type={"file"}
+              id={"csvFileInput"}
+              accept={".csv"}
+              ref={fileInput}
+              onChange={handleListUsernamesUpload}
+            />
           </Flex>
         )}
       </Flex>
-      {importing ? (
-        <Box>
-          Importing users...
-          <Spinner />
-        </Box>
-      ) : (
-        participants &&
-        participants.length > 0 && (
-          <Box marginTop={"50px"} height={"100%"} width={"90%"}>
-            {participants.length > 0 && index <= participants.length && (
-              <Flex flexDir={"column"}>
-                <Heading
-                  alignSelf={"center"}
-                  justifySelf={"center"}
-                  as={"h2"}
-                  size={"sm"}
-                  marginBottom={"30px"}
-                >
-                  Write a message that will be sent to all the selected users.
-                </Heading>
-                <Flex flexDir={"row"}>
-                  <Flex flexDir={"column"} marginTop={"10px"}>
-                    <Box width={"100%"} maxHeight={"400px"} p={1}>
-                      <ScrollableFeed>
-                        {Object.values(participants).map(
-                          (participant: CustomParticipant, index) => {
-                            const id = Number(participant.id.value).toString();
-                            const excluded = excludedUsers[id] === true;
-                            return (
-                              <Flex
-                                borderRadius={"10px"}
-                                marginBottom={"5px"}
-                                boxShadow={"md"}
-                                height={"40px"}
-                                width={"150px"}
-                                alignItems={"center"}
-                                justifyContent={"center"}
-                                _hover={{
-                                  ...hoverProps,
-                                  transform: "scale(1.05)",
-                                }}
-                                onClick={(e) => excludeUser(e, participant)}
-                                flexWrap={"wrap"}
-                                key={id}
+
+      {document.activeElement !== searchInput.current && (
+        <Box marginTop={"50px"} height={"100%"} width={"90%"}>
+          {participants.length > 0 && index <= participants.length && (
+            <Flex flexDir={"column"}>
+              <Heading
+                alignSelf={"center"}
+                justifySelf={"center"}
+                as={"h2"}
+                size={"sm"}
+                marginBottom={"30px"}
+              >
+                Write a message that will be sent to all the selected users.
+              </Heading>
+              <Flex flexDir={"row"}>
+                <Flex flexDir={"column"} marginTop={"10px"}>
+                  <Box width={"100%"} maxHeight={"400px"} p={1}>
+                    <ScrollableFeed>
+                      {Object.values(participants).map(
+                        (participant: CustomParticipant, index) => {
+                          const id = Number(participant.id.value).toString();
+                          const excluded = excludedUsers[id] === true;
+                          return (
+                            <Flex
+                              borderRadius={"10px"}
+                              marginBottom={"5px"}
+                              boxShadow={"md"}
+                              height={"40px"}
+                              width={"150px"}
+                              alignItems={"center"}
+                              justifyContent={"center"}
+                              _hover={{
+                                ...hoverProps,
+                                transform: "scale(1.05)",
+                              }}
+                              onClick={(e) => excludeUser(e, participant)}
+                              flexWrap={"wrap"}
+                              key={id}
+                            >
+                              <Text
+                                textAlign={"center"}
+                                fontSize={"14px"}
+                                wordBreak={"break-word"}
                               >
-                                <Text
-                                  textAlign={"center"}
-                                  fontSize={"14px"}
-                                  wordBreak={"break-word"}
-                                >
-                                  {excluded ? (
-                                    <Box>
-                                      <Icon as={BiCheckbox} />
-                                      {participant.username}
-                                    </Box>
-                                  ) : (
-                                    <Box>
-                                      <Icon as={ImCheckboxChecked} />
-                                      {participant.username}
-                                    </Box>
-                                  )}
-                                  {msgSent[id] && (
-                                    <Icon as={TbMailFast} color={"green.500"} />
-                                  )}
-                                </Text>
-                              </Flex>
-                            );
-                          },
-                        )}
-                      </ScrollableFeed>
-                    </Box>
-                  </Flex>
+                                {excluded ? (
+                                  <Box>
+                                    <Icon as={BiCheckbox} />
+                                    {participant.username}
+                                  </Box>
+                                ) : (
+                                  <Box>
+                                    <Icon as={ImCheckboxChecked} />
+                                    {participant.username}
+                                  </Box>
+                                )}
+                                {msgSent[id] && (
+                                  <Icon as={TbMailFast} color={"green.500"} />
+                                )}
+                              </Text>
+                            </Flex>
+                          );
+                        },
+                      )}
+                    </ScrollableFeed>
+                  </Box>
+                </Flex>
+                <Flex
+                  marginLeft="30px"
+                  width={"50%"}
+                  flexDir={"column"}
+                  alignItems="center"
+                  maxHeight={"300px"}
+                  justifyContent={"center"}
+                  borderRadius={"20px"}
+                  background={"gray.50"}
+                  padding={"20px"}
+                >
+                  <Flex flexDir={"column"}></Flex>
+                  <Box width={"100%"}>
+                    <Textarea
+                      maxW={"100%"}
+                      maxH={"200px"}
+                      background={"white"}
+                      value={messageToSend}
+                      onChange={(e) => setMessageToSend(e.target.value)}
+                    ></Textarea>
+                  </Box>
                   <Flex
-                    marginLeft="30px"
-                    width={"50%"}
-                    flexDir={"column"}
-                    alignItems="center"
-                    maxHeight={"300px"}
-                    justifyContent={"center"}
-                    borderRadius={"20px"}
-                    background={"gray.50"}
-                    padding={"20px"}
+                    width={"100%"}
+                    marginTop={"10px"}
+                    justifyContent={"space-between"}
                   >
-                    <Flex flexDir={"column"}></Flex>
-                    <Box width={"100%"}>
-                      <Textarea
-                        maxW={"100%"}
-                        maxH={"200px"}
-                        background={"white"}
-                        value={messageToSend}
-                        onChange={(e) => setMessageToSend(e.target.value)}
-                      ></Textarea>
-                    </Box>
-                    <Flex
-                      width={"100%"}
-                      marginTop={"10px"}
-                      justifyContent={"space-between"}
-                    >
-                      <Button color={"green.500"} onClick={sendMessages}>
-                        Send message
-                      </Button>
-                    </Flex>
+                    <Button color={"green.500"} onClick={sendMessages}>
+                      Send message
+                    </Button>
                   </Flex>
                 </Flex>
               </Flex>
-            )}
-          </Box>
-        )
+            </Flex>
+          )}
+        </Box>
       )}
     </Flex>
   );

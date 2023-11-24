@@ -87,7 +87,7 @@ const DownloadGroupsParticipants = () => {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
-          selectedGroupNames = results.data.map((group:{title:string}) =>
+          selectedGroupNames = results.data.map((group: { title: string }) =>
             group.title.toLowerCase(),
           );
           startImport().then((r) => console.log("done"));

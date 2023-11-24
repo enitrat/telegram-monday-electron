@@ -1,9 +1,8 @@
-import {Box, Flex} from "@chakra-ui/react";
-import {MessageBox} from "../MessageBox/MessageBox";
+import { Box, Flex } from "@chakra-ui/react";
+import { MessageBox } from "../MessageBox/MessageBox";
 import ScrollableFeed from "react-scrollable-feed";
 
-
-const MessageFeed = ({messages}) => {
+const MessageFeed = ({ messages }) => {
   return (
     <Flex
       w="100%"
@@ -13,7 +12,7 @@ const MessageFeed = ({messages}) => {
       flexDirection="column"
       px={8}
       py={8}
-      justifyContent={'center'}
+      justifyContent={"center"}
     >
       <Box
         maxHeight="100%"
@@ -22,15 +21,12 @@ const MessageFeed = ({messages}) => {
         pb={20}
         borderRadius={12}
         overflow="hidden"
-        boxShadow="0 2px 2px #0f0f0f04">
-
+        boxShadow="0 2px 2px #0f0f0f04"
+      >
         <ScrollableFeed>
           <Box p={6}>
             {messages?.map((message: any, key) => (
-              <MessageBox
-                message={message}
-                key={key}
-              />
+              <MessageBox message={message} key={key} />
             ))}
           </Box>
         </ScrollableFeed>

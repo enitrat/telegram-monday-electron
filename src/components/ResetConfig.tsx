@@ -1,59 +1,67 @@
-import {Button} from "@chakra-ui/react";
-import {useNavigate} from "react-router-dom";
-import {useStateConfig} from "../hooks/useConfig";
+import { Button } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
+import { useStateConfig } from "../hooks/useConfig";
 
 const ResetConfig = () => {
+  const navigate = useNavigate();
 
-  const navigate = useNavigate()
-
-  const {setKeyConfig, setMondayConfig} = useStateConfig();
-
+  const { setKeyConfig, setMondayConfig } = useStateConfig();
 
   const resetKeyConfig = () => {
-    setKeyConfig(undefined)
+    setKeyConfig(undefined);
     window.Main.sendSyncRequest({
-      method: 'setKeyConfig',
-      params: [undefined]
+      method: "setKeyConfig",
+      params: [undefined],
     });
-    navigate('/key-config')
-  }
+    navigate("/key-config");
+  };
 
   const resetMondayConfig = () => {
-    setMondayConfig(undefined)
+    setMondayConfig(undefined);
     window.Main.sendSyncRequest({
-      method: 'setMondayConfig',
-      params: [undefined]
+      method: "setMondayConfig",
+      params: [undefined],
     });
-    navigate('/monday-config')
-  }
+    navigate("/monday-config");
+  };
 
   const resetEverything = () => {
-    setMondayConfig(undefined)
-    setKeyConfig(undefined)
+    setMondayConfig(undefined);
+    setKeyConfig(undefined);
     window.Main.sendSyncRequest({
-      method: 'setMondayConfig',
-      params: [undefined]
+      method: "setMondayConfig",
+      params: [undefined],
     });
 
     window.Main.sendSyncRequest({
-      method: 'setKeyConfig',
-      params: [undefined]
+      method: "setKeyConfig",
+      params: [undefined],
     });
 
     window.Main.sendSyncRequest({
-      method: 'setOptionalConfig',
-      params: [undefined]
+      method: "setOptionalConfig",
+      params: [undefined],
     });
-    navigate('/config')
-  }
+    navigate("/config");
+  };
 
   return (
     <>
-      <Button variant={'ghost'} colorScheme={'blue'} onClick={resetKeyConfig}>API Keys</Button>
-      <Button variant={'ghost'} colorScheme={'yellow'} onClick={resetMondayConfig}>Monday Board</Button>
-      <Button variant={'ghost'} colorScheme={'red'} onClick={resetEverything}>Reset</Button>
+      <Button variant={"ghost"} colorScheme={"blue"} onClick={resetKeyConfig}>
+        API Keys
+      </Button>
+      <Button
+        variant={"ghost"}
+        colorScheme={"yellow"}
+        onClick={resetMondayConfig}
+      >
+        Monday Board
+      </Button>
+      <Button variant={"ghost"} colorScheme={"red"} onClick={resetEverything}>
+        Reset
+      </Button>
     </>
-  )
-}
+  );
+};
 
 export default ResetConfig;

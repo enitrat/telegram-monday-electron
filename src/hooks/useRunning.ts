@@ -1,12 +1,11 @@
-import create from 'zustand'
+import create from "zustand";
 
 export type RunningState = {
-  running:boolean
-  setRunning: (value: boolean) => void
-}
+  running: boolean;
+  setRunning: (value: boolean) => void;
+};
 
-export const useRunningState = create<RunningState>(set => ({
-  running:false,
-  setRunning: (value: boolean) => set({running: value}),
-
-}))
+export const useRunningState = create<RunningState>((set) => ({
+  running: false,
+  setRunning: (value: boolean) => set({ running: value }),
+}));

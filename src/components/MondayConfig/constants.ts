@@ -1,16 +1,16 @@
-import {MondayBoard} from "../../../shared/types";
+import { MondayBoard } from "../../../shared/types";
 
 export const mondayConfigParams = (board: MondayBoard) => {
   let copiedBoard = JSON.parse(JSON.stringify(board)); //Perform DEEP copy on object :)))
-  copiedBoard.columns.shift()
+  copiedBoard.columns.shift();
   return [
     {
       name: "board_id",
       label: "Board ID",
       helper: "Your Monday board id",
-      placeholder: '234567781',
+      placeholder: "234567781",
       required: true,
-      values: [{title: copiedBoard.id, id: copiedBoard.id}],
+      values: [{ title: copiedBoard.id, id: copiedBoard.id }],
       defaultValue: copiedBoard.id,
     },
     // No longer useful
@@ -26,29 +26,28 @@ export const mondayConfigParams = (board: MondayBoard) => {
       name: "link_column",
       label: "Link column name",
       helper: "Name of the column (text type) containing the link to the chat",
-      placeholder: 'link',
+      placeholder: "link",
       required: true,
       values: copiedBoard.columns,
-      defaultValue: copiedBoard.columns[0].title
+      defaultValue: copiedBoard.columns[0].title,
     },
     {
       name: "last_date_column",
       label: "Date column name",
       helper: "Name of the column (date type) containing the last message date",
-      placeholder: 'last message',
+      placeholder: "last message",
       required: true,
       values: copiedBoard.columns,
-      defaultValue: copiedBoard.columns[1].title
-
+      defaultValue: copiedBoard.columns[1].title,
     },
     {
       name: "participants_column",
       label: "Participants column name",
       helper: "Name of the column (text type) containing the participants list",
-      placeholder: 'participants',
+      placeholder: "participants",
       required: true,
       values: copiedBoard.columns,
-      defaultValue: copiedBoard.columns[2].title
+      defaultValue: copiedBoard.columns[2].title,
     },
-  ]
-}
+  ];
+};

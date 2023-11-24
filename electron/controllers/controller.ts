@@ -227,7 +227,7 @@ export default class Controller {
   async getGroupParticipants(groupId) {
     try {
       const bigIntId = bigInt(groupId.value);
-      console.log(bigIntId)
+      console.log(bigIntId);
       const participants =
         await this.telegramController.getChatParticipants(bigIntId);
       this.sendChannelMessage(CHANNEL_PARTICIPANTS, participants);
