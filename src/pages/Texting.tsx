@@ -5,7 +5,12 @@ import {
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS,
 } from "../../shared/constants";
-import { CustomDialog, CustomParticipant } from "../../shared/types";
+import {
+  DialogModel,
+  MessageModel,
+  UserModel,
+  ParticipantPlusDate,
+} from "../../shared/types";
 import {
   Box,
   Button,
@@ -22,19 +27,19 @@ import ScrollableFeed from "react-scrollable-feed";
 import { MessageBox } from "../components/MessageBox/MessageBox";
 
 const Texting = () => {
-  const [dialogs, setDialogs] = useState<CustomDialog[]>([]);
-  const [selectedDialog, setSelectedDialog] = useState<CustomDialog>();
-  const [participants, setParticipants] = useState<CustomParticipant[]>([]);
+  const [dialogs, setDialogs] = useState<DialogModel[]>([]);
+  const [selectedDialog, setSelectedDialog] = useState<DialogModel>();
+  const [participants, setParticipants] = useState<ParticipantPlusDate[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [messageToSend, setMessageToSend] = useState<string>("");
-  const [previousMessages, setPreviousMessages] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
+  const [previousMessages, setPreviousMessages] = useState<MessageModel[]>([]);
+  const [suggestions, setSuggestions] = useState<DialogModel[]>([]);
   const [inputValue, setInputValue] = useState("");
   const searchInput = useRef(null);
 
   useEffect(() => {
-    window.Main.sendAsyncRequest({ method: "startTexting" });
-    window.Main.once(CHANNEL_GROUPS, (data) => {
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
+    window.Main.once(CHANNEL_GROUPS, (data: DialogModel[]) => {
       setDialogs(data);
       setSuggestions(data);
     });
@@ -52,7 +57,7 @@ const Texting = () => {
       method: "getOrderedByLastDMParticipants",
       params: [selectedDialog.id],
     });
-    window.Main.once(CHANNEL_PARTICIPANTS, (data) => {
+    window.Main.once(CHANNEL_PARTICIPANTS, (data: ParticipantPlusDate[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get participants");
         return;
@@ -73,7 +78,7 @@ const Texting = () => {
       method: "getUserLastMessages",
       params: [participants[index].id],
     });
-    window.Main.once(CHANNEL_LAST_MESSAGES, (data) => {
+    window.Main.once(CHANNEL_LAST_MESSAGES, (data: MessageModel[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get messages");
         return;

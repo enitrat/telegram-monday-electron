@@ -1,19 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { CHANNEL_GROUPS, CHANNEL_PARTICIPANTS } from "../../shared/constants";
-import { CustomDialog } from "../../shared/types";
+import {
+  DialogModel,
+  UserModel,
+  ParticipantPlusDate,
+} from "../../shared/types";
 import { NotificationManager } from "react-notifications";
 import { Box, Button, Divider, Flex, Heading, Input } from "@chakra-ui/react";
 
 const exportToCSV = () => {
-  const [selectedDialog, setSelectedDialog] = useState<CustomDialog>();
-  const [participants, setParticipants] = useState<any[]>([]);
+  const [selectedDialog, setSelectedDialog] = useState<DialogModel>();
+  const [participants, setParticipants] = useState<ParticipantPlusDate[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [dialogs, setDialogs] = useState<CustomDialog[]>([]);
-  const [suggestions, setSuggestions] = useState<CustomDialog[]>([]);
+  const [dialogs, setDialogs] = useState<DialogModel[]>([]);
+  const [suggestions, setSuggestions] = useState<DialogModel[]>([]);
   const searchInput = useRef();
 
   useEffect(() => {
-    window.Main.sendAsyncRequest({ method: "startTexting" });
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
     window.Main.once(CHANNEL_GROUPS, (data) => {
       setDialogs(data);
       setSuggestions(data);
@@ -63,9 +67,11 @@ const exportToCSV = () => {
   };
 
   const startExport = () => {
-    const fmt = participants.map((participant) => {
-      return { ...participant, id: participant.id.value.toString() };
-    });
+    const fmt: ParticipantPlusDate[] = participants.map(
+      (participant: ParticipantPlusDate) => {
+        return { ...participant, id: participant.id };
+      },
+    );
     const items = fmt;
     const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
     const header = Object.keys(items[0]);

@@ -2,6 +2,8 @@ import { StringSession } from "telegram/sessions";
 import { Api, TelegramClient } from "telegram";
 import bigInt from "big-integer";
 import { TelegramService } from "../services/telegram.service";
+import { Entity } from "telegram/define";
+import { UserModel } from "../../shared/types";
 
 const BASE_GROUP_URL = "https://web.telegram.org/z/#";
 
@@ -63,7 +65,7 @@ export class TelegramController {
     return await this.telegramService.markAsRead(chatId);
   }
 
-  async getChatParticipants(groupId: bigInt.BigInteger) {
+  async getChatParticipants(groupId: string) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
     return await this.telegramService.getChatParticipants(groupId);
@@ -73,7 +75,7 @@ export class TelegramController {
     return await this.telegramService.connectTelegram(config);
   }
 
-  async addUsersToGroup(groupId: bigInt.BigInteger, userIds: string[]) {
+  async addUsersToGroup(groupId: string, userIds: string[]) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
     return await this.telegramService.addUsersToGroup(userIds, groupId);
@@ -117,18 +119,24 @@ export class TelegramController {
         return { id: contact.id, username: contact.username };
       },
     );
-    console.log(contacts);
     const rawDialogs = await this.telegramService.getDialogsRaw();
-    const userDialogs = rawDialogs.filter(
-      (dialog) => dialog.entity && dialog.entity instanceof Api.User,
-    );
-    const bots = userDialogs
-      .filter((userDialog) => userDialog.entity.username?.endsWith("bot"))
+    const bots = rawDialogs
       .map((dialog) => {
-        return {
-          id: Number(dialog.entity.id.value),
-          username: dialog.entity.username,
-        };
+        let entity = dialog.entity;
+        if (entity instanceof Api.User) {
+          return {
+            id: (
+              entity.id as unknown as { value: bigInt.BigInteger }
+            ).value.toString(),
+            username: entity.username,
+          };
+        }
+      })
+      .filter((userDialog) => {
+        if (userDialog.username.toLowerCase().endsWith("bot")) {
+          return true;
+        }
+        return false;
       });
     console.log(bots);
     return [...contacts, ...bots];
@@ -140,24 +148,24 @@ export class TelegramController {
     return await this.telegramService.getContacts();
   }
 
-  async sendMessage(userId: bigInt.BigInteger, message: string) {
+  async sendMessage(userId: string, message: string) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
     return await this.telegramService.sendMessage(userId, message);
   }
 
-  /*async sendMessageToGroup (group: CustomDialog, message: string) {
+  /*async sendMessageToGroup (group: DialogModel, message: string) {
     if (!this.telegramService.telegramClient.connected) await this.connectTelegram({});
     return await this.telegramService.sendMessageToGroup(group, message);
   }*/
 
-  async getLastMessages(chatId: bigInt.BigInteger) {
+  async getLastMessages(chatId: string) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
     return await this.telegramService.getLastMessages(chatId);
   }
 
-  async getLastMessage(chatId: bigInt.BigInteger) {
+  async getLastMessage(chatId: string) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
     return await this.telegramService.getLastMessage(chatId);
@@ -165,15 +173,24 @@ export class TelegramController {
 
   //TODO make this function also accept IDs so that there's no need to resolve the ID of an entity
   // This can then be used when importing CSVs.
-  async getIdsFromUsernames(usernames: string[]) {
+  async getUsersFromUsernames(usernames: string[]) {
     if (!this.telegramService.telegramClient.connected)
       await this.connectTelegram({});
-    const ids = [];
+    const users: UserModel[] = [];
     for (const username of usernames) {
-      const id = await this.telegramService.getEntityFromUsername(username);
-      ids.push(id);
+      const entity = await this.telegramService.getEntityFromUsername(username);
+      if (entity instanceof Api.User) {
+        users.push({
+          username: entity.username,
+          id: (
+            entity.id as unknown as { value: bigInt.BigInteger }
+          ).value.toString(),
+          firstName: entity.firstName,
+          lastName: entity.lastName,
+        });
+      }
     }
-    return ids;
+    return users;
   }
 
   /*async getGroups () {

@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import MessageFeed from "../components/MessageFeed/MessageFeed";
 import { useRunningState } from "../hooks/useRunning";
-import { MondayBoard } from "../../shared/types";
+import { ContactOrBotModel, MondayBoard } from "../../shared/types";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { CHANNEL_CONTACTS, CHANNEL_CONTACTSBOTS } from "../../shared/constants";
 
@@ -23,7 +23,7 @@ export const UpdateBoard = () => {
   const [ready, setReady] = useState(false);
   const { running, setRunning } = useRunningState();
 
-  const [contactBots, setContactBots] = useState<any[]>([]);
+  const [contactBots, setContactBots] = useState<ContactOrBotModel[]>([]);
   const [userToAdd, setUserToAdd] = useState([]);
 
   const stopService = () => {
@@ -71,7 +71,7 @@ export const UpdateBoard = () => {
       method: "getContactsAndBots",
     });
 
-    window.Main.once(CHANNEL_CONTACTSBOTS, (data) => {
+    window.Main.once(CHANNEL_CONTACTSBOTS, (data: ContactOrBotModel[]) => {
       console.log(data);
       setContactBots(data);
     });

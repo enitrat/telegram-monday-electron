@@ -6,7 +6,7 @@ import {
   Select,
   Spinner,
 } from "@chakra-ui/react";
-import { CustomFolder } from "../../shared/types";
+import { FolderModel } from "../../shared/types";
 import { useEffect, useState } from "react";
 import {
   CHANNEL_EDIT_FOLDERS,
@@ -16,7 +16,7 @@ import {
 import { NotificationManager } from "react-notifications";
 
 export const FillFolders = () => {
-  const [folders, setFolders] = useState<CustomFolder[]>([]);
+  const [folders, setFolders] = useState<FolderModel[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string>();
   const [keyword, setKeyword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -24,7 +24,8 @@ export const FillFolders = () => {
   useEffect(() => {
     setLoadingFolders(true);
 
-    window.Main.sendAsyncRequest({ method: "startTexting" });
+    // Get groups to cache them in the telegram client - required for getting folders
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
     window.Main.once(CHANNEL_GROUPS, () => {
       window.Main.sendAsyncRequest({ method: "getFolders", params: [] });
     });

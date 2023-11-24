@@ -16,7 +16,7 @@ import {
   CHANNEL_EDIT_FOLDERS,
   CHANNEL_FOLDERS,
   CHANNEL_GROUPS,
-  CHANNEL_IDS,
+  CHANNEL_USERS,
   CHANNEL_LAST_MESSAGE,
   CHANNEL_LAST_MESSAGES,
   CHANNEL_MARK_AS_READ,
@@ -24,7 +24,11 @@ import {
   CHANNEL_PARTICIPANTS,
 } from "../../shared/constants";
 import bigInt from "big-integer";
-import { CustomDialog, CustomFolder } from "../../shared/types";
+import {
+  DialogModel,
+  FolderModel,
+  ParticipantPlusDate,
+} from "../../shared/types";
 
 const limiter = new RateLimiter({ tokensPerInterval: 40, interval: "minute" });
 
@@ -212,8 +216,7 @@ export default class Controller {
 
   async getFolders() {
     try {
-      const folders: CustomFolder[] =
-        await this.telegramController.getFolders();
+      const folders: FolderModel[] = await this.telegramController.getFolders();
       this.sendChannelMessage(CHANNEL_FOLDERS, folders);
     } catch (e) {
       sendError("Couldn't get folders : " + e.stack);
@@ -224,28 +227,24 @@ export default class Controller {
    * Returns all participants from a group
    * @param groupId id of the group
    */
-  async getGroupParticipants(groupId) {
+  async getGroupParticipants(groupId: string) {
     try {
-      const bigIntId = bigInt(groupId.value);
-      console.log(bigIntId);
       const participants =
-        await this.telegramController.getChatParticipants(bigIntId);
+        await this.telegramController.getChatParticipants(groupId);
       this.sendChannelMessage(CHANNEL_PARTICIPANTS, participants);
     } catch (e) {
       sendError("Couldn't get participants : " + e.stack);
     }
   }
 
-  async getLastMessage(groupId) {
+  async getLastMessage(groupId: string) {
     let result = [];
 
     //console.log(groupIds.length)
     try {
-      const bigIntId = groupId;
-      const message = await this.telegramController.getLastMessage(bigIntId);
-      console.log("get last message in controller for group id : " + bigIntId);
+      const message = await this.telegramController.getLastMessage(groupId);
+      console.log("get last message in controller for group id : " + groupId);
       console.log("message fetched : " + message);
-      //result.push({groupId: groupId, message: message})
 
       this.sendChannelMessage(CHANNEL_LAST_MESSAGE, message);
     } catch (e) {
@@ -287,20 +286,20 @@ export default class Controller {
     }
   }
 
-  async getOrderedByLastDMParticipants(groupId) {
+  async getOrderedByLastDMParticipants(groupId: string) {
     try {
-      const bigIntId = bigInt(groupId.value);
       const participants =
-        await this.telegramController.getChatParticipants(bigIntId);
+        await this.telegramController.getChatParticipants(groupId);
       const dialogs = await this.telegramController.getDialogs();
-      const participantsWithDates = participants.map((p: any) => {
-        const foundDialog = dialogs.fmtPrivate.find(
-          (d) => d.id.value === p.id.value,
-        );
+      const participantsWithDates = participants.map((p) => {
+        const foundDialog = dialogs.fmtPrivate.find((d) => d.id === p.id);
         if (foundDialog) {
-          return { ...p, lastDM: foundDialog.lastMsgDate };
+          return {
+            ...p,
+            lastDM: foundDialog.lastMsgDate,
+          } as ParticipantPlusDate;
         }
-        return { ...p, lastDM: 0 };
+        return { ...p, lastDM: 0 } as ParticipantPlusDate;
       });
       const orderedParticipants = participantsWithDates.sort(
         (a: any, b: any) => {
@@ -327,20 +326,18 @@ export default class Controller {
    * @param userId id of recipient
    * @param message message to send
    */
-  async sendUserMessage(userId: ReceivedId, message) {
+  async sendUserMessage(userId: string, message: string) {
     try {
-      const bigIntId = bigInt(userId.value);
-      await this.telegramController.sendMessage(bigIntId, message);
+      await this.telegramController.sendMessage(userId, message);
       this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "");
     } catch (e) {
       sendError("Couldn't send message : " + e.stack);
     }
   }
 
-  async sendGroupMessage(groupId: ReceivedId, message: string) {
+  async sendGroupMessage(groupId: string, message: string) {
     try {
-      const bigIntId = bigInt(groupId.value);
-      await this.telegramController.sendMessage(bigIntId, message);
+      await this.telegramController.sendMessage(groupId, message);
       this.sendChannelMessage(CHANNEL_MESSAGE_SENT, "");
     } catch (e) {
       sendError("Couldn't send message : " + e.stack);
@@ -351,20 +348,20 @@ export default class Controller {
    * Gets 5 last messages from a chat with a user
    * @param chatId id of the chat to get messages from
    */
-  async getUserLastMessages(chatId: ReceivedId) {
+  async getUserLastMessages(chatId: string) {
     try {
-      const bigIntId = bigInt(chatId.value);
-      const messages = await this.telegramController.getLastMessages(bigIntId);
+      const messages = await this.telegramController.getLastMessages(chatId);
       this.sendChannelMessage(CHANNEL_LAST_MESSAGES, messages);
     } catch (e) {
       sendError("Couldn't get chat history : " + e.stack);
     }
   }
 
-  async getIdsFromUsernames(usernames: string[]) {
+  async getUsersFromUsernames(usernames: string[]) {
     try {
-      const ids = await this.telegramController.getIdsFromUsernames(usernames);
-      this.sendChannelMessage(CHANNEL_IDS, ids);
+      const ids =
+        await this.telegramController.getUsersFromUsernames(usernames);
+      this.sendChannelMessage(CHANNEL_USERS, ids);
     } catch (e) {
       sendError("Couldnt get ids from usernames");
     }
@@ -387,7 +384,7 @@ export default class Controller {
   /**
    * Start texting page
    */
-  async startTexting() {
+  async startAndGetGroups() {
     try {
       this.telegramController = new TelegramController(this.getKeyConfig());
       await this.telegramController.startClient();
@@ -401,7 +398,7 @@ export default class Controller {
     }
   }
 
-  logGroups(groups: CustomDialog[]) {
+  logGroups(groups: DialogModel[]) {
     console.log("groups");
     console.log(groups.length);
     for (const group of groups) {
@@ -556,12 +553,12 @@ export default class Controller {
    * Scans telegram groups, exported chats, and gets target board details
    * @param id id of board to scan from
    */
-  async scanGroups(id: string) {
+  async scanGroups(boardId: string) {
     await limiter.removeTokens(1);
-    const targetBoard = await this.mondayController!.getBoard(id);
+    const targetBoard = await this.mondayController!.getBoard(boardId);
     if (!targetBoard)
       throw new Error(
-        `controller - scanGroups | Couldn't get Monday board with id ${id}`,
+        `controller - scanGroups | Couldn't get Monday board with id ${boardId}`,
       );
     let exportedChats =
       await this.mondayController!.getExportedChats(targetBoard);
