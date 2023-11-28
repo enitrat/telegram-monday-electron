@@ -24,7 +24,7 @@ export const MondayConfig = () => {
   const [init, setInit] = useState(true);
   const [createNew, setCreateNew] = useState(false);
   const [currentConfig, setCurrentConfig] = useState<any>();
-  const [allBoards, setAllBoards] = useState<MondayBoard[]>();
+  const [allBoards, setAllBoards] = useState<MondayBoard[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<MondayBoard>();
   const [boardData, setBoardData] = useState<MondayBoard>();
   const [config, setConfig] = useState<any>();
@@ -48,20 +48,21 @@ export const MondayConfig = () => {
       setAllBoards(boards);
       if (boards.length > 0) setSelectedBoard(boards[0]);
       mondayConfigParams(boards[0]).forEach((param) => {
-        config[param.name] = param.defaultValue;
+        (config as any)[param.name] = param.defaultValue;
       });
       setConfig(config);
     });
   }, []);
 
-  const onSelectEvent = (e) => {
+  const onSelectEvent = (e: any) => {
     config[e.target.id] = e.target.value;
   };
 
-  const onBoardChange = (e) => {
+  const onBoardChange = (e: any) => {
     const newBoard = allBoards.find((board) => {
       return board.name === e.target.value;
     });
+    if (!newBoard) return;
     mondayConfigParams(newBoard).forEach((param) => {
       config[param.name] = param.defaultValue;
     });
@@ -75,16 +76,19 @@ export const MondayConfig = () => {
       method: "createNewBoard",
     });
 
-    window.Main.once("create_board", (message) => {
-      if (!message) return;
-      if (message.result === "success") {
-        setMondayConfig(message.data);
-      } else {
-        //TODO catch this err somewhere
-        console.log("there was an error while creating the board");
-      }
-      navigate("/config?destination=fill");
-    });
+    window.Main.once(
+      "create_board",
+      (message: { result: string; data: any }) => {
+        if (!message) return;
+        if (message.result === "success") {
+          setMondayConfig(message.data);
+        } else {
+          //TODO catch this err somewhere
+          console.log("there was an error while creating the board");
+        }
+        navigate("/config?destination=fill");
+      },
+    );
   };
 
   const handleSubmit = (e: any) => {
@@ -170,7 +174,7 @@ export const MondayConfig = () => {
                               defaultValue={config[param.name]}
                               onChange={onSelectEvent}
                             >
-                              {param.values.map((value, index) => {
+                              {param.values.map((value: any, index: number) => {
                                 return (
                                   <option key={index} value={value.title}>
                                     {value.title}

@@ -18,7 +18,7 @@ export class MondayService {
     };
   }
 
-  async getAllBoards() {
+  async getAllBoards(): Promise<MondayBoard[]> {
     let query = `{ boards (limit:100) { name id description groups {id title} columns { id title } } }`;
 
     return fetch(this.base_url, {
@@ -34,7 +34,7 @@ export class MondayService {
       });
   }
 
-  async archiveBoard(boardId) {
+  async archiveBoard(boardId: string) {
     let query = `mutation { archive_board (board_id: ${boardId}) { id }}`;
 
     return fetch(this.base_url, {
@@ -48,10 +48,10 @@ export class MondayService {
       .then((res) => console.log(JSON.stringify(res, null, 2)));
   }
 
-  async createBoard(options) {
+  async createBoard(options: any) {
     const boards = await this.getAllBoards();
     const existingBoard = boards.find(
-      (board) => board.name === "Telegram Board",
+      (board: MondayBoard) => board.name === "Telegram Board",
     );
     if (existingBoard) await this.archiveBoard(existingBoard.id);
     const boardKind = options.boardKind || "public";
@@ -68,7 +68,7 @@ export class MondayService {
       .then((res: any) => res.data.create_board.id);
   }
 
-  async createBoardGroup(board_id: string, options) {
+  async createBoardGroup(board_id: string, options: any) {
     const group_name = options.group_name || "Telegram Chats";
     if (!board_id)
       throw Error(
@@ -90,7 +90,7 @@ export class MondayService {
       });
   }
 
-  async createBoardColumns(board_id, options) {
+  async createBoardColumns(board_id: string, options: any) {
     if (!board_id)
       throw Error(
         "mondayService - createBoardColumns - Can't create item in invalid board" +
@@ -115,7 +115,7 @@ export class MondayService {
       },
     ];
 
-    let newColumns = [];
+    let newColumns: { entry: string; title: any }[] = [];
     for (const column of col_details) {
       let query = `mutation {create_column(board_id: ${board_id}, title:\"${column.name}\", column_type:${column.type}){id title}}`;
       const created = await fetch(this.base_url, {
@@ -132,7 +132,7 @@ export class MondayService {
             title: res.data.create_column.title,
           };
         });
-      newColumns = [...newColumns, created];
+      newColumns.push(created);
     }
     return newColumns;
   }
@@ -175,7 +175,7 @@ export class MondayService {
    * @param targetBoard
    * @returns {Promise<{name: *, lastMsg: *, id: *}[]>}
    */
-  async getExportedChats(lastDateColumn, targetBoard: MondayBoard) {
+  async getExportedChats(lastDateColumn: string, targetBoard: MondayBoard) {
     if (!targetBoard)
       throw Error("mondayService : getExportedChats - target board not found");
     const items = targetBoard.items;
@@ -200,9 +200,9 @@ export class MondayService {
    * @returns {{targetGroup, participantsCol, lastMessageDate,  boardId: number, creationColumn, linkColumn}}
    */
   getElementsIds(
-    configColumns,
+    configColumns: any,
     targetBoard: MondayBoard,
-    targetBoardGroup: string,
+    targetBoardGroup?: string,
   ) {
     let targetGroup;
     if (targetBoardGroup) {
@@ -228,9 +228,9 @@ export class MondayService {
     const elementsIds = {
       targetGroup: targetGroup?.id || undefined,
       boardId: parseInt(targetBoard.id),
-      linkColumn: linkColumn.id,
-      lastMessageDate: lastMessageDate.id,
-      participantsCol: participantsCol.id,
+      linkColumn: linkColumn!.id,
+      lastMessageDate: lastMessageDate!.id,
+      participantsCol: participantsCol!.id,
     };
     return elementsIds;
   }

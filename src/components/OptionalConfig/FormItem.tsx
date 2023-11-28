@@ -1,3 +1,4 @@
+//@ts-nocheck
 import {
   Box,
   FormControl,
@@ -6,7 +7,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 
-const FormItem = ({ additionalConfig, param, disabled }) => {
+const FormItem = ({ additionalConfig, param, disabled }: any) => {
   return (
     <Box key={param.name} cursor={disabled ? "not-allowed" : null}>
       <Box pointerEvents={disabled ? "none" : null}>

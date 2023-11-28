@@ -6,6 +6,7 @@ import OptionalConfig from "../components/OptionalConfig/OptionalConfig";
 import { useRunningState } from "../hooks/useRunning";
 import { useBoardState } from "../hooks/useBoard";
 import { useStateConfig } from "../hooks/useConfig";
+import { MondayBoard } from "../../shared/types";
 
 export const FillBoard = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export const FillBoard = () => {
       method: "getCurrentBoard",
       params: [mondayConfig.board_id],
     });
-    window.Main.once("currentBoard", (data) => {
+    window.Main.once("currentBoard", (data: MondayBoard) => {
       setCurrentBoard(data);
     });
   }, [mondayConfig]);
@@ -41,8 +42,7 @@ export const FillBoard = () => {
     };
 
     const handleTelegramUpdate = (update: any) => {
-      allMessages = [...allMessages, update];
-      setTgMessages(allMessages);
+      setTgMessages((prev) => [...prev, update]);
     };
 
     startTelegram();

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import {
   Box,
   Checkbox,
@@ -12,6 +13,7 @@ import {
 import { useBoardState } from "../../hooks/useBoard";
 import { useEffect } from "react";
 import { DeleteIcon } from "@chakra-ui/icons";
+import { MondayBoard } from "../../../shared/types";
 
 const IncludeItem = ({
   keywordItems,
@@ -19,8 +21,8 @@ const IncludeItem = ({
   item,
   index,
   disabled,
-}) => {
-  const { currentBoard } = useBoardState();
+}: any) => {
+  const { currentBoard }: { currentBoard: MondayBoard } = useBoardState();
   const boardGroups = currentBoard.groups;
 
   const onValueChange = (e: any) => {

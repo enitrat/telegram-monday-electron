@@ -45,7 +45,7 @@ export class MondayController {
     this.config[key] = value;
   }
 
-  setApiKey(value) {
+  setApiKey(value: string) {
     this._apiKey = value;
     this.mondayService = new MondayService(this._apiKey);
   }
@@ -62,11 +62,11 @@ export class MondayController {
     }
   }
 
-  async archiveBoard(boardId) {
+  async archiveBoard(boardId: string) {
     await this.mondayService.archiveBoard(boardId);
   }
 
-  async createBoard(options) {
+  async createBoard(options: any) {
     try {
       const newBoardId = await this.mondayService.createBoard(options);
       this.setConfigKey("board_id", newBoardId);
@@ -79,7 +79,7 @@ export class MondayController {
     }
   }
 
-  async createBoardGroup(options) {
+  async createBoardGroup(options: any) {
     const newBoardGroup = await this.mondayService.createBoardGroup(
       this.config.board_id,
       options,
@@ -87,7 +87,7 @@ export class MondayController {
     this.setConfigKey("group_name", newBoardGroup);
   }
 
-  async createBoardColumns(options) {
+  async createBoardColumns(options: any) {
     const newColumns = await this.mondayService.createBoardColumns(
       this.config.board_id,
       options,
@@ -97,7 +97,7 @@ export class MondayController {
     });
   }
 
-  async createPreconfigBoard(options) {
+  async createPreconfigBoard(options: any) {
     const newBoardId = await this.mondayService.createBoard({});
     const newBoardGroup = await this.mondayService.createBoardGroup(
       newBoardId,

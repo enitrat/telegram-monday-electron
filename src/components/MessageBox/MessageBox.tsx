@@ -1,11 +1,12 @@
 import { Flex, Text } from "@chakra-ui/react";
+import { MessageModel } from "../../../shared/types";
 
-export const MessageBox = ({ message }) => {
-  const authorMe = message.type === "error" || message.author === "me";
+export const MessageBox = ({ message }: { message: MessageModel }) => {
+  const authorMe = message.author === "me";
   let messageColor;
-  if (message.type === "error") {
-    messageColor = "red.100";
-  } else if (message.author === "me") {
+  // if(message.type==="error"){
+  //   messageColor="red.100";
+  if (message.author === "me") {
     messageColor = "blue.100";
   } else {
     messageColor = "green.100";

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CHANNEL_GROUPS, CHANNEL_MESSAGE_SENT } from "../../shared/constants";
-import { CustomDialog } from "../../shared/types";
+import { DialogModel } from "../../shared/types";
 import {
   Box,
   Button,
@@ -17,7 +17,7 @@ import {
 import { NotificationManager } from "react-notifications";
 import ScrollableFeed from "react-scrollable-feed";
 import { RateLimiter } from "limiter";
-import Papa from "papaparse";
+import Papa, { ParseResult } from "papaparse";
 import { Icon, WarningIcon } from "@chakra-ui/icons";
 import { TbMailFast } from "react-icons/tb";
 
@@ -37,8 +37,8 @@ enum Status {
 const limiter = new RateLimiter({ tokensPerInterval: 15, interval: "minute" });
 
 const MassGroupDM = () => {
-  const [dialogs, setDialogs] = useState<CustomDialog[]>([]);
-  let [importedGroups, setImportedGroups] = useState<CustomDialog[]>([]);
+  const [dialogs, setDialogs] = useState<DialogModel[]>([]);
+  let [importedGroups, setImportedGroups] = useState<DialogModel[]>([]);
   //let [selectedGroupNames, setSelectedGroupNames] = useState<String[]>([])
   let selectedGroupNames: String[] = [];
   const [messageToSend, setMessageToSend] = useState<string>("");
@@ -47,12 +47,12 @@ const MassGroupDM = () => {
   const [exporting, setExporting] = useState<boolean>(false);
   const [validatingKeyword, setValidatingKeyword] = useState<boolean>(false);
   const searchInput = useRef(null);
-  const fileInput = useRef(null);
+  const fileInput = useRef<any>(null);
   const [msgSent, setMsgSent] = useState<Record<string, Status>>({});
   let [sending, setSending] = useState<boolean>(false);
   let [progress, setProgress] = useState<number>(0);
 
-  const filterDialogs = (dialogs: CustomDialog[]) => {
+  const filterDialogs = (dialogs: DialogModel[]) => {
     if (keyword === "") return dialogs;
     return dialogs.filter((dialog) =>
       dialog.title.toLowerCase().includes(keyword.toLowerCase()),
@@ -63,7 +63,7 @@ const MassGroupDM = () => {
     console.log(msgSent);
   }, [msgSent]);
 
-  const waitForMsgSent = async (timeout, groupId) => {
+  const waitForMsgSent = async (timeout: number, groupId: string) => {
     return new Promise(async (resolve, reject) => {
       try {
         await limiter.removeTokens(1);
@@ -85,13 +85,13 @@ const MassGroupDM = () => {
     for (const group of importedGroups) {
       setMsgSent((prevMsgSent) => ({
         ...prevMsgSent,
-        [group.id.value.toString()]: Status.Waiting,
+        [group.id]: Status.Waiting,
       }));
       const sent = await waitForMsgSent(10 * 1000, group.id);
       if (sent) {
         setMsgSent((prevMsgSent) => ({
           ...prevMsgSent,
-          [group.id.value.toString()]: Status.Sent,
+          [group.id]: Status.Sent,
         }));
         _progress++;
         setProgress(_progress);
@@ -102,12 +102,12 @@ const MassGroupDM = () => {
     setSending(false);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e: any) => {
     e.preventDefault();
     Papa.parse(e.target.files[0], {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: (results: ParseResult<{ title: string }>) => {
         selectedGroupNames = results.data.map((group: { title: string }) =>
           group.title.toLowerCase(),
         );
@@ -117,14 +117,14 @@ const MassGroupDM = () => {
     });
   };
 
-  const handleInput = (e) => {
+  const handleInput = (e: any) => {
     setKeyword(e.target.value);
   };
 
   const keywordValidation = () => {
     setValidatingKeyword(true);
-    window.Main.sendAsyncRequest({ method: "startTexting" });
-    window.Main.once(CHANNEL_GROUPS, (data) => {
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
+    window.Main.once(CHANNEL_GROUPS, (data: DialogModel[]) => {
       setDialogs(filterDialogs(data));
       setValidatingKeyword(false);
     });
@@ -149,7 +149,7 @@ const MassGroupDM = () => {
     setExporting(false);
   };
 
-  const filterDialogsByName = (data: CustomDialog[]) => {
+  const filterDialogsByName = (data: DialogModel[]) => {
     window.Main.sendSyncRequest({ method: "logGroups", params: [data] });
     window.Main.sendSyncRequest({
       method: "logGroups",
@@ -167,10 +167,10 @@ const MassGroupDM = () => {
     setProgress(0);
     setMsgSent({});
     setMessageToSend("");
-    window.Main.sendAsyncRequest({ method: "startTexting" });
-    window.Main.once(CHANNEL_GROUPS, (data) => {
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
+    window.Main.once(CHANNEL_GROUPS, (data: DialogModel[]) => {
       //setImportedGroups()
-      let filtered: CustomDialog[] = data as CustomDialog[];
+      let filtered: DialogModel[] = data;
       setImportedGroups(filterDialogsByName(filtered));
       //setImportedGroups(data)
       setLoading(false);
@@ -266,8 +266,8 @@ const MassGroupDM = () => {
               <Flex flexDir={"column"} marginTop={"10px"}>
                 <Box width={"100%"} maxHeight={"200px"} p={1}>
                   <ScrollableFeed>
-                    {importedGroups.map((group: CustomDialog) => {
-                      const id = group.id.value.toString();
+                    {importedGroups.map((group: DialogModel) => {
+                      const id = group.id;
                       return (
                         <Flex
                           borderRadius={"10px"}

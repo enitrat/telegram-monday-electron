@@ -10,21 +10,23 @@ import {
 import { useNavigate } from "react-router-dom";
 import MessageFeed from "../components/MessageFeed/MessageFeed";
 import { useRunningState } from "../hooks/useRunning";
-import { MondayBoard } from "../../shared/types";
+import { UserIdModel, MondayBoard } from "../../shared/types";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { CHANNEL_CONTACTS, CHANNEL_CONTACTSBOTS } from "../../shared/constants";
 
 export const UpdateBoard = () => {
   const navigate = useNavigate();
   const [tgMessages, setTgMessages] = useState<any[]>([]);
-  const [allBoards, setAllBoards] = useState<MondayBoard[]>();
-  const [selectedBoards, setSelectedBoards] = useState([]);
+  const [allBoards, setAllBoards] = useState<MondayBoard[]>([]);
+  const [selectedBoards, setSelectedBoards] = useState<
+    { name: string; id: string }[]
+  >([]);
   const [config, setConfig] = useState();
   const [ready, setReady] = useState(false);
   const { running, setRunning } = useRunningState();
 
-  const [contactBots, setContactBots] = useState<any[]>([]);
-  const [userToAdd, setUserToAdd] = useState([]);
+  const [contactBots, setContactBots] = useState<UserIdModel[]>([]);
+  const [userToAdd, setUserToAdd] = useState<string[]>([]);
 
   const stopService = () => {
     setReady(false);
@@ -33,22 +35,26 @@ export const UpdateBoard = () => {
     navigate("/");
   };
 
-  const onBoardChange = (e, index) => {
+  const onBoardChange = (e: any, index: number) => {
     const targetBoard = allBoards.find((board) => board.id === e.target.value);
+    if (!targetBoard) return;
     //new list from old + changed element
-    const newSelection = selectedBoards.map((board, boardIndex) => {
-      if (boardIndex === index)
-        return {
-          name: targetBoard.name,
-          id: targetBoard.id,
-        };
-      return board;
-    });
+    const newSelection = selectedBoards.reduce(
+      (acc: { name: string; id: string }[], board, boardIndex) => {
+        if (boardIndex === index)
+          acc.push({
+            name: targetBoard.name,
+            id: targetBoard.id,
+          });
+        return acc;
+      },
+      [],
+    );
 
     setSelectedBoards(newSelection);
   };
 
-  const deleteBoard = (index) => {
+  const deleteBoard = (index: number) => {
     let left = selectedBoards.slice(0, index); // Everything before configs[index]
     let right = selectedBoards.slice(index + 1); // Everything after configs[index]
     const newItems = [...left, ...right];
@@ -71,7 +77,7 @@ export const UpdateBoard = () => {
       method: "getContactsAndBots",
     });
 
-    window.Main.once(CHANNEL_CONTACTSBOTS, (data) => {
+    window.Main.once(CHANNEL_CONTACTSBOTS, (data: UserIdModel[]) => {
       console.log(data);
       setContactBots(data);
     });
@@ -90,6 +96,8 @@ export const UpdateBoard = () => {
 
     const data = config || {};
     //Include_keywords list
+    //TODO handle types
+    //@ts-ignore
     data["updated_boards"] = selectedBoards;
 
     window.Main.sendSyncRequest({
@@ -111,7 +119,6 @@ export const UpdateBoard = () => {
 
   useEffect(() => {
     if (!running) return;
-    let allMessages = [];
 
     const startTelegram = () => {
       setRunning(true);
@@ -123,8 +130,7 @@ export const UpdateBoard = () => {
     };
 
     const handleTelegramUpdate = (update: any) => {
-      allMessages = [...allMessages, update];
-      setTgMessages(allMessages);
+      setTgMessages((prev) => [...prev, update]);
     };
 
     startTelegram();
@@ -193,7 +199,7 @@ export const UpdateBoard = () => {
                 placeholder="Add contact to exported groups"
                 w={"80%"}
                 onChange={(e) => {
-                  setUserToAdd([...userToAdd, e.target.value]);
+                  setUserToAdd((prev) => [...prev, e.target.value]);
                 }}
               >
                 {contactBots.map((contact) => {

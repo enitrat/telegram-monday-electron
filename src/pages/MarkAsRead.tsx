@@ -5,7 +5,7 @@ import {
   CHANNEL_LAST_MESSAGES,
   CHANNEL_MARK_AS_READ,
 } from "../../shared/constants";
-import { CustomDialog } from "../../shared/types";
+import { DialogModel, MessageModel } from "../../shared/types";
 import "../styles/MarkAsReadPage.css";
 import { CheckCircleIcon, Icon } from "@chakra-ui/icons";
 import { Button, Input, List, ListItem, Spinner } from "@chakra-ui/react";
@@ -37,15 +37,15 @@ enum Status {
 // mark as read all dialogs that have the keyword in the last message
 
 interface Group {
-  id: bigint;
+  id: string;
   name: string;
   isRead: boolean;
   message: string;
 }
 
 const MarkAsRead = () => {
-  const [dialogs, setDialogs] = useState<CustomDialog[]>([]);
-  const [groups, setGroups] = useState<CustomDialog[]>([]);
+  const [dialogs, setDialogs] = useState<DialogModel[]>([]);
+  const [groups, setGroups] = useState<DialogModel[]>([]);
 
   //let [selectedGroupNames, setSelectedGroupNames] = useState<String[]>([])
   let selectedGroupNames: String[] = [];
@@ -58,7 +58,7 @@ const MarkAsRead = () => {
 
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   let _groupNames: Group[] = [];
 
@@ -79,16 +79,19 @@ const MarkAsRead = () => {
   }
 
   const getLastMessage = async (
-    id: bigInt.BigInteger,
+    groupId: string,
     groupName: string,
-  ): Promise<string> => {
-    console.log(("get last message for group " + id) as unknown as bigint);
+  ): Promise<MessageModel | null> => {
+    console.log("get last message for group " + groupId);
     try {
       console.log("get last message for group " + groupName);
-      window.Main.sendAsyncRequest({ method: "getLastMessage", params: [id] });
+      window.Main.sendAsyncRequest({
+        method: "getLastMessage",
+        params: [groupId],
+      });
 
-      const data = await new Promise<string>((resolve, reject) => {
-        const handleLastMessage = (lastMessageData: string) => {
+      const data = await new Promise<MessageModel>((resolve, reject) => {
+        const handleLastMessage = (lastMessageData: MessageModel) => {
           window.Main.off(CHANNEL_LAST_MESSAGE, handleLastMessage);
           resolve(lastMessageData);
         };
@@ -114,12 +117,12 @@ const MarkAsRead = () => {
       setLoading(true);
       console.log("start import for input message: " + inputMessage);
 
-      window.Main.sendAsyncRequest({ method: "startTexting" });
+      window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
 
-      const _groups: CustomDialog[] = await new Promise((resolve) => {
-        const handleGroups = (data: any) => {
+      const _groups: DialogModel[] = await new Promise((resolve) => {
+        const handleGroups = (data: DialogModel[]) => {
           window.Main.off(CHANNEL_GROUPS, handleGroups);
-          resolve(data as CustomDialog[]);
+          resolve(data);
         };
 
         window.Main.once(CHANNEL_GROUPS, handleGroups);
@@ -134,13 +137,14 @@ const MarkAsRead = () => {
       _groupNames = [];
 
       for (const group of _groups) {
-        const lastMessage = await getLastMessage(group.id.value, group.title);
-        if (isMessageIncluded(lastMessage, inputMessage)) {
+        const lastMessage = await getLastMessage(group.id, group.title);
+        if (!lastMessage) continue;
+        if (isMessageIncluded(lastMessage.text || "", inputMessage)) {
           _groupNames.push({
-            id: group.id.value as unknown as bigint,
+            id: group.id,
             name: group.title,
             isRead: false,
-            message: lastMessage,
+            message: lastMessage.text || "",
           });
         }
       }
@@ -153,14 +157,14 @@ const MarkAsRead = () => {
     }
   };
 
-  const handleMarkAsRead = async (id: bigint): Promise<boolean> => {
+  const handleMarkAsRead = async (groupId: string): Promise<boolean> => {
     //let _id = bigInt(id.valueOf());
-    window.Main.sendAsyncRequest({ method: "markAsRead", params: [id] });
+    window.Main.sendAsyncRequest({ method: "markAsRead", params: [groupId] });
     console.log(
       "mark as read for group " +
-        groupNames.find((group) => group.id === id).name,
+        groupNames.find((group) => group.id === groupId)?.name,
     );
-    console.log("mark as read for group " + id);
+    console.log("mark as read for group " + groupId);
     let _markAsRead: boolean = await new Promise((resolve) => {
       const handleMarkAsRead = (data: any) => {
         window.Main.off(CHANNEL_MARK_AS_READ, handleMarkAsRead);
@@ -170,7 +174,7 @@ const MarkAsRead = () => {
     });
 
     const updatedGroups = groupNames.map((group) => {
-      if (group.id === id && _markAsRead) {
+      if (group.id === groupId && _markAsRead) {
         return { ...group, isRead: true };
       }
       return group;
@@ -195,7 +199,7 @@ const MarkAsRead = () => {
     }
   };
 
-  const handleSeeMessage = (message, groupId) => {
+  const handleSeeMessage = (message: string, groupId: string) => {
     setDialogMessage(message); // Set the message for the dialog
     setSelectedGroupId(groupId); // Set the selected group ID
     setOpenDialog(true); // Open the dialog

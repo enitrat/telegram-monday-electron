@@ -6,7 +6,7 @@ import {
   Select,
   Spinner,
 } from "@chakra-ui/react";
-import { CustomFolder } from "../../shared/types";
+import { FolderModel } from "../../shared/types";
 import { useEffect, useState } from "react";
 import {
   CHANNEL_EDIT_FOLDERS,
@@ -16,7 +16,7 @@ import {
 import { NotificationManager } from "react-notifications";
 
 export const FillFolders = () => {
-  const [folders, setFolders] = useState<CustomFolder[]>([]);
+  const [folders, setFolders] = useState<FolderModel[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string>();
   const [keyword, setKeyword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -24,11 +24,12 @@ export const FillFolders = () => {
   useEffect(() => {
     setLoadingFolders(true);
 
-    window.Main.sendAsyncRequest({ method: "startTexting" });
+    // Get groups to cache them in the telegram client - required for getting folders
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
     window.Main.once(CHANNEL_GROUPS, () => {
       window.Main.sendAsyncRequest({ method: "getFolders", params: [] });
     });
-    window.Main.once(CHANNEL_FOLDERS, (data) => {
+    window.Main.once(CHANNEL_FOLDERS, (data: FolderModel[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get participants");
         return;
@@ -39,11 +40,11 @@ export const FillFolders = () => {
     });
   }, []);
 
-  const handleSelection = (e) => {
+  const handleSelection = (e: any) => {
     setSelectedFolder(e.target.value);
   };
 
-  const handleInput = (e) => {
+  const handleInput = (e: any) => {
     setKeyword(e.target.value);
   };
 
@@ -54,7 +55,7 @@ export const FillFolders = () => {
       method: "fillFolder",
       params: [selectedFolder, keyword],
     });
-    window.Main.once(CHANNEL_EDIT_FOLDERS, (data) => {
+    window.Main.once(CHANNEL_EDIT_FOLDERS, (data: any) => {
       if (!data) {
         NotificationManager.error("Couldn't edit folder");
         return;
