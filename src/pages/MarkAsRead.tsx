@@ -8,8 +8,9 @@ import {
 import { DialogModel, MessageModel } from "../../shared/types";
 import "../styles/MarkAsReadPage.css";
 import { CheckCircleIcon, Icon } from "@chakra-ui/icons";
+import { NotificationManager } from "react-notifications";
 import { Button, Input, List, ListItem, Spinner } from "@chakra-ui/react";
-import bigInt from "big-integer";
+import { Progress } from "@chakra-ui/react";
 import {
   Dialog,
   DialogTitle,
@@ -59,6 +60,9 @@ const MarkAsRead = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [fetchProgress, setFetchProgress] = useState<number>(0);
+  const [totalGroups, setTotalGroups] = useState<number>(0);
+
 
   let _groupNames: Group[] = [];
 
@@ -130,14 +134,19 @@ const MarkAsRead = () => {
 
       setGroups(_groups);
 
-      //const ids = _groups.map(group => group.id.value);
-
-      //const lastMessages = await getLastMessage(ids, 'all groups');
+      setTotalGroups(_groups.length); // Update the total number of groups
 
       _groupNames = [];
 
-      for (const group of _groups) {
+      for (let i = 0; i < _groups.length; i++) {
+        const group = _groups[i];
         const lastMessage = await getLastMessage(group.id, group.title);
+        console.log("last message for group " + group.title + " is " + lastMessage?.text)
+
+        // Calculate and update the progress
+        const progress = ((i + 1) / _groups.length) * 100;
+        setFetchProgress(progress);
+
         if (!lastMessage) continue;
         if (isMessageIncluded(lastMessage.text || "", inputMessage)) {
           _groupNames.push({
@@ -149,13 +158,19 @@ const MarkAsRead = () => {
         }
       }
 
+      if (_groupNames.length === 0) {
+        NotificationManager.error("No groups found with message: " + inputMessage);
+      }
+
       setGroupNames(_groupNames);
     } catch (error) {
       console.error("Error occurred:", error);
     } finally {
       setLoading(false);
+      setFetchProgress(100); // Set progress to 100% after completion
     }
   };
+
 
   const handleMarkAsRead = async (groupId: string): Promise<boolean> => {
     //let _id = bigInt(id.valueOf());
@@ -224,6 +239,9 @@ const MarkAsRead = () => {
         />
         {loading ? <Spinner /> : <Button onClick={handleSubmit}>Submit</Button>}
       </div>
+      {fetchProgress > 0 && fetchProgress < 100 && (
+          <Progress value={fetchProgress} size="md" colorScheme="blue" marginTop="10px" />
+      )}
 
       <div className="group-list-container">
         <List className="group-list" spacing={3}>

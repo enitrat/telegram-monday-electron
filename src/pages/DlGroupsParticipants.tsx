@@ -5,8 +5,7 @@ import { Flex, Spinner } from "@chakra-ui/react";
 import { NotificationManager } from "react-notifications";
 import Papa, { ParseResult } from "papaparse";
 import styled from "styled-components";
-import {Api} from "telegram";
-import NotificationSoundRingtone = Api.NotificationSoundRingtone;
+import { Progress } from "@chakra-ui/react";
 
 const Container = styled.div`
   display: flex;
@@ -71,6 +70,8 @@ const DownloadGroupsParticipants = () => {
   const fileInput = useRef<any>(null);
   let [participants, setParticipants] = useState<UserModel[]>([]);
   let fetchedParticipants: UserModel[] = [];
+   const [fetchProgressMap, setFetchProgressMap] = useState<Record<string, number>>({});
+
 
   const reset = () => {
     fetchedParticipants = [];
@@ -89,13 +90,19 @@ const DownloadGroupsParticipants = () => {
         header: true,
         skipEmptyLines: true,
         complete: (results: ParseResult<{ title: string }>) => {
-          selectedGroupNames = results.data.map((group) =>
-            group.title.toLowerCase(),
-          );
+          try {
+            selectedGroupNames = results.data.map((group: { title: string }) =>
+                group.title.toLowerCase(),
+            );
             if (selectedGroupNames.length == 0) {
-                NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
-                return;
+              NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
+              return;
             }
+          } catch (e) {
+            console.log(e);
+            NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets");
+            return;
+          }
           startImport().then((r) => console.log("done"));
         },
       });
@@ -151,14 +158,14 @@ const DownloadGroupsParticipants = () => {
 
       const data: UserModel[] = await new Promise((resolve, reject) => {
         window.Main.once(
-          CHANNEL_PARTICIPANTS,
-          (participantsData: UserModel[]) => {
-            if (!participantsData) {
-              reject(new Error("Couldn't get participants"));
-            } else {
-              resolve(participantsData);
-            }
-          },
+            CHANNEL_PARTICIPANTS,
+            (participantsData: UserModel[]) => {
+              if (!participantsData) {
+                reject(new Error("Couldn't get participants"));
+              } else {
+                resolve(participantsData);
+              }
+            },
         );
       });
 
@@ -170,11 +177,18 @@ const DownloadGroupsParticipants = () => {
           addParticipantIfNotExists(participant);
         }
       }
+
+      // Update progress for the completed group
+      setFetchProgressMap(prevProgressMap => ({
+        ...prevProgressMap,
+        [groupId]: 100
+      }));
     } catch (error) {
       console.error(error);
       NotificationManager.error("Couldn't get participants");
     }
   };
+
 
   const startImport = async (): Promise<void> => {
     try {
@@ -200,9 +214,13 @@ const DownloadGroupsParticipants = () => {
 
       setImportedGroups(importedData);
 
-      const participantsRequests = importedData.map((group) =>
-        getParticipants(group.id),
-      );
+      const participantsRequests = importedData.map((group) => {
+        setFetchProgressMap(prevProgressMap => ({
+          ...prevProgressMap,
+          [group.id]: 0
+        }));
+        return getParticipants(group.id);
+      });
       await Promise.all(participantsRequests);
       setParticipants(fetchedParticipants);
 
@@ -244,10 +262,16 @@ const DownloadGroupsParticipants = () => {
           <h2>Imported {importedGroups.length} Groups:</h2>
           <ul>
             {importedGroups.map((group, index) => (
-              <li key={index}>{group.title}</li>
+                <li key={index}>
+                  {group.title}
+                  {fetchProgressMap[group.id] !== undefined && (
+                      <Progress value={fetchProgressMap[group.id]} size="sm" colorScheme="blue" />
+                  )}
+                </li>
             ))}
           </ul>
         </ScrollableList>
+
 
         <ScrollableList>
           <h2>Fetched {participants.length} Participants:</h2>
