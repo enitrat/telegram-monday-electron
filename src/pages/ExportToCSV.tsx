@@ -1,26 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { CHANNEL_GROUPS, CHANNEL_PARTICIPANTS } from "../../shared/constants";
-import { CustomDialog } from "../../shared/types";
+import {
+  DialogModel,
+  UserModel,
+  ParticipantPlusDate,
+} from "../../shared/types";
 import { NotificationManager } from "react-notifications";
 import { Box, Button, Divider, Flex, Heading, Input } from "@chakra-ui/react";
 
 const exportToCSV = () => {
-  const [selectedDialog, setSelectedDialog] = useState<CustomDialog>();
-  const [participants, setParticipants] = useState<any[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [dialogs, setDialogs] = useState<CustomDialog[]>([]);
-  const [suggestions, setSuggestions] = useState<CustomDialog[]>([]);
+  const [selectedDialog, setSelectedDialog] = useState<DialogModel>();
+  const [participants, setParticipants] = useState<ParticipantPlusDate[]>([]);
+  const [inputValue, setInputValue] = useState<string>("");
+  const [dialogs, setDialogs] = useState<DialogModel[]>([]);
+  const [suggestions, setSuggestions] = useState<DialogModel[]>([]);
   const searchInput = useRef();
 
   useEffect(() => {
-    window.Main.sendAsyncRequest({ method: "startTexting" });
-    window.Main.once(CHANNEL_GROUPS, (data) => {
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
+    window.Main.once(CHANNEL_GROUPS, (data: DialogModel[]) => {
       setDialogs(data);
       setSuggestions(data);
     });
 
     return () => {
-      window.Main.off(CHANNEL_GROUPS, undefined);
+      window.Main.off(CHANNEL_GROUPS, () => {});
     };
   }, []);
 
@@ -31,7 +35,7 @@ const exportToCSV = () => {
       method: "getOrderedByLastDMParticipants",
       params: [selectedDialog.id],
     });
-    window.Main.once(CHANNEL_PARTICIPANTS, (data) => {
+    window.Main.once(CHANNEL_PARTICIPANTS, (data: ParticipantPlusDate[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get participants");
         return;
@@ -40,20 +44,20 @@ const exportToCSV = () => {
     });
 
     return () => {
-      window.Main.off(CHANNEL_PARTICIPANTS, undefined);
+      window.Main.off(CHANNEL_PARTICIPANTS, () => {});
     };
   }, [selectedDialog]);
 
-  const selectDialog = (e) => {
+  const selectDialog = (e: any) => {
     const value = e.target.value;
     const correspondingDialog = dialogs.find(
       (dialog) => dialog.title === value,
     );
-    setInputValue(correspondingDialog.title);
+    setInputValue(correspondingDialog?.title || "");
     setSelectedDialog(correspondingDialog);
   };
 
-  const changeSuggestions = (e) => {
+  const changeSuggestions = (e: any) => {
     const value: string = e.target.value as string;
     setInputValue(value);
     const newSuggestions = dialogs.filter((dialog) =>
@@ -63,17 +67,19 @@ const exportToCSV = () => {
   };
 
   const startExport = () => {
-    const fmt = participants.map((participant) => {
-      return { ...participant, id: participant.id.value.toString() };
-    });
+    const fmt: ParticipantPlusDate[] = participants.map(
+      (participant: ParticipantPlusDate) => {
+        return { ...participant, id: participant.id };
+      },
+    );
     const items = fmt;
-    const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
+    const replacer = (key: any, value: any) => (value === null ? "" : value); // specify how you want to handle null values here
     const header = Object.keys(items[0]);
     const csv = [
       header.join(","), // header row first
       ...items.map((row) =>
         header
-          .map((fieldName) => JSON.stringify(row[fieldName], replacer))
+          .map((fieldName) => JSON.stringify((row as any)[fieldName], replacer))
           .join(","),
       ),
     ].join("\r\n");
@@ -101,7 +107,7 @@ const exportToCSV = () => {
             <Input
               autoFocus
               type={"text"}
-              ref={searchInput}
+              ref={searchInput as any}
               value={inputValue}
               onChange={(e) => changeSuggestions(e)}
             ></Input>

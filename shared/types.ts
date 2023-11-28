@@ -17,12 +17,12 @@ export type MondayColumn = {
   title: string;
 };
 
-export type CustomDialog = {
+export type DialogModel = {
   date: number;
   lastMsgDate: number | undefined;
   link: string;
   lastMsg: string | undefined;
-  id: { value: bigInt.BigInteger };
+  id: string;
   title: string;
   type:
     | "UserEmpty"
@@ -34,15 +34,36 @@ export type CustomDialog = {
     | "ChannelForbidden";
 };
 
-export type CustomParticipant = {
+export type UserModel = {
   firstName: string;
   lastName: string;
-  id: { value: BigInt };
+  id: string;
   username: string;
 };
 
-export interface CustomFolder {
+export type ParticipantPlusDate = UserModel & { lastDM: number };
+
+export interface FolderModel {
   title: string;
   peerIds: number[];
   id: number;
+}
+
+export interface ContactModel {
+  username: string;
+  firstName: string;
+  lastName: string;
+  id: string;
+}
+
+export interface MessageModel {
+  author: MessageAuthor;
+  text: string | undefined;
+}
+
+export type MessageAuthor = "me" | "contact";
+
+export interface UserIdModel {
+  username: string;
+  id: string;
 }

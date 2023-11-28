@@ -14,12 +14,12 @@ import { InfoOutlineIcon } from "@chakra-ui/icons";
 import { NotificationManager } from "react-notifications";
 
 const ErrorsDisplay = () => {
-  const [errors, setErrors] = useState([]);
+  const [errors, setErrors] = useState<any>([]);
   const [newError, setNewError] = useState<string>("");
   const [isDisplayed, setIsDisplayed] = useState(false);
 
   useEffect(() => {
-    window.Main.on("error", (newError) => {
+    window.Main.on("error", (newError: any) => {
       setNewError(newError);
       // NotificationManager.error(newError)
     });
@@ -31,7 +31,7 @@ const ErrorsDisplay = () => {
 
   useEffect(() => {
     if (newError === "") return;
-    setErrors([...errors, newError]);
+    setErrors((errors: any) => [...errors, newError]);
   }, [newError]);
 
   return (
@@ -51,7 +51,7 @@ const ErrorsDisplay = () => {
           </MenuButton>
           <Flex flexDir={"column"} bg={useColorModeValue("white", "gray.700")}>
             <MenuList bg="brand.navbar" padding={0}>
-              {errors.reverse().map((error, index) => {
+              {errors.reverse().map((error: any, index: number) => {
                 return (
                   <Box key={error.toString + index.toString()}>
                     <MenuItem

@@ -39,7 +39,7 @@ function createWindow() {
   });
 }
 
-export const sendError = (message) => {
+export const sendError = (message: any) => {
   mainWindow?.webContents.send("error", message);
 };
 
@@ -47,7 +47,7 @@ async function registerListeners() {
   /**
    * This comes from bridge integration, check bridge.ts
    */
-  controller = new Controller(mainWindow?.webContents);
+  controller = new Controller(mainWindow?.webContents!);
   const api = controller.getApi();
   ipcMain.on("syncRequest", (event, request) => {
     const payload = request;
@@ -62,7 +62,7 @@ async function registerListeners() {
   });
 
   ipcMain.on("download-csv", async (event, { url }) => {
-    const win = BrowserWindow.getFocusedWindow();
+    const win = BrowserWindow.getFocusedWindow()!;
     await download(win, url, { saveAs: true, openFolderWhenDone: true });
   });
 }

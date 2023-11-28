@@ -5,7 +5,12 @@ import {
   CHANNEL_MESSAGE_SENT,
   CHANNEL_PARTICIPANTS,
 } from "../../shared/constants";
-import { CustomDialog, CustomParticipant } from "../../shared/types";
+import {
+  DialogModel,
+  MessageModel,
+  UserModel,
+  ParticipantPlusDate,
+} from "../../shared/types";
 import {
   Box,
   Button,
@@ -22,25 +27,25 @@ import ScrollableFeed from "react-scrollable-feed";
 import { MessageBox } from "../components/MessageBox/MessageBox";
 
 const Texting = () => {
-  const [dialogs, setDialogs] = useState<CustomDialog[]>([]);
-  const [selectedDialog, setSelectedDialog] = useState<CustomDialog>();
-  const [participants, setParticipants] = useState<CustomParticipant[]>([]);
+  const [dialogs, setDialogs] = useState<DialogModel[]>([]);
+  const [selectedDialog, setSelectedDialog] = useState<DialogModel>();
+  const [participants, setParticipants] = useState<ParticipantPlusDate[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [messageToSend, setMessageToSend] = useState<string>("");
-  const [previousMessages, setPreviousMessages] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
+  const [previousMessages, setPreviousMessages] = useState<MessageModel[]>([]);
+  const [suggestions, setSuggestions] = useState<DialogModel[]>([]);
   const [inputValue, setInputValue] = useState("");
   const searchInput = useRef(null);
 
   useEffect(() => {
-    window.Main.sendAsyncRequest({ method: "startTexting" });
-    window.Main.once(CHANNEL_GROUPS, (data) => {
+    window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
+    window.Main.once(CHANNEL_GROUPS, (data: DialogModel[]) => {
       setDialogs(data);
       setSuggestions(data);
     });
 
     return () => {
-      window.Main.off(CHANNEL_GROUPS, undefined);
+      window.Main.off(CHANNEL_GROUPS, () => {});
     };
   }, []);
 
@@ -52,7 +57,7 @@ const Texting = () => {
       method: "getOrderedByLastDMParticipants",
       params: [selectedDialog.id],
     });
-    window.Main.once(CHANNEL_PARTICIPANTS, (data) => {
+    window.Main.once(CHANNEL_PARTICIPANTS, (data: ParticipantPlusDate[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get participants");
         return;
@@ -61,7 +66,7 @@ const Texting = () => {
     });
 
     return () => {
-      window.Main.off(CHANNEL_PARTICIPANTS, undefined);
+      window.Main.off(CHANNEL_PARTICIPANTS, () => {});
     };
   }, [selectedDialog]);
 
@@ -73,7 +78,7 @@ const Texting = () => {
       method: "getUserLastMessages",
       params: [participants[index].id],
     });
-    window.Main.once(CHANNEL_LAST_MESSAGES, (data) => {
+    window.Main.once(CHANNEL_LAST_MESSAGES, (data: MessageModel[]) => {
       if (!data) {
         NotificationManager.error("Couldn't get messages");
         return;
@@ -82,16 +87,16 @@ const Texting = () => {
     });
   }, [index || participants || selectedDialog]);
 
-  const selectDialog = (e) => {
+  const selectDialog = (e: any) => {
     const value = e.target.value;
     const correspondingDialog = dialogs.find(
       (dialog) => dialog.title === value,
     );
-    setInputValue(correspondingDialog.title);
+    setInputValue(correspondingDialog?.title || "");
     setSelectedDialog(correspondingDialog);
   };
 
-  const changeParticipant = (e) => {
+  const changeParticipant = (e: any) => {
     const value = e.target.value;
     setIndex(parseInt(value));
   };
@@ -101,14 +106,14 @@ const Texting = () => {
       method: "sendUserMessage",
       params: [participants[index].id, messageToSend],
     });
-    window.Main.once(CHANNEL_MESSAGE_SENT, (data) => {
+    window.Main.once(CHANNEL_MESSAGE_SENT, () => {
       NotificationManager.success("Message sent");
       setMessageToSend("");
       if (index !== participants.length - 1) setIndex(index + 1);
     });
   };
 
-  const changeSuggestions = (e) => {
+  const changeSuggestions = (e: any) => {
     const value: string = e.target.value as string;
     setInputValue(value);
     const newSuggestions = dialogs.filter((dialog) =>

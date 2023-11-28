@@ -34,7 +34,7 @@ const KeyConfig = () => {
 
     const data = {};
     for (const entry of formData.entries()) {
-      data[entry[0]] = entry[1];
+      (data as any)[entry[0]] = entry[1];
     }
 
     window.Main.sendSyncRequest({

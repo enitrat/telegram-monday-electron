@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { CHANNEL_GROUPS, CHANNEL_PARTICIPANTS } from "../../shared/constants";
-import { CustomDialog, CustomParticipant } from "../../shared/types";
+import { DialogModel, UserModel } from "../../shared/types";
 import { Flex, Spinner } from "@chakra-ui/react";
 import { NotificationManager } from "react-notifications";
-import Papa from "papaparse";
+import Papa, { ParseResult } from "papaparse";
 import styled from "styled-components";
 import {Api} from "telegram";
 import NotificationSoundRingtone = Api.NotificationSoundRingtone;
@@ -64,13 +64,13 @@ const ScrollableList = styled.div`
   }
 `;
 const DownloadGroupsParticipants = () => {
-  let [importedGroups, setImportedGroups] = useState<CustomDialog[]>([]);
+  let [importedGroups, setImportedGroups] = useState<DialogModel[]>([]);
   let selectedGroupNames: String[] = [];
   const [loading, setLoading] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
-  const fileInput = useRef(null);
-  let [participants, setParticipants] = useState<CustomParticipant[]>([]);
-  let fetchedParticipants: CustomParticipant[] = [];
+  const fileInput = useRef<any>(null);
+  let [participants, setParticipants] = useState<UserModel[]>([]);
+  let fetchedParticipants: UserModel[] = [];
 
   const reset = () => {
     fetchedParticipants = [];
@@ -81,34 +81,27 @@ const DownloadGroupsParticipants = () => {
     setExporting(false);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e: any) => {
     try {
       reset();
       e.preventDefault();
       Papa.parse(e.target.files[0], {
         header: true,
         skipEmptyLines: true,
-        complete: (results) => {
-
-          try {
-            selectedGroupNames = results.data.map((group: { title: string }) =>
-                group.title.toLowerCase(),
-            );
-
+        complete: (results: ParseResult<{ title: string }>) => {
+          selectedGroupNames = results.data.map((group) =>
+            group.title.toLowerCase(),
+          );
             if (selectedGroupNames.length == 0) {
-              NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
-              return;
+                NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
+                return;
             }
-          } catch (e) {
-            NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets");
-            return;
-          }
-
           startImport().then((r) => console.log("done"));
         },
       });
     } catch (e) {
       console.log(e);
+      NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets");
     }
   };
 
@@ -130,13 +123,13 @@ const DownloadGroupsParticipants = () => {
     setExporting(false);
   };
 
-  const filterDialogsByName = (data: CustomDialog[]) => {
+  const filterDialogsByName = (data: DialogModel[]) => {
     return data.filter((dialog) =>
       selectedGroupNames.includes(dialog.title.toLowerCase()),
     );
   };
 
-  const addParticipantIfNotExists = (newParticipant: CustomParticipant) => {
+  const addParticipantIfNotExists = (newParticipant: UserModel) => {
     const exists = fetchedParticipants.some(
       (participant) => participant.username === newParticipant.username,
     );
@@ -148,7 +141,7 @@ const DownloadGroupsParticipants = () => {
     }
   };
 
-  const getParticipants = async (groupId: bigint): Promise<void> => {
+  const getParticipants = async (groupId: string): Promise<void> => {
     try {
       console.log("get participants for group " + groupId);
       window.Main.sendAsyncRequest({
@@ -156,18 +149,21 @@ const DownloadGroupsParticipants = () => {
         params: [groupId],
       });
 
-      const data: any = await new Promise((resolve, reject) => {
-        window.Main.once(CHANNEL_PARTICIPANTS, (participantsData) => {
-          if (!participantsData) {
-            reject(new Error("Couldn't get participants"));
-          } else {
-            resolve(participantsData);
-          }
-        });
+      const data: UserModel[] = await new Promise((resolve, reject) => {
+        window.Main.once(
+          CHANNEL_PARTICIPANTS,
+          (participantsData: UserModel[]) => {
+            if (!participantsData) {
+              reject(new Error("Couldn't get participants"));
+            } else {
+              resolve(participantsData);
+            }
+          },
+        );
       });
 
       if (data) {
-        let _participants = data as CustomParticipant[];
+        let _participants = data;
         console.log("participants: " + _participants.length);
         for (let participant of _participants) {
           console.log(participant.username);
@@ -185,15 +181,15 @@ const DownloadGroupsParticipants = () => {
       console.log("start import");
       setLoading(true);
       await new Promise((resolve) => {
-        window.Main.sendAsyncRequest({ method: "startTexting" });
+        window.Main.sendAsyncRequest({ method: "startAndGetGroups" });
         resolve(null);
       });
 
-      const importedData: CustomDialog[] = await new Promise((resolve) => {
+      const importedData: DialogModel[] = await new Promise((resolve) => {
         const handleGroups = (data: any) => {
-          let filtered: CustomDialog[] = filterDialogsByName(
+          let filtered: DialogModel[] = filterDialogsByName(
             data,
-          ) as CustomDialog[];
+          ) as DialogModel[];
           console.log("filtered: " + filtered.length);
           resolve(filtered);
           window.Main.off(CHANNEL_GROUPS, handleGroups); // Remove listener after resolving
@@ -205,7 +201,7 @@ const DownloadGroupsParticipants = () => {
       setImportedGroups(importedData);
 
       const participantsRequests = importedData.map((group) =>
-        getParticipants(group.id.value as unknown as bigint),
+        getParticipants(group.id),
       );
       await Promise.all(participantsRequests);
       setParticipants(fetchedParticipants);

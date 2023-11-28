@@ -117,7 +117,7 @@ const MainMenu = () => {
   );
 };
 
-function ButtonWithText({ children, onClick, colorScheme, marginTop }) {
+function ButtonWithText({ children, onClick, colorScheme, marginTop }: any) {
   return (
     <Button
       width="125px"
