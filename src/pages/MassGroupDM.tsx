@@ -109,18 +109,21 @@ const MassGroupDM = () => {
       skipEmptyLines: true,
       complete: (results: ParseResult<{ title: string }>) => {
         try {
-            selectedGroupNames = results.data.map((group: { title: string }) =>
-                group.title.toLowerCase(),
+          selectedGroupNames = results.data.map((group: { title: string }) =>
+            group.title.toLowerCase(),
+          );
+
+          if (selectedGroupNames.length == 0) {
+            NotificationManager.error(
+              "Aucun nom de groupe trouvé dans la colonne title",
             );
-
-
-            if (selectedGroupNames.length == 0) {
-                NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
-                return
-            }
+            return;
+          }
         } catch (e) {
-            NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets")
-            return
+          NotificationManager.error(
+            "Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets",
+          );
+          return;
         }
 
         startImport();

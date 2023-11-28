@@ -63,7 +63,6 @@ const MarkAsRead = () => {
   const [fetchProgress, setFetchProgress] = useState<number>(0);
   const [totalGroups, setTotalGroups] = useState<number>(0);
 
-
   let _groupNames: Group[] = [];
 
   useEffect(() => {
@@ -141,7 +140,9 @@ const MarkAsRead = () => {
       for (let i = 0; i < _groups.length; i++) {
         const group = _groups[i];
         const lastMessage = await getLastMessage(group.id, group.title);
-        console.log("last message for group " + group.title + " is " + lastMessage?.text)
+        console.log(
+          "last message for group " + group.title + " is " + lastMessage?.text,
+        );
 
         // Calculate and update the progress
         const progress = ((i + 1) / _groups.length) * 100;
@@ -159,7 +160,9 @@ const MarkAsRead = () => {
       }
 
       if (_groupNames.length === 0) {
-        NotificationManager.error("No groups found with message: " + inputMessage);
+        NotificationManager.error(
+          "No groups found with message: " + inputMessage,
+        );
       }
 
       setGroupNames(_groupNames);
@@ -170,7 +173,6 @@ const MarkAsRead = () => {
       setFetchProgress(100); // Set progress to 100% after completion
     }
   };
-
 
   const handleMarkAsRead = async (groupId: string): Promise<boolean> => {
     //let _id = bigInt(id.valueOf());
@@ -240,7 +242,12 @@ const MarkAsRead = () => {
         {loading ? <Spinner /> : <Button onClick={handleSubmit}>Submit</Button>}
       </div>
       {fetchProgress > 0 && fetchProgress < 100 && (
-          <Progress value={fetchProgress} size="md" colorScheme="blue" marginTop="10px" />
+        <Progress
+          value={fetchProgress}
+          size="md"
+          colorScheme="blue"
+          marginTop="10px"
+        />
       )}
 
       <div className="group-list-container">

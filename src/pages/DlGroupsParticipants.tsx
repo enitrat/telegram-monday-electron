@@ -70,8 +70,9 @@ const DownloadGroupsParticipants = () => {
   const fileInput = useRef<any>(null);
   let [participants, setParticipants] = useState<UserModel[]>([]);
   let fetchedParticipants: UserModel[] = [];
-   const [fetchProgressMap, setFetchProgressMap] = useState<Record<string, number>>({});
-
+  const [fetchProgressMap, setFetchProgressMap] = useState<
+    Record<string, number>
+  >({});
 
   const reset = () => {
     fetchedParticipants = [];
@@ -92,15 +93,19 @@ const DownloadGroupsParticipants = () => {
         complete: (results: ParseResult<{ title: string }>) => {
           try {
             selectedGroupNames = results.data.map((group: { title: string }) =>
-                group.title.toLowerCase(),
+              group.title.toLowerCase(),
             );
             if (selectedGroupNames.length == 0) {
-              NotificationManager.error("Aucun nom de groupe trouvé dans la colonne title");
+              NotificationManager.error(
+                "Aucun nom de groupe trouvé dans la colonne title",
+              );
               return;
             }
           } catch (e) {
             console.log(e);
-            NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets");
+            NotificationManager.error(
+              "Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets",
+            );
             return;
           }
           startImport().then((r) => console.log("done"));
@@ -108,7 +113,9 @@ const DownloadGroupsParticipants = () => {
       });
     } catch (e) {
       console.log(e);
-      NotificationManager.error("Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets");
+      NotificationManager.error(
+        "Veuillez sélectionner un fichier CSV avec une colonne title et chaque nom de groupe entre guillemets",
+      );
     }
   };
 
@@ -158,14 +165,14 @@ const DownloadGroupsParticipants = () => {
 
       const data: UserModel[] = await new Promise((resolve, reject) => {
         window.Main.once(
-            CHANNEL_PARTICIPANTS,
-            (participantsData: UserModel[]) => {
-              if (!participantsData) {
-                reject(new Error("Couldn't get participants"));
-              } else {
-                resolve(participantsData);
-              }
-            },
+          CHANNEL_PARTICIPANTS,
+          (participantsData: UserModel[]) => {
+            if (!participantsData) {
+              reject(new Error("Couldn't get participants"));
+            } else {
+              resolve(participantsData);
+            }
+          },
         );
       });
 
@@ -179,16 +186,15 @@ const DownloadGroupsParticipants = () => {
       }
 
       // Update progress for the completed group
-      setFetchProgressMap(prevProgressMap => ({
+      setFetchProgressMap((prevProgressMap) => ({
         ...prevProgressMap,
-        [groupId]: 100
+        [groupId]: 100,
       }));
     } catch (error) {
       console.error(error);
       NotificationManager.error("Couldn't get participants");
     }
   };
-
 
   const startImport = async (): Promise<void> => {
     try {
@@ -215,9 +221,9 @@ const DownloadGroupsParticipants = () => {
       setImportedGroups(importedData);
 
       const participantsRequests = importedData.map((group) => {
-        setFetchProgressMap(prevProgressMap => ({
+        setFetchProgressMap((prevProgressMap) => ({
           ...prevProgressMap,
-          [group.id]: 0
+          [group.id]: 0,
         }));
         return getParticipants(group.id);
       });
@@ -262,16 +268,19 @@ const DownloadGroupsParticipants = () => {
           <h2>Imported {importedGroups.length} Groups:</h2>
           <ul>
             {importedGroups.map((group, index) => (
-                <li key={index}>
-                  {group.title}
-                  {fetchProgressMap[group.id] !== undefined && (
-                      <Progress value={fetchProgressMap[group.id]} size="sm" colorScheme="blue" />
-                  )}
-                </li>
+              <li key={index}>
+                {group.title}
+                {fetchProgressMap[group.id] !== undefined && (
+                  <Progress
+                    value={fetchProgressMap[group.id]}
+                    size="sm"
+                    colorScheme="blue"
+                  />
+                )}
+              </li>
             ))}
           </ul>
         </ScrollableList>
-
 
         <ScrollableList>
           <h2>Fetched {participants.length} Participants:</h2>
